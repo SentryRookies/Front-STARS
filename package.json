@@ -10,6 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullpage/react-fullpage": "^0.1.48",
+    "framer-motion": "^12.7.2",
+    "fullpage.js": "^2.9.7",
+    "mapbox-gl": "^3.11.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

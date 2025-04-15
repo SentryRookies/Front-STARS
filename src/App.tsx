@@ -1,35 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.tsx
+import { useEffect } from 'react';
+import ReactFullpage from '@fullpage/react-fullpage';
+import MapSection from './components/MapSection';
+import About from './components/About';
+import Projects from './components/Projects';
+import Contact from './components/Contact';
+import MyPage from './components/MyPage';
 
-function App() {
-  const [count, setCount] = useState(0)
+function App(): JSX.Element {
+    useEffect(() => {
+        const disableScroll = () => {
+            if (window.fullpage_api) {
+                window.fullpage_api.setAllowScrolling(false);
+                window.fullpage_api.setKeyboardScrolling(false);
+            }
+        };
+        setTimeout(disableScroll, 500);
+    }, []);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    return (
+        <ReactFullpage
+            scrollingSpeed={700}
+            controlArrows={false}
+            render={() => {
+                return (
+                    <ReactFullpage.Wrapper>
+                        {/* 첫 번째 섹션: 가로 슬라이드 2개 (지도, 마이페이지) */}
+                        <div className="section">
+                            <div className="slide"><MapSection /></div>
+                            <div className="slide"><MyPage /></div>
+                        </div>
+
+                        {/* 이후 세로 섹션들 (About, Projects, Contact) */}
+                        <div className="section"><About /></div>
+                        <div className="section"><Projects /></div>
+                        <div className="section"><Contact /></div>
+                    </ReactFullpage.Wrapper>
+                );
+            }}
+        />
+    );
 }
 
-export default App
+export default App;
