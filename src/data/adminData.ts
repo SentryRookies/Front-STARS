@@ -178,12 +178,12 @@ export interface ParkNode {
     cur_prk_cnt: number; // 현재 주차중인 대수
     cur_prk_yn: string; // 실시간 정보 제공 여부
     cur_prk_time: string; // 실시간 정보 업데이트 시각
-    lat: number;
-    lon: number;
+    lat: number; // 위도
+    lon: number; // 경도
     pay_yn: string; // 유무료 여부
     prk_cd: string; // 주차장 코드
-    prk_name: string; // 주차장 이름
-    prk_type: string; // 주차장 유형(BS: 지하, NP: 지상)
+    prk_nm: string; // 주차장 이름
+    prk_type: string; // 주차장 유형(NS: 노상, BS: 부설, BP: 공영, NW: 노외, NP: 민영)
     rates: number; // 기본 주차 요금
     road_addr: string;
     time_rates: number; // 기본 주차 단위 시간

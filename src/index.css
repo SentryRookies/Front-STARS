@@ -92,7 +92,7 @@ button:focus-visible {
 
 /* 스크롤바 트랙 (배경) */
 ::-webkit-scrollbar-track {
-  background: #f0f0f0; /* 트랙 배경색 */
+  background: rgba(240, 240, 240, 0); /* 트랙 배경색 */
   border-radius: 4px;
 }
 
@@ -107,22 +107,20 @@ button:focus-visible {
   background: #555; /* 호버 시 핸들 색상 */
 }
 
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 .custom-marker {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   background: #a855f7;
   border-radius: 50%;
   box-shadow: 0 0 6px #a855f7aa;
-  border: 1px solid #fff;
-  cursor: pointer;
-}
-
-.custom-marker-area {
-  width: 16px;
-  height: 16px;
-  background: rgba(40, 140, 255, 0.8 );
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(40, 140, 255, 0.8);
   border: 1px solid #fff;
   cursor: pointer;
 }

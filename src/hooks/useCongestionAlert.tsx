@@ -7,7 +7,7 @@ let alertId = 0;
 function getAlertType(lvl: string): AlertType | null {
     if (lvl === "붐빔") return "danger";
     // 3단계를 지금 포함시키기엔 너무 많음. 다른방법 간구해봐야할듯
-    //if (lvl === "약간 붐빔") return "warning";
+    if (lvl === "약간 붐빔") return "warning";
     return null;
 }
 

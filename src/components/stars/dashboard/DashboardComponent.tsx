@@ -16,7 +16,12 @@ import CulturalEventCard from "./CulturalEventCard";
 import { scrollToTop } from "../../../utils/scrollToTop";
 
 // API 호출
-import { getAreaList, getPlaceListByArea } from "../../../api/starsApi";
+import {
+    getAreaList,
+    getPlaceListByArea,
+    subscribeWeatherUpdate,
+} from "../../../api/starsApi";
+import { MapData } from "../../../data/adminData";
 
 interface Area {
     area_id: number;
@@ -56,6 +61,32 @@ interface CulturalEvent {
     event_img?: string;
 }
 
+interface WeatherForecast {
+    fcst_dt: string;
+    pre_temp: number;
+    pre_precipitation: number;
+    pre_precpt_type: string;
+    pre_rain_chance: number;
+    pre_sky_stts: string;
+}
+
+interface WeatherData {
+    temp: number;
+    precipitation: string;
+    precpt_type: string;
+    pcp_msg: string;
+    sensible_temp: number;
+    max_temp: number;
+    min_temp: number;
+    pm25: number;
+    pm10: number;
+    area_nm: string;
+    weather_time: string;
+    get_time: number;
+    area_id: number;
+    fcst24hours: WeatherForecast[];
+}
+
 type PlaceType =
     | "cafe"
     | "restaurant"
@@ -83,6 +114,7 @@ export default function DashboardComponent() {
         triggerCountUp,
         setTriggerCountUp,
         congestionInfo,
+        mapData,
     } = usePlace();
 
     const [areaName, setAreaName] = useState("");
@@ -92,6 +124,13 @@ export default function DashboardComponent() {
     const [poiList, setPoiList] = useState<POI[]>([]);
     const [attractions, setAttractions] = useState<Attraction[]>([]);
     const [events, setEvents] = useState<CulturalEvent[]>([]);
+
+    const [weatherList, setWeatherList] = useState<WeatherData[]>([]);
+
+    // 선택된 위치 교통 정보 찾기
+    const map: MapData | undefined = mapData?.find(
+        (map: MapData) => map.area_id === selectedAreaId
+    );
 
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
 
@@ -108,6 +147,20 @@ export default function DashboardComponent() {
             };
         });
     }, [congestionInfo]);
+
+    useEffect(() => {
+        const eventSource = subscribeWeatherUpdate((data) => {
+            if (Array.isArray(data)) {
+                setWeatherList(data as WeatherData[]);
+            }
+        });
+        return () => eventSource.close();
+    }, []);
+
+    const selectedWeather = useMemo(() => {
+        if (!selectedAreaId || weatherList.length === 0) return null;
+        return weatherList.find((w) => w.area_id === selectedAreaId) ?? null;
+    }, [selectedAreaId, weatherList]);
 
     // 관광특구 이름, 카테고리, 영문명 정보 가져오기
     useEffect(() => {
@@ -294,6 +347,7 @@ export default function DashboardComponent() {
                 <WeatherCard
                     style={cardStyles[5]}
                     cardRef={(el) => (cardRefs.current[5] = el)}
+                    weather={selectedWeather}
                 />
 
                 <ChartCard
@@ -314,19 +368,12 @@ export default function DashboardComponent() {
                 <TrafficInfoCard
                     style={cardStyles[8]}
                     cardRef={(el) => (cardRefs.current[8] = el)}
+                    mapData={map}
                 />
 
                 <ParkingInfoCard
                     style={cardStyles[9]}
                     cardRef={(el) => (cardRefs.current[9] = el)}
-                />
-
-                {/* POI 카드들 */}
-                <POICardList
-                    pois={poiList}
-                    baseIndex={10}
-                    cardRefs={cardRefs}
-                    cardStyles={cardStyles}
                 />
 
                 {/* 관광지 카드들 */}
@@ -338,6 +385,14 @@ export default function DashboardComponent() {
                         cardRef={(el) => (cardRefs.current[100 + i] = el)}
                     />
                 ))}
+
+                {/* POI 카드들 */}
+                <POICardList
+                    pois={poiList}
+                    baseIndex={10}
+                    cardRefs={cardRefs}
+                    cardStyles={cardStyles}
+                />
 
                 {/* 문화행사 카드들 */}
                 {events.map((e, i) => (

@@ -23,7 +23,7 @@ export default function CulturalEventCard({
 }: CulturalEventCardProps) {
     return (
         <motion.div
-            className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-6 bg-purple-500 rounded-3xl shadow-lg p-4 my-2"
+            className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3 bg-purple-500 rounded-3xl shadow-lg p-4 my-2"
             whileHover={{ y: -6 }}
             animate={style}
             style={style}
@@ -44,7 +44,7 @@ export default function CulturalEventCard({
                 <img
                     src={event.event_img}
                     alt={event.title}
-                    className="w-full h-32 object-cover rounded-xl mt-2"
+                    className="w-32 object-cover rounded-xl shadow-lg mt-2"
                 />
             )}
         </motion.div>

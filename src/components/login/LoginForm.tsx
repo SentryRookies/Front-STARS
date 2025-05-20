@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import useCustomLogin from "../../hooks/useCustomLogin";
@@ -14,7 +14,16 @@ export default function LoginForm({ onError }: LoginFormProps) {
     const [shake, setShake] = useState(false);
 
     const navigate = useNavigate();
-    const { doLogin } = useCustomLogin();
+    const { doLogin, isLogin } = useCustomLogin(); // isLogin 추가
+
+    // 이미 로그인 상태면 바로 이동
+    useEffect(() => {
+        if (isLogin) {
+            console.log("이미 로그인 됨.");
+            navigate("/", { replace: true });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // 다시 이 페이지에 방문할때만을 위해 isLogin을 의존성에서 제거
 
     type LoginResult = {
         error?: string;

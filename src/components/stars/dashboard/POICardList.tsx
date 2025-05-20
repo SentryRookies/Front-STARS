@@ -22,11 +22,11 @@ export default function POICardList({
     cardStyles,
 }: POICardListProps) {
     return (
-        <motion.div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4 my-2">
+        <motion.div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4 my-2">
             {pois.map((poi, idx) => (
                 <motion.div
                     key={idx}
-                    className="bg-zinc-200 rounded-3xl shadow-lg p-4 my-2"
+                    className="bg-white rounded-3xl shadow-lg p-4 my-2"
                     whileHover={{ y: -6 }}
                     animate={cardStyles[baseIndex + idx]}
                     style={cardStyles[baseIndex + idx]}

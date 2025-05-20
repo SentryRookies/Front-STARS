@@ -1,5 +1,6 @@
-// UserInfo.tsx
+// Enhanced UserInfo.tsx to tie both UserInfoShow and UserInfoEdit
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import UserInfoShow from "./UserInfoShow";
 import UserInfoEdit from "./UserInfoEdit";
 
@@ -7,7 +8,7 @@ import { UserInfo as UserInfoType } from "../../../data/UserInfoData";
 import { editUserProfile, getUserProfile } from "../../../api/mypageApi";
 import { signoutUser } from "../../../api/authApi";
 import useCustomLogin from "../../../hooks/useCustomLogin";
-// import { signoutUser } from "../../../api/authApi";
+import { isAdmin } from "../../../slices/loginSlice";
 
 const initialUserData: UserInfoType = {
     member_id: "",
@@ -22,23 +23,19 @@ const initialUserData: UserInfoType = {
 };
 
 const UserInfo = () => {
-    const [edited, setEdited] = useState<boolean>(false);
-    // 초기 상태에서는 폼이 유효하지 않은 것으로 설정 (비밀번호 변경을 선택할 경우)
+    const [editMode, setEditMode] = useState<boolean>(false);
     const [isFormValid, setIsFormValid] = useState<boolean>(true);
-    // 로딩 상태
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    // 로딩 상태 (사용자 정보 로딩)
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    // 에러 상태
     const [error, setError] = useState<string | null>(null);
-    // 사용자 정보 데이터
     const [userData, setUserData] = useState<UserInfoType | null>(null);
-    // 사용자 정보 저장
     const [userInfoToSubmit, setUserInfoToSubmit] =
         useState<UserInfoType>(initialUserData);
-    const { doLogout, moveToPath } = useCustomLogin();
 
-    // 사용자 정보 불러오는 함수
+    const { doLogout, moveToPath } = useCustomLogin();
+    const adminCheck = isAdmin();
+
+    // Load user info
     const loadUserInfo = async () => {
         setIsLoading(true);
         setError(null);
@@ -48,17 +45,15 @@ const UserInfo = () => {
 
             if (response) {
                 setUserData(response);
-                // 초기 데이터를 저장 (제출용)
                 setUserInfoToSubmit(response);
             } else {
                 setError("사용자 정보를 불러오는데 실패했습니다.");
-                // 오류 발생 시 기본 데이터 설정
                 setUserData(initialUserData);
                 setUserInfoToSubmit(initialUserData);
             }
         } catch (err) {
+            console.error(err);
             setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-            // 오류 발생 시 기본 데이터 설정
             setUserData(initialUserData);
             setUserInfoToSubmit(initialUserData);
         } finally {
@@ -66,98 +61,111 @@ const UserInfo = () => {
         }
     };
 
-    // 컴포넌트 마운트 시 사용자 정보 불러오기
+    // Load user data on component mount
     useEffect(() => {
         loadUserInfo();
     }, []);
 
     const handleEditToggle = () => {
-        setEdited(!edited);
-        // 수정 모드로 전환할 때 폼 유효성 상태 초기화
+        setEditMode(!editMode);
         setIsFormValid(true);
     };
 
-    // 폼 유효성 상태 변경 핸들러
+    // Form validation state change handler
     const handleFormValidationChange = (isValid: boolean) => {
         setIsFormValid(isValid);
-        console.log("폼 유효성 상태 변경:", isValid); // 디버깅용 로그 추가
     };
 
-    // 사용자 정보 저장 후 처리
+    // Handle user info submit after edit
     const handleUserInfoSubmit = () => {
-        // 폼 제출 시 다시 원래대로 돌아오기 위한 코드
-        setEdited(false);
-        // 변경사항 적용 후 사용자 정보 다시 로드
+        setEditMode(false);
         loadUserInfo();
     };
 
-    // 계정 삭제 핸들러
+    // Account deletion handler
     const handleDeleteAccount = async () => {
-        console.log(userData);
         if (
             window.confirm(
                 "정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
             )
         ) {
-            // 로딩 상태 활성화
             setIsSubmitting(true);
 
             try {
-                // 실제 호출해야하는 API, member_id 필요
                 const response = await signoutUser(userData?.member_id);
 
                 if (response === "회원 탈퇴가 완료되었습니다.") {
-                    // 성공 메시지 표시
-                    alert(
-                        response.message || "계정이 성공적으로 삭제되었습니다."
-                    );
-                    // 정상 탈퇴시 로그아웃(토큰 삭제) 및 리디렉션
+                    alert("계정이 성공적으로 삭제되었습니다.");
                     doLogout();
                     moveToPath("/");
                 } else {
-                    // 실패 메시지 표시
                     alert(response.message || "계정 삭제에 실패했습니다.");
                 }
             } catch (error) {
-                // 오류 메시지 표시
                 alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
                 console.error("API 오류:", error);
             } finally {
-                // 로딩 상태 비활성화
                 setIsSubmitting(false);
             }
         }
     };
 
-    // 로딩 스켈레톤
+    // Admin page navigation handler
+    const handleGoToAdminPage = () => {
+        moveToPath("/manage");
+    };
+
+    // Loading skeleton
     if (isLoading) {
         return (
-            <div className="bg-white rounded-lg p-2 md:p-4">
-                <div className="animate-pulse flex flex-col items-center w-full">
-                    <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                    <div className="h-10 bg-gray-200 rounded w-full mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                    <div className="h-10 bg-gray-200 rounded w-full mb-4"></div>
-                    <div className="text-gray-500 text-sm">
-                        사용자 정보를 불러오는 중...
+            <div className="bg-white rounded-lg p-6">
+                <div className="animate-pulse space-y-4">
+                    <div className="flex items-center">
+                        <div className="w-16 h-16 bg-gray-200 rounded-full mr-4"></div>
+                        <div className="space-y-2">
+                            <div className="h-6 bg-gray-200 rounded w-32"></div>
+                            <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[...Array(5)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="p-4 rounded-lg border border-gray-100 bg-gray-50"
+                            >
+                                <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                                <div className="h-5 bg-gray-200 rounded w-32"></div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
         );
     }
 
-    // 에러 표시
+    // Error display
     if (error) {
         return (
-            <div className="bg-white rounded-lg p-2 md:p-4">
-                <div
-                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-                    role="alert"
-                >
-                    <strong className="font-bold">오류 발생! </strong>
-                    <span className="block sm:inline">{error}</span>
+            <div className="bg-white rounded-lg p-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-5 rounded-lg flex flex-col items-center">
+                    <svg
+                        className="w-12 h-12 text-red-500 mb-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+                    <h3 className="text-lg font-semibold mb-2">오류 발생</h3>
+                    <p className="text-center mb-4">{error}</p>
                     <button
-                        className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-xs"
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                         onClick={loadUserInfo}
                     >
                         다시 시도
@@ -168,85 +176,125 @@ const UserInfo = () => {
     }
 
     return (
-        <div className="bg-white rounded-lg p-2 md:p-4">
-            {!edited ? (
-                <UserInfoShow userInfo={userData || initialUserData} />
-            ) : (
-                <UserInfoEdit
-                    userInfo={userData || initialUserData}
-                    onPasswordValidationChange={handleFormValidationChange}
-                    onUserInfoSubmit={handleUserInfoSubmit}
-                />
-            )}
+        <div className="space-y-6">
+            <AnimatePresence mode="wait">
+                {!editMode ? (
+                    <motion.div
+                        key="show"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <UserInfoShow userInfo={userData || initialUserData} />
+                        {/* Action buttons for view mode */}
+                        <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                            <button
+                                className="w-full sm:w-auto bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex-1 sm:flex-none flex items-center justify-center"
+                                onClick={handleEditToggle}
+                                disabled={isSubmitting}
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 mr-2"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                                수정하기
+                            </button>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 md:mt-6 gap-2 sm:gap-0">
-                {edited ? (
-                    <>
-                        <button
-                            className={`w-full sm:w-auto bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors mt-2 sm:mt-0 ${
-                                isSubmitting
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : ""
-                            }`}
-                            onClick={handleEditToggle}
-                            disabled={isSubmitting}
-                        >
-                            취소
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <button
-                            className={`w-full sm:w-auto bg-indigo-500 text-white py-2 px-4 rounded hover:bg-indigo-600 transition-colors ${
-                                isSubmitting
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : ""
-                            }`}
-                            onClick={handleEditToggle}
-                            disabled={isSubmitting}
-                        >
-                            수정하기
-                        </button>
-                        <button
-                            className={`w-full sm:w-auto bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors mt-2 sm:mt-0 ${
-                                isSubmitting
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : ""
-                            }`}
-                            onClick={handleDeleteAccount}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <span className="flex items-center justify-center">
+                            {adminCheck && (
+                                <button
+                                    className="w-full sm:w-auto bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition-colors shadow-sm flex-1 sm:flex-none flex items-center justify-center"
+                                    onClick={handleGoToAdminPage}
+                                >
                                     <svg
-                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                         xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
+                                        className="h-5 w-5 mr-2"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
                                     >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
                                         <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
+                                            fillRule="evenodd"
+                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                                            clipRule="evenodd"
+                                        />
                                     </svg>
-                                    처리 중...
-                                </span>
-                            ) : (
-                                "계정 삭제"
+                                    관리자 페이지
+                                </button>
                             )}
-                        </button>
-                    </>
+
+                            <button
+                                className="w-full sm:w-auto bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition-colors shadow-sm flex-1 sm:flex-none flex items-center justify-center"
+                                onClick={handleDeleteAccount}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <span className="flex items-center">
+                                        <svg
+                                            className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        처리 중...
+                                    </span>
+                                ) : (
+                                    <>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-5 w-5 mr-2"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                        계정 삭제
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="edit"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        {/* Pass onCancel prop to UserInfoEdit */}
+                        <UserInfoEdit
+                            userInfo={userData || initialUserData}
+                            onPasswordValidationChange={
+                                handleFormValidationChange
+                            }
+                            onUserInfoSubmit={handleUserInfoSubmit}
+                            onCancel={handleEditToggle}
+                        />
+                    </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
         </div>
     );
 };

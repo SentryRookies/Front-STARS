@@ -1,6 +1,7 @@
 import axios from "axios";
 import jwtAxios from "../utils/jwtUtil";
 import API_SERVER_HOST from "./apiConfig";
+import { getCookie } from "../utils/cookieUtil";
 
 const prefix = `${API_SERVER_HOST}/user/auth`;
 
@@ -74,12 +75,23 @@ export const signoutUser = async (member_id: string | undefined) => {
 };
 
 export const refreshToken = async () => {
-    const header = {
-        headers: {
-            "Content-Type": "application/json",
-        },
+    console.log("refreshToken 요청 시작");
+
+    const user = getCookie<{ refreshToken: string }>("user");
+    if (!user || !user.refreshToken) {
+        throw new Error("리프레시 토큰이 없습니다.");
+    }
+    console.log("리프레시 토큰:", user.refreshToken);
+    const body = {
+        refreshToken: user.refreshToken,
     };
 
-    const res = await jwtAxios.get(`${prefix}/refresh`, header);
+    const headers = {
+        "Content-Type": "application/json",
+    };
+
+    const res = await axios.post(`${prefix}/refresh`, body, { headers });
+
+    console.log("refreshToken 응답:", res);
     return res.data;
 };

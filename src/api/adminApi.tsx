@@ -21,6 +21,8 @@ export const getFavoriteList = async () => {
         },
     };
 
+    console.log("getFavoriteList...");
     const res = await jwtAxios.get(`${prefix}/favorite/list`, header);
+    console.log(res);
     return res.data;
 };

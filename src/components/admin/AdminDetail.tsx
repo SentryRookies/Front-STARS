@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import PieCard from "./cards/PieCard";
-import SimpleInfoCard from "./cards/SimpleInfoCard";
+import AreaNameCard from "./cards/AreaNameCard";
+import CongestionCard from "./cards/CongestionCard";
 import AreaPopulationCard from "./cards/AreaPopulationCard";
 import PopulationRateCard from "./cards/PopulationRateCard";
 import ForecastPopulationCard from "./cards/ForecastPopulationCard";
@@ -17,9 +18,6 @@ import AdminHeader from "./AdminHeader";
 import { useAdminData } from "../../context/AdminContext";
 
 const AdminDetail = () => {
-    // URL 파라미터에서 spotCode 가져오기
-    const { spotCode } = useParams<{ spotCode: string }>();
-    // Navi로 이동할 때 같이 보낸 데이터 받아오기
     const location = useLocation();
     const spotData: CombinedAreaData = location.state?.combinedAreaData;
 
@@ -208,18 +206,13 @@ const AdminDetail = () => {
                 {/* 업데이트 인디케이터 */}
                 {/*<UpdateIndicator />*/}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 grid-rows-[0.7fr_1fr_1fr]">
-                    {/* SimpleInfoCard */}
-                    <SimpleInfoCard
-                        info={{
-                            area_name: spotData.area_nm,
-                            area_code: spotData.population!.area_cd,
-                            area_congest_lvl:
-                                spotData.population!.area_congest_lvl,
-                        }}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* 첫 번째 행: 납작한 카드들 */}
+                    <AreaNameCard
+                        areaName={spotData.area_nm}
+                        areaCode={spotData.population!.area_cd}
                     />
 
-                    {/* AreaPopulationCard */}
                     <AreaPopulationCard
                         population={{
                             area_ppltn_min: spotData.population!.area_ppltn_min,
@@ -227,21 +220,24 @@ const AdminDetail = () => {
                         }}
                     />
 
-                    {/* WeatherCard - Now passing an array */}
+                    <CongestionCard
+                        congestionLevel={spotData.population!.area_congest_lvl}
+                    />
+
+                    {/* 두 번째 행 이후: 기존 카드들 */}
                     <WeatherCard datas={weather} />
 
-                    {/* 성별 비율 PieCard */}
                     <PieCard datas={gender} name="남여 비율" />
 
-                    {/* 연령대별 분포 */}
-                    <PopulationRateCard population={ppltnRate} />
-
-                    {/* 거주자 비율 PieCard */}
                     <PieCard datas={resnt} name="거주자 비율" />
 
-                    {/* 인구 예측 차트 */}
+                    <PopulationRateCard population={ppltnRate} />
+
                     {forecastData.length > 0 && (
-                        <ForecastPopulationCard fcst_ppltn={forecastData} />
+                        <ForecastPopulationCard
+                            fcst_ppltn={forecastData}
+                            className="md:col-span-2"
+                        />
                     )}
                 </div>
             </div>

@@ -3,6 +3,57 @@ import API_SERVER_HOST from "./apiConfig";
 
 const prefix = `${API_SERVER_HOST}`;
 
+// SSE congestion 통합 구독
+export const subscribeCongestions = (
+    onCongestionUpdate: (data: Record<string, unknown>) => void,
+    onCongestionAlert: (data: Record<string, unknown>) => void
+): EventSource => {
+    const eventSource = new EventSource(
+        `${prefix}/control/congestion/main/congestion`
+    );
+
+    eventSource.addEventListener("congestion-update", (event) => {
+        const data = JSON.parse((event as MessageEvent).data);
+        onCongestionUpdate(data);
+    });
+
+    eventSource.addEventListener("congestion-alert", (event) => {
+        const data = JSON.parse((event as MessageEvent).data);
+        onCongestionAlert(data);
+    });
+
+    return eventSource;
+};
+
+// 기타 부가 SSE 통합 등록
+export const subscribeExternal = (
+    onWeatherUpdate: (data: Record<string, unknown>) => void,
+    onTrafficUpdate: (data: Record<string, unknown>) => void,
+    onParkUpdate: (data: Record<string, unknown>) => void,
+    onAccidentUpdate: (data: Record<string, unknown>) => void
+) => {
+    const eventSource = new EventSource(
+        `${prefix}/control/external/main/stream`
+    );
+    eventSource.addEventListener("weather-update", (event) => {
+        const weatherData = JSON.parse((event as MessageEvent).data);
+        onWeatherUpdate(weatherData);
+    });
+    eventSource.addEventListener("traffic-update", (event) => {
+        const trafficData = JSON.parse((event as MessageEvent).data);
+        onTrafficUpdate(trafficData);
+    });
+    eventSource.addEventListener("park-update", (event) => {
+        const parkData = JSON.parse((event as MessageEvent).data);
+        onParkUpdate(parkData);
+    });
+    eventSource.addEventListener("accident-alert", (event) => {
+        const parkData = JSON.parse((event as MessageEvent).data);
+        onAccidentUpdate(parkData);
+    });
+    return eventSource;
+};
+
 // 실시간 모든 관광지 혼잡도 수신
 export const subscribeCongestionUpdate = (
     onUpdate: (data: Record<string, unknown>) => void
@@ -214,8 +265,14 @@ export const getEventList = async () => {
             "Content-Type": "application/json",
         },
     };
-    const res = await axios.get(`${prefix}/place/main/events`, header);
-    return res.data;
+    console.log("fetching event list...");
+    try {
+        const res = await axios.get(`${prefix}/place/main/events`, header);
+        return res.data;
+    } catch (err) {
+        console.error("Event list fetch error:", err);
+        throw err;
+    }
 };
 
 // 지역별 장소 목록 조회

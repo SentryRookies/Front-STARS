@@ -3,7 +3,7 @@ import ReactFullpage from "@fullpage/react-fullpage";
 import MapSection from "../pages/stars/MapSectionPage";
 import Dashboard from "../pages/stars/DashboardPage";
 import { initializeAppHeight } from "../utils/setAppHeight";
-import MyPage from "../components/user/MyPage";
+import MyPage from "../pages/user/MyPage";
 import useCustomLogin from "../hooks/useCustomLogin";
 
 export default function FullPageLayout() {

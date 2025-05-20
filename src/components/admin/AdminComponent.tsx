@@ -1,10 +1,10 @@
-// src/components/admin/AdminComponent.tsx
 import { useNavigate } from "react-router-dom";
 import { useAdminData } from "../../context/AdminContext";
-import { SpotCard } from "./cards/spotCard";
+import SpotCard from "./cards/spotCard";
 import AdminHeader from "./AdminHeader";
 import CongestionTag from "./cards/CongestionTag";
 import { useState } from "react";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 
 // 타입 가져오기
 import { CombinedAreaData } from "../../data/adminData";
@@ -15,18 +15,18 @@ export default function AdminComponent() {
     const [sortField, setSortField] = useState<string>("spotName"); // 기본값: 관광지명
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // 기본값: 오름차순
 
+    // 모바일 화면 감지 (768px 미만일 때 모바일로 간주)
+    const isMobile = useMediaQuery("(max-width: 768px)");
+
     // AdminDataContext에서 데이터 가져오기
     const {
-        touristSpotsData,
-        combinedAreaData,
-        // parkData, // 나중에 주차장 정보 가져올거
-        accidentData, // 사고, 공사 정보
-        isLoading,
-        spotsLoading,
-        weatherLoading,
+        touristSpotsData, // 혼잡도 3~4단계
+        accidentData, // 사고정보
+        combinedAreaData, // 관광지 상세정보 + 날씨
+        isLoading, // 로딩중
         error,
-        refreshAllData,
-        refreshing,
+        refreshAllData, // 모든 SSE 재구독
+        // refreshing,
     } = useAdminData();
 
     // 혼잡도 값에 대한 우선순위 매핑
@@ -128,27 +128,10 @@ export default function AdminComponent() {
         </div>
     );
 
-    const TableRowSkeleton = () => (
-        <div className="flex py-3 border-b animate-pulse">
-            <div className="w-1/4 px-1">
-                <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-            <div className="w-1/4 px-1">
-                <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-            <div className="w-1/4 px-1">
-                <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-            <div className="w-1/4 flex justify-center">
-                <div className="h-4 bg-gray-200 rounded w-16"></div>
-            </div>
-        </div>
-    );
-
     return (
         <div className="bg-gray-100 flex flex-col w-full h-screen">
             {/* Header */}
-            <AdminHeader path={"/login"} />
+            <AdminHeader path={"/map"} />
             {/* End of Header */}
 
             {/* 오류 메시지 표시 */}
@@ -165,53 +148,18 @@ export default function AdminComponent() {
                 </div>
             )}
 
-            {/* 새로고침 버튼 */}
-            <div className="flex justify-end px-4 py-2">
-                <button
-                    className={`flex items-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${refreshing ? "opacity-50 cursor-not-allowed" : ""}`}
-                    onClick={refreshAllData}
-                    disabled={refreshing}
-                >
-                    {refreshing ? (
-                        <>
-                            <svg
-                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                ></circle>
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                            새로고침 중...
-                        </>
-                    ) : (
-                        "데이터 새로고침"
-                    )}
-                </button>
-            </div>
-
             {/* Main Container - 남은 공간을 모두 차지하도록 flex-1 설정 */}
             <div className="flex-1 flex flex-col lg:flex-row p-2 md:p-4 space-y-4 lg:space-y-0 lg:space-x-4 overflow-hidden">
                 {/* 주요 인구 혼잡 현황 섹션 - 왼쪽에 배치 (큰 화면) / 위에 배치 (작은 화면) */}
                 <div className="w-full lg:w-1/3 bg-white rounded-lg shadow-md order-1 flex flex-col">
-                    <h2 className="text-lg md:text-xl p-3 font-bold text-black border-b flex justify-between items-center">
-                        <span>주요 인구 혼잡 현황</span>
-                        {spotsLoading && (
-                            <span className="text-sm text-blue-500 font-normal flex items-center">
+                    <h2 className="text-base md:text-lg lg:text-xl p-3 font-bold text-black border-b flex justify-between items-center">
+                        <span className={isMobile ? "text-sm" : ""}>
+                            주요 인구 혼잡 현황
+                        </span>
+                        {isLoading && (
+                            <span className="text-xs md:text-sm text-blue-500 font-normal flex items-center">
                                 <svg
-                                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500"
+                                    className="animate-spin -ml-1 mr-2 h-3 w-3 md:h-4 md:w-4 text-blue-500"
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -239,7 +187,7 @@ export default function AdminComponent() {
                             className="flex flex-nowrap lg:flex-col space-x-3 lg:space-x-0 lg:space-y-3 pb-2"
                             style={{ minWidth: "max-content", width: "100%" }}
                         >
-                            {spotsLoading ? (
+                            {isLoading ? (
                                 // 로딩 스켈레톤
                                 [...Array(5)].map((_, idx) => (
                                     <div
@@ -255,7 +203,32 @@ export default function AdminComponent() {
                                         key={idx}
                                         className="w-60 lg:w-full flex-none"
                                     >
-                                        <SpotCard key={idx} {...spot} />
+                                        <SpotCard
+                                            key={idx}
+                                            {...spot}
+                                            onClick={() => {
+                                                // Find the corresponding detailed area data
+                                                const areaData =
+                                                    combinedAreaData.find(
+                                                        (area) =>
+                                                            area.area_nm ===
+                                                            spot.area_nm
+                                                    );
+                                                if (areaData) {
+                                                    // Use the same navigation logic as in the table
+                                                    window.scrollTo(0, 0);
+                                                    navigate(
+                                                        `/manage/${areaData.area_id}`,
+                                                        {
+                                                            state: {
+                                                                combinedAreaData:
+                                                                    areaData,
+                                                            },
+                                                        }
+                                                    );
+                                                }
+                                            }}
+                                        />
                                     </div>
                                 ))
                             ) : (
@@ -270,11 +243,11 @@ export default function AdminComponent() {
 
                 {/* 오른쪽 컨텐츠 컨테이너 */}
                 <div className="flex-1 flex flex-col w-full lg:w-2/3 space-y-4 order-2 overflow-hidden">
-                    {/* 날씨 정보 섹션 */}
+                    {/* 사고 정보 섹션 - 모바일 최적화 수정 */}
                     <div className="w-full border rounded-lg shadow-md bg-white">
                         <h2 className="text-lg md:text-xl p-3 font-bold text-black border-b flex justify-between items-center">
                             <span>사고 정보</span>
-                            {weatherLoading && (
+                            {isLoading && (
                                 <span className="text-sm text-blue-500 font-normal flex items-center">
                                     <svg
                                         className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500"
@@ -305,24 +278,27 @@ export default function AdminComponent() {
                                 className="flex flex-nowrap space-x-3 pb-2"
                                 style={{ minWidth: "max-content" }}
                             >
-                                {weatherLoading ? (
+                                {isLoading ? (
                                     // 로딩 스켈레톤
                                     [...Array(5)].map((_, idx) => (
                                         <div
                                             key={idx}
-                                            className="w-40 flex-auto"
+                                            className="w-32 md:w-40 flex-none"
                                         >
                                             <AccidentCardSkeleton />
                                         </div>
                                     ))
                                 ) : accidentData.length > 0 ? (
-                                    // 실제 데이터
+                                    // 실제 데이터 - 모바일 여부 전달
                                     accidentData.map((data, idx) => (
                                         <div
                                             key={idx}
-                                            className="w-40 flex-auto"
+                                            className="w-32 md:w-40 flex-none"
                                         >
-                                            <AccidentCard datas={data} />
+                                            <AccidentCard
+                                                datas={data}
+                                                isMobile={isMobile}
+                                            />
                                         </div>
                                     ))
                                 ) : (
@@ -339,36 +315,68 @@ export default function AdminComponent() {
                     <div className="flex-1 w-full bg-white rounded-lg shadow-md overflow-hidden border flex flex-col">
                         <div
                             className="flex bg-gray-100 py-2 md:py-3 border-b font-medium text-sm md:text-lg w-full"
-                            style={{ minWidth: "650px" }}
+                            style={{ minWidth: isMobile ? "auto" : "650px" }}
                         >
                             <div
-                                className="w-1/4 text-center text-black cursor-pointer"
+                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black cursor-pointer`}
                                 onClick={() => handleSort("spotName")}
                             >
                                 관광지명 {renderSortIcon("spotName")}
                             </div>
-                            <div className="w-1/4 text-center text-black">
-                                코드
-                            </div>
-                            <div className="w-1/4 text-center text-black">
-                                시간
-                            </div>
+                            {!isMobile && (
+                                <>
+                                    <div className="w-1/4 text-center text-black">
+                                        코드
+                                    </div>
+                                    <div className="w-1/4 text-center text-black">
+                                        시간
+                                    </div>
+                                </>
+                            )}
                             <div
-                                className="w-1/4 text-center text-black cursor-pointer"
+                                className={`${isMobile ? "w-1/3" : "w-1/4"} text-center text-black cursor-pointer`}
                                 onClick={() => handleSort("congestion")}
                             >
                                 혼잡도 {renderSortIcon("congestion")}
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                            <div style={{ minWidth: "650px" }}>
+                            <div
+                                style={{
+                                    minWidth: isMobile ? "auto" : "650px",
+                                }}
+                            >
                                 {isLoading ? (
-                                    // 로딩 스켈레톤
+                                    // 로딩 스켈레톤 - 모바일 최적화
                                     [...Array(10)].map((_, idx) => (
-                                        <TableRowSkeleton key={idx} />
+                                        <div
+                                            key={idx}
+                                            className="flex py-3 border-b animate-pulse"
+                                        >
+                                            <div
+                                                className={`${isMobile ? "w-2/3" : "w-1/4"} px-1`}
+                                            >
+                                                <div className="h-4 bg-gray-200 rounded"></div>
+                                            </div>
+                                            {!isMobile && (
+                                                <>
+                                                    <div className="w-1/4 px-1">
+                                                        <div className="h-4 bg-gray-200 rounded"></div>
+                                                    </div>
+                                                    <div className="w-1/4 px-1">
+                                                        <div className="h-4 bg-gray-200 rounded"></div>
+                                                    </div>
+                                                </>
+                                            )}
+                                            <div
+                                                className={`${isMobile ? "w-1/3" : "w-1/4"} flex justify-center`}
+                                            >
+                                                <div className="h-4 bg-gray-200 rounded w-16"></div>
+                                            </div>
+                                        </div>
                                     ))
                                 ) : sortedTouristInfo.length > 0 ? (
-                                    // 실제 데이터
+                                    // 실제 데이터 - 모바일 최적화
                                     sortedTouristInfo.map((info, idx) => (
                                         <div
                                             key={idx}
@@ -377,22 +385,36 @@ export default function AdminComponent() {
                                                 handleSpotClick(info)
                                             }
                                         >
-                                            <div className="w-1/4 text-center text-black overflow-hidden text-ellipsis px-1">
+                                            <div
+                                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black overflow-hidden text-ellipsis px-1 ${isMobile ? "text-xs font-medium" : ""}`}
+                                            >
                                                 {info.area_nm}
                                             </div>
-                                            <div className="w-1/4 text-center text-black overflow-hidden text-ellipsis px-1">
-                                                {info.population?.area_cd}
-                                            </div>
-                                            <div className="w-1/4 text-center text-black overflow-hidden text-ellipsis px-1">
-                                                {info.population?.ppltn_time}
-                                            </div>
-                                            <div className="w-1/4 text-center overflow-hidden flex justify-center">
+                                            {!isMobile && (
+                                                <>
+                                                    <div className="w-1/4 text-center text-black overflow-hidden text-ellipsis px-1">
+                                                        {info.population
+                                                            ?.area_cd || "N/A"}
+                                                    </div>
+                                                    <div className="w-1/4 text-center text-black overflow-hidden text-ellipsis px-1">
+                                                        {info.population
+                                                            ?.ppltn_time ||
+                                                            "N/A"}
+                                                    </div>
+                                                </>
+                                            )}
+                                            <div
+                                                className={`${isMobile ? "w-1/3" : "w-1/4"} text-center overflow-hidden flex justify-center`}
+                                            >
                                                 <CongestionTag
                                                     level={
-                                                        info.population!
-                                                            .area_congest_lvl
+                                                        info.population
+                                                            ?.area_congest_lvl ||
+                                                        "여유"
                                                     }
-                                                    size="sm"
+                                                    size={
+                                                        isMobile ? "xs" : "sm"
+                                                    }
                                                 />
                                             </div>
                                         </div>

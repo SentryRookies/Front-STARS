@@ -2,6 +2,7 @@ import axios, {
     InternalAxiosRequestConfig,
     AxiosResponse,
     AxiosError,
+    AxiosHeaders,
 } from "axios";
 import { getCookie, setCookie } from "./cookieUtil";
 import { refreshToken as refreshTokenApi } from "../api/authApi";
@@ -9,7 +10,6 @@ import { refreshToken as refreshTokenApi } from "../api/authApi";
 // axios 인스턴스 생성
 const jwtAxios = axios.create();
 
-// 쿠키 타입
 interface UserCookie {
     accessToken: string;
     refreshToken: string;
@@ -17,17 +17,17 @@ interface UserCookie {
 
 interface ErrorResponse {
     error?: string;
+    message?: string;
     [key: string]: unknown;
 }
 
-// 요청 인터셉터
-const beforeReq = (
+const beforeReq = async (
     config: InternalAxiosRequestConfig
-): InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig> => {
+): Promise<InternalAxiosRequestConfig> => {
     const userInfo = getCookie<UserCookie>("user");
-
+    console.log("요청 직전 accessToken:", userInfo?.accessToken);
     if (!userInfo) {
-        console.error("User NOT FOUND");
+        console.error("토큰 정보를 찾을 수 없습니다. 로그인 필요");
         return Promise.reject({
             response: {
                 data: {
@@ -43,50 +43,84 @@ const beforeReq = (
     return config;
 };
 
-// 요청 실패 인터셉터
 const requestFail = (err: AxiosError): Promise<never> => {
-    console.error("request error............", err);
+    console.error("요청 중 오류가 발생했습니다:", err);
     return Promise.reject(err);
 };
 
-// 응답 인터셉터
 const beforeRes = async (
     res: AxiosResponse<ErrorResponse>
 ): Promise<AxiosResponse> => {
-    const data = res.data;
-
-    if (data?.error === "ERROR_ACCESS_TOKEN") {
-        const user = getCookie<UserCookie>("user");
-        if (!user) {
-            console.error("User info missing during token refresh");
-            return Promise.reject("REQUIRE_LOGIN");
-        }
-
-        // authApi의 refreshToken 사용
-        const result = await refreshTokenApi();
-
-        user.accessToken = result.accessToken;
-        user.refreshToken = result.refreshToken;
-
-        setCookie("user", JSON.stringify(user));
-
-        const originalRequest = res.config;
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${result.accessToken}`;
-
-        return axios(originalRequest);
-    }
-
     return res;
 };
 
-// 응답 실패 인터셉터
-const responseFail = (err: AxiosError): Promise<never> => {
-    console.error("response fail error.............", err);
+const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
+    const res = err.response;
+    const originalRequest = err.config;
+
+    // 모든 401 응답에 대해 처리 (메시지 조건 제거)
+    if (res?.status === 401) {
+        // 재시도 했으면 무한루프 방지
+        if (
+            (
+                originalRequest as InternalAxiosRequestConfig & {
+                    _retry?: boolean;
+                }
+            )?._retry
+        ) {
+            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+            return Promise.reject("REQUIRE_LOGIN");
+        }
+
+        const user = getCookie<UserCookie>("user");
+        if (!user) {
+            alert("로그인 정보가 만료되었습니다.");
+            return Promise.reject("REQUIRE_LOGIN");
+        }
+
+        try {
+            console.log("responseFail에서 토큰 갱신 시도");
+            const result = await refreshTokenApi();
+
+            if (!result.accessToken) {
+                alert("로그인 정보가 만료되었습니다.");
+                return Promise.reject("REQUIRE_LOGIN");
+            }
+
+            alert("리프레쉬 토큰 성공!");
+            user.accessToken = result.accessToken;
+            if (result.refreshToken) {
+                user.refreshToken = result.refreshToken;
+            }
+            setCookie("user", JSON.stringify(user));
+
+            if (!originalRequest) {
+                alert("요청 정보를 찾을 수 없습니다.");
+                return Promise.reject("NO_ORIGINAL_REQUEST");
+            }
+
+            // 재시도 플래그 설정
+            (
+                originalRequest as InternalAxiosRequestConfig & {
+                    _retry?: boolean;
+                }
+            )._retry = true;
+
+            const headers = new AxiosHeaders(originalRequest.headers);
+            headers.set("Authorization", `Bearer ${result.accessToken}`);
+            originalRequest.headers = headers;
+
+            return axios(originalRequest);
+        } catch (refreshError) {
+            alert("로그인 정보가 만료되었습니다.");
+            return Promise.reject(refreshError);
+        }
+    }
+
+    console.error("응답 처리 중 오류가 발생했습니다:", err);
     return Promise.reject(err);
 };
 
-// 인터셉터 등록
 jwtAxios.interceptors.request.use(beforeReq, requestFail);
 jwtAxios.interceptors.response.use(beforeRes, responseFail);
 

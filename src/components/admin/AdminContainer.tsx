@@ -1,20 +1,19 @@
 // src/components/admin/AdminContainer.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { AdminDataProvider } from "../../context/AdminContext";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AdminComponent from "./AdminComponent";
 import AdminDetail from "./AdminDetail";
 import AdminTour from "./AdminTour";
 import AdminUserFavorite from "./AdminUserFavorite";
 import AdminTraffic from "./AdminTraffic";
+import { initializeAppHeight } from "../../utils/setAppHeight";
 
-/**
- * Admin 컴포넌트들의 컨테이너 역할을 하는 컴포넌트
- * - 하위 컴포넌트들이 공유하는 데이터와 SSE 연결을 관리
- * - 라우팅을 통합적으로 처리
- */
 const AdminContainer: React.FC = () => {
-    const location = useLocation();
+    useEffect(() => {
+        // 아래에 추가
+        initializeAppHeight();
+    }, []);
 
     return (
         <AdminDataProvider>

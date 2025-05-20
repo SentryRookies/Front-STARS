@@ -1,113 +1,92 @@
-// 사고 인터페이스
+// src/components/admin/cards/AccidentCard.tsx
+
+import React from "react";
 import { AccidentData } from "../../../data/adminData";
 
 interface AccidentCardProps {
     datas: AccidentData;
+    isMobile?: boolean; // 모바일 여부를 전달받는 속성
+    onClick?: () => void; // 클릭 핸들러 추가
 }
 
-const AccidentCard = ({ datas }: AccidentCardProps) => {
-    // 사고 발생 시간과 예상 해결 시간 포맷팅
-    const formatTime = (dateTimeStr: string) => {
-        const date = new Date(dateTimeStr);
-        return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
-    };
-
-    // 사고 유형에 따른 배경색 설정
-    const getTypeBackgroundColor = (type: string) => {
-        switch (type) {
-            case "차량고장":
-                return "bg-yellow-100";
+export default function AccidentCard({
+    datas,
+    isMobile = false,
+    onClick, // onClick 속성 추가
+}: AccidentCardProps) {
+    // 사고 타입에 따른 아이콘 선택 로직
+    const getAccidentIcon = (type: string) => {
+        // 나중에 case 뭐가 있는지 조사하고 추가/수정
+        switch (type.toLowerCase()) {
+            case "교통사고":
+                return "🚗";
+            case "화재":
+                return "🔥";
+            case "의료":
+                return "🏥";
             case "공사":
-                return "bg-blue-100";
-            case "추돌사고":
-                return "bg-red-100";
+                return "🚧";
+            case "집회및행사":
+                return "🎤";
             default:
-                return "bg-gray-100";
+                return "⚠️";
         }
     };
 
-    // 사고 발생일로부터 얼마나 지났는지 계산
-    const getTimeElapsed = () => {
-        const occurrenceTime = new Date(datas.acdnt_occr_dt).getTime();
-        const currentTime = new Date().getTime();
-        const elapsedMs = currentTime - occurrenceTime;
-
-        const hours = Math.floor(elapsedMs / (1000 * 60 * 60));
-        const minutes = Math.floor(
-            (elapsedMs % (1000 * 60 * 60)) / (1000 * 60)
-        );
-
-        if (hours > 0) {
-            return `${hours}시간 ${minutes}분 전`;
+    // 사고 타입에 따른 배경색 선택 로직
+    const getAccidentBgColor = (type: string) => {
+        switch (type.toLowerCase()) {
+            case "교통사고":
+                return "bg-orange-100";
+            case "화재":
+                return "bg-red-100";
+            case "의료":
+                return "bg-blue-100";
+            default:
+                return "bg-yellow-100";
         }
-        return `${minutes}분 전`;
-    };
-
-    // 남은 시간 계산
-    const getTimeRemaining = () => {
-        const clearTime = new Date(datas.exp_clr_dt).getTime();
-        const currentTime = new Date().getTime();
-        const remainingMs = clearTime - currentTime;
-
-        if (remainingMs <= 0) {
-            return "해결 완료";
-        }
-
-        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-        const minutes = Math.floor(
-            (remainingMs % (1000 * 60 * 60)) / (1000 * 60)
-        );
-
-        if (hours > 0) {
-            return `${hours}시간 ${minutes}분 남음`;
-        }
-        return `${minutes}분 남음`;
     };
 
     return (
         <div
-            className="border-l-4 border-gray-300 bg-white p-3 mb-2 hover:bg-gray-50 transition-colors duration-200"
-            style={{
-                borderLeftColor:
-                    datas.acdnt_type === "차량고장"
-                        ? "#FBBF24"
-                        : datas.acdnt_type === "공사"
-                          ? "#60A5FA"
-                          : datas.acdnt_type === "추돌 사고"
-                            ? "#EF4444"
-                            : "#9CA3AF",
-            }}
+            className={`p-2 bg-white border rounded-lg text-black shadow-sm ${getAccidentBgColor(
+                datas.acdnt_type
+            )} cursor-pointer hover:shadow-md transition-shadow h-full flex flex-col`}
+            onClick={onClick} // onClick 이벤트 추가
+            style={{ minHeight: isMobile ? "100px" : "130px" }} // 카드 높이 축소
         >
-            {/* 헤더 영역: 지역명과 타입 */}
-            <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2">
-                    <span className="font-bold text-gray-800">
-                        {datas.area_nm}
-                    </span>
-                    <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-600">
-                        {datas.acdnt_dtype}
-                    </span>
+            <h3 className="font-bold text-center mb-1 overflow-hidden text-ellipsis">
+                {datas.area_nm}
+            </h3>
+
+            <div className="flex justify-center mb-1">
+                <div className="w-6 h-6 flex items-center justify-center bg-white rounded-full shadow-sm text-sm">
+                    {getAccidentIcon(datas.acdnt_type)}
                 </div>
-                <span className="text-xs text-gray-500">
-                    {getTimeElapsed()}
-                </span>
             </div>
 
-            {/* 사고 정보 */}
-            <p className="text-sm text-gray-700 mb-2">{datas.acdnt_info}</p>
-
-            {/* 시간 정보와 상태 */}
-            <div className="flex items-center justify-between text-xs">
-                <div className="flex gap-3">
-                    <span>발생: {formatTime(datas.acdnt_occr_dt)}</span>
-                    <span>예상해결: {formatTime(datas.exp_clr_dt)}</span>
-                </div>
-                <span className="text-green-600 font-medium">
-                    {getTimeRemaining()}
-                </span>
+            <div className="text-center font-semibold text-xs">
+                {datas.acdnt_type}
             </div>
+
+            {/* 모바일이 아닐 때만 상세 정보 표시 */}
+            {!isMobile && (
+                <div className="mt-1 flex flex-col flex-grow overflow-hidden">
+                    <div className="text-xs text-gray-600 text-center overflow-hidden text-ellipsis">
+                        {datas.acdnt_occr_dt}
+                    </div>
+                    <div className="text-xs text-gray-600 text-center overflow-hidden text-ellipsis">
+                        {datas.acdnt_info}
+                    </div>
+                </div>
+            )}
+
+            {/* 모바일일 때는 간략 정보만 표시 */}
+            {isMobile && (
+                <div className="text-xs text-gray-600 text-center overflow-hidden text-ellipsis">
+                    {datas.acdnt_occr_dt}
+                </div>
+            )}
         </div>
     );
-};
-
-export default AccidentCard;
+}

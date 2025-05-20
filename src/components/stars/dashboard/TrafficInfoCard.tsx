@@ -1,13 +1,17 @@
 import { motion } from "framer-motion";
+import { MapData } from "../../../data/adminData";
+import TrafficMap from "../../admin/TrafficMapComponent";
 
 interface TrafficInfoCardProps {
     style: { opacity: number; y: number; scale: number };
     cardRef: (el: HTMLDivElement | null) => void;
+    mapData?: MapData;
 }
 
 export default function TrafficInfoCard({
     style,
     cardRef,
+    mapData,
 }: TrafficInfoCardProps) {
     return (
         <motion.div
@@ -21,10 +25,16 @@ export default function TrafficInfoCard({
             style={style}
             ref={cardRef}
         >
-            <p className="text-sm text-gray-500">교통 상황</p>
-            <p className="text-xs text-gray-400 mt-2">
-                예시 텍스트 예시 텍스트 예시 텍스트
-            </p>
+            {/*<p className="text-sm text-gray-500">교통 상황</p>*/}
+            {/*<p className="text-xs text-gray-400 mt-2">*/}
+            {/*    예시 텍스트 예시 텍스트 예시 텍스트*/}
+            {/*</p>*/}
+            {mapData && (
+                <TrafficMap
+                    trafficData={mapData.trafficData || undefined}
+                    parkData={mapData.parkData || undefined}
+                />
+            )}
         </motion.div>
     );
 }

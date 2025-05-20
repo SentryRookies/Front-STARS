@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { CountUp } from "countup.js";
 import { getAreaList, getPlaceListByArea } from "../../../api/starsApi";
-import { SearchResult } from "../../../api/searchApi"; // 이걸로 통일
+import { SearchResult } from "../../../api/searchApi";
+import { usePlace } from "../../../context/PlaceContext";
 
 interface AreaFocusCardProps {
     areaId: number;
@@ -28,33 +29,13 @@ interface PlaceCategoryContent {
 }
 
 interface PlaceContent {
-    place_id?: string; // 추가
-    cafe_id?: number;
-    cafe_name?: string;
-    restaurant_id?: number;
-    restaurant_name?: string;
-    attraction_id?: number;
-    attraction_name?: string;
-    accommodation_id?: number;
-    accommodation_name?: string;
-    event_id?: number;
-    event_name?: string;
-    title?: string;
+    id: string;
+    name: string;
     address: string;
-    phone?: string;
-    kakaomap_url?: string;
     lat: number;
     lon: number;
+    // 필요시 추가 필드
 }
-
-const getPlaceName = (place: PlaceContent) =>
-    place.cafe_name ||
-    place.restaurant_name ||
-    place.attraction_name ||
-    place.accommodation_name ||
-    place.event_name ||
-    place.title ||
-    "";
 
 const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     areaId,
@@ -109,27 +90,16 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
         );
         if (!categoryItem) return;
 
-        const items: SearchResult[] = categoryItem.content.map((place: any) => {
-            // place_id 우선, 없으면 id 사용
-            const place_id =
-                place.place_id ?? (place.id ? String(place.id) : "");
-            // cultural_event/culturalevent면 title, 아니면 name
-            const isEvent =
-                type === "cultural_event" ||
-                type === "culturalevent" ||
-                place.type === "cultural_event" ||
-                place.type === "culturalevent";
-            return {
-                place_id,
-                name: isEvent ? (place.title ?? "") : (place.name ?? ""),
-                title: isEvent ? (place.title ?? "") : undefined,
+        const items: SearchResult[] = categoryItem.content.map(
+            (place: PlaceContent) => ({
+                place_id: place.id,
+                name: place.name,
                 address: place.address,
                 lon: place.lon,
                 lat: place.lat,
                 type,
-            };
-        });
-
+            })
+        );
         onCategoryClick?.(items);
     };
 

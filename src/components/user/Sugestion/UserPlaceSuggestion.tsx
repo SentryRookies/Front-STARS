@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react';
+import {createUserSuggestion} from '../../../api/suggestionApi';
 
-interface SuggestionProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { UserInfo as UserInfoType } from "../../../data/UserInfoData";
+import { Suggestion } from './PlaceSuggestionShow';
+
+type UserPlaceSuggestionProps = {
+  userData: UserInfoType | null;
+  setShowResult: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsCreate: React.Dispatch<React.SetStateAction<boolean>>;
+  setSuggestionResult:React.Dispatch<React.SetStateAction<Suggestion>>;
+};
+
 
 export default function UserPlaceSuggestion({
-  isOpen,
-  onClose,
-}: SuggestionProps) {
+  userData,
+  setShowResult,
+  setIsCreate,
+  setSuggestionResult
+} : UserPlaceSuggestionProps){
+  
   const [questionType, setQuestionType] = useState(0);
   const [startPlace, setStartPlace] = useState('');
   const [optionalRequest, setOptionalRequest] = useState('');
@@ -81,7 +91,7 @@ export default function UserPlaceSuggestion({
   }, [selectedHour, selectedMinute]);
   
   // 표시 시간 업데이트 및 startTime 설정
-  const updateDisplayTime = (hour, minute) => {
+  const updateDisplayTime = (hour: string, minute: string) => {
     const formattedTime = `${hour}:${minute}`;
     setDisplayTime(formattedTime);
     
@@ -304,7 +314,7 @@ export default function UserPlaceSuggestion({
     return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     
     // 여기에 API 호출 또는 상태 관리 로직 추가
@@ -319,6 +329,24 @@ export default function UserPlaceSuggestion({
     console.log('제출된 데이터:', requestData);
     // 제출 후 로직...
     
+
+      try {
+          const response = await createUserSuggestion(userData?.user_id,requestData);
+          if (response) {
+              console.log(response);
+              setSuggestionResult(response)
+          } else {
+                  response.message ||
+                      "여행 루트 추천 생성 실패"
+          }
+        } catch (err) {
+          console.log(err)
+        }finally{
+          setIsCreate(false);
+          setShowResult(true);
+        }
+
+    
     setTimeout(() => {
       setIsSubmitting(false);
     }, 1000);
@@ -332,26 +360,7 @@ export default function UserPlaceSuggestion({
   ];
 
   return (
-    <div id="place_suggestion_wrap"
-      className={`absolute md:-top-[330px] -top-[200px] max-h-[50vh] md:w-96 w-11/12 bg-white shadow-lg rounded-2xl transition-transform duration-300 z-20 overflow-hidden ${
-        isOpen
-          ? "md:translate-x-0 translate-x-0 opacity-100 pointer-events-auto"
-          : "translate-x-[-110%] pointer-events-none"
-      }`}
-    >
-      <div className="p-5 h-full flex flex-col overflow-y-auto max-h-[50vh] text-black relative">
-        {/* 닫기 버튼 - 오른쪽 상단, 배경 흰색으로 맞춤 */}
-        <div className="absolute top-2 right-2 z-10">
-          <button 
-            onClick={onClose}
-            className="bg-white text-purple-600 hover:text-purple-800 focus:outline-none rounded-full p-1"
-            aria-label="닫기"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <div>
         
         <h2 className="text-xl font-bold mb-2 text-center bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">나만의 여행 코스 추천</h2>
         <p className="text-xs text-gray-500 text-center mb-4">당신의 여행 스타일에 맞는 코스를 추천해 드립니다</p>
@@ -755,7 +764,6 @@ export default function UserPlaceSuggestion({
             )}
           </button>
         </div>
-      </div>
     </div>       
   );
 }

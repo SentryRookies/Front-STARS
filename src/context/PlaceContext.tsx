@@ -1,6 +1,7 @@
 // src/context/PlaceContext.tsx
-import { createContext, useContext, useEffect, useState } from "react";
-import { subscribeCongestionUpdate } from "../api/starsApi";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { subscribeCongestionUpdate, subscribeExternal } from "../api/starsApi";
+import { MapData, ParkData, TrafficData } from "../data/adminData";
 
 // 🔷 혼잡도 데이터 타입 정의
 interface ForecastPopulation {
@@ -31,6 +32,8 @@ interface PlaceContextType {
     setSelectedAreaId: (areaId: number | null) => void; // ✅ 타입 일치
 
     congestionInfo: CongestionData | null;
+
+    mapData: MapData[] | null;
 }
 
 const PlaceContext = createContext<PlaceContextType | undefined>(undefined);
@@ -40,6 +43,9 @@ export function PlaceProvider({ children }: { children: React.ReactNode }) {
     const [triggerCountUp, setTriggerCountUp] = useState<boolean>(false);
 
     const [selectedAreaId, setSelectedAreaId] = useState<number | null>(null); // ✅ 수정
+
+    const [trafficData, setTrafficData] = useState<TrafficData[]>([]);
+    const [parkData, setParkData] = useState<ParkData[]>([]);
 
     const [allCongestions, setAllCongestions] = useState<CongestionData[]>([]);
     const [congestionInfo, setCongestionInfo] = useState<CongestionData | null>(
@@ -54,8 +60,66 @@ export function PlaceProvider({ children }: { children: React.ReactNode }) {
             }
         });
 
-        return () => eventSource.close();
+        const handelWeatherUpdate = (data: Record<string, unknown>) => {
+            console.log("들어온 weather-update 데이터(사용안함): ", data);
+        };
+        const handelTrafficUpdate = (data: Record<string, unknown>) => {
+            console.log("들어온 traffic-update 데이터: ", data);
+            setTrafficData(data as unknown as TrafficData[]);
+        };
+        const handelParkUpdate = (data: Record<string, unknown>) => {
+            console.log("들어온 park-update 데이터: ", data);
+            setParkData(data as unknown as ParkData[]);
+        };
+        const handelAccidentUpdate = (data: Record<string, unknown>) => {
+            console.log("들어온 accident-update 데이터(사용안함): ", data);
+        };
+        const event = subscribeExternal(
+            handelWeatherUpdate,
+            handelTrafficUpdate,
+            handelParkUpdate,
+            handelAccidentUpdate
+        );
+
+        return () => {
+            eventSource.close();
+            event.close();
+        };
     }, []);
+
+    const mapData = useMemo<MapData[]>(() => {
+        const combinedMap = new Map<number, MapData>();
+        trafficData.forEach((traffic) => {
+            const areaId = traffic.area_id;
+
+            if (!combinedMap.has(areaId)) {
+                combinedMap.set(areaId, {
+                    area_id: areaId,
+                    area_nm: traffic.area_nm,
+                    trafficData: null,
+                    parkData: null,
+                });
+            }
+            const entry = combinedMap.get(areaId)!;
+            entry.trafficData = traffic;
+        });
+
+        parkData.forEach((park) => {
+            const areaId = park.area_id;
+
+            if (!combinedMap.has(areaId)) {
+                combinedMap.set(areaId, {
+                    area_id: areaId,
+                    area_nm: park.area_nm,
+                    trafficData: null,
+                    parkData: null,
+                });
+            }
+            const entry = combinedMap.get(areaId)!;
+            entry.parkData = park;
+        });
+        return Array.from(combinedMap.values());
+    }, [parkData, trafficData]);
 
     // ✅ selectedAreaId에 맞는 혼잡도 추출
     useEffect(() => {
@@ -80,6 +144,7 @@ export function PlaceProvider({ children }: { children: React.ReactNode }) {
                 selectedAreaId,
                 setSelectedAreaId,
                 congestionInfo,
+                mapData,
             }}
         >
             {children}
