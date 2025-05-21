@@ -121,7 +121,7 @@ const UserFavorite = () => {
     // 삭제 핸들러
     const handleDelete = async (fav: Favorite) => {
         if (window.confirm("즐겨찾기를 삭제하시겠습니까?")) {
-            setDeletingId(fav.favorite_id);
+            setDeletingId(fav.favorite_id || null); // 삭제 중 표시
 
             try {
                 const response = await deleteFavorite(fav);
@@ -152,8 +152,8 @@ const UserFavorite = () => {
         // 검색어 필터
         const searchMatch =
             searchTerm === "" ||
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.address.toLowerCase().includes(searchTerm.toLowerCase());
+            item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.address?.toLowerCase().includes(searchTerm.toLowerCase());
 
         return categoryMatch && searchMatch;
     });
@@ -305,7 +305,7 @@ const UserFavorite = () => {
                 {/* 카드 헤더 */}
                 <div
                     className="flex justify-between items-start cursor-pointer"
-                    onClick={() => toggleExpand(fav.favorite_id)}
+                    onClick={() => toggleExpand(fav.favorite_id || 0)}
                 >
                     <div className="flex items-center">
                         <div
@@ -332,7 +332,7 @@ const UserFavorite = () => {
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                toggleExpand(fav.favorite_id);
+                                toggleExpand(fav.favorite_id || 0);
                             }}
                             className="text-gray-400 bg-white hover:text-gray-600"
                         >
