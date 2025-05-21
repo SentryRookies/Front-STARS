@@ -10,6 +10,12 @@ import { getAreaList } from "../../../api/starsApi";
 import AreaFocusCard from "./AreaFocusCard";
 import { SearchResult } from "../../../api/searchApi";
 import type { Feature, Point } from "geojson"; // 추가
+import {
+    getUserFavoriteList,
+    addFavorite,
+    deleteFavorite,
+} from "../../../api/mypageApi";
+import { Favorite } from "../../../data/adminData";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const categoryMap: Record<string, string> = {
@@ -52,6 +58,39 @@ export default function MapSectionComponent() {
     const [showFocusCard, setShowFocusCard] = useState(false);
     const { alerts, dismissAlert } = useCongestionAlert();
     const { isLogin } = useCustomLogin();
+    const [favoriteList, setFavoriteList] = useState<Favorite[]>([]);
+
+    // 즐겨찾기 토글 상태: UI에 즉시 반영
+    const [toggledFavorites, setToggledFavorites] = useState<
+        Record<string, boolean>
+    >({});
+    // 아이템별 고유 키 생성 헬퍼
+    const getItemKey = (type: string, place_id: string | number) =>
+        `${type}:${String(place_id)}`;
+
+    useEffect(() => {
+        if (!isLogin) {
+            setToggledFavorites({});
+            setFavoriteList([]);
+            return;
+        }
+        getUserFavoriteList().then(setFavoriteList);
+    }, [isLogin]);
+
+    // 즐겨찾기 여부 확인: toggledFavorites 우선, 없으면 favoriteList 검사
+    const isItemFavorite = useCallback(
+        (type: string, place_id: string | number) => {
+            const key = getItemKey(type, place_id);
+            if (key in toggledFavorites) {
+                return toggledFavorites[key];
+            }
+            return favoriteList.some(
+                (f) =>
+                    f.type === type && String(f.place_id) === String(place_id)
+            );
+        },
+        [toggledFavorites, favoriteList]
+    );
 
     useEffect(() => {
         if (!mapContainer.current) return;
@@ -252,89 +291,161 @@ export default function MapSectionComponent() {
         });
     };
 
-    const handleSearchResultClick = useCallback((items: SearchResult[]) => {
-        const map = mapRef.current;
-        if (!map) return;
+    // 팝업 HTML 생성 함수
+    function renderPopupHTML(item: SearchResult) {
+        // id 필드와 place_id 필드 모두 지원
+        const placeId: string | number = item.id ?? item.place_id;
+        const isFavorite = isItemFavorite(item.type, placeId);
+        const badge = categoryBadge[item.type] ?? "bg-gray-100 text-gray-700";
+        const label = categoryMap[item.type] ?? item.type;
+        const starBtnHtml = `
+            <button class="favorite-btn bg-white rounded-full shadow-md p-2" data-type="${item.type}" data-place-id="${placeId}">
+                ${
+                    isFavorite
+                        ? `<svg class="w-4 h-4 text-yellow-300" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 20">
+                               <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+                           </svg>`
+                        : `<svg class="w-4 h-4 text-gray-300" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 20">
+                               <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
+                           </svg>`
+                }
+            </button>
+        `;
+        const phoneHtml = item.phone
+            ? `<div class="text-sm text-gray-500">전화: ${item.phone}</div>`
+            : "";
+        const kakaoHtml = item.kakaomap_url
+            ? `<button class="mt-1 text-xs px-2 py-1 bg-[#FEE500] text-[#3C1E1E] font-bold rounded shadow hover:bg-yellow-300 transition" onclick="window.open('${item.kakaomap_url}', '_blank')">카카오맵에서 보기</button>`
+            : "";
+        return `
+            <div class="flex flex-col p-2 gap-2">
+                <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-xl text-gray-700">${item.name}</h3>
+                    <span class="inline-flex w-auto px-2 py-1 rounded-full text-xs font-semibold ${badge}">${label}</span>
+                    ${starBtnHtml}
+                </div>
+                <p class="text-gray-700">${item.address}</p>
+                ${phoneHtml}
+                ${kakaoHtml}
+                <button class="mt-2 px-3 py-1 bg-indigo-600 text-white rounded-full font-bold hover:bg-indigo-700 transition detail-btn" data-area-id="${item.area_id ?? ""}">가까운 지역구 보기</button>
+            </div>
+        `;
+    }
 
-        searchMarkersRef.current.forEach(({ marker }) => marker.remove());
-        searchMarkersRef.current = [];
+    // 팝업 이벤트 재바인딩 함수
+    function bindPopupEvents(popup: mapboxgl.Popup, item: SearchResult) {
+        const popupEl = popup.getElement();
+        if (!popupEl) return;
 
-        items.forEach((item) => {
-            const el = document.createElement("div");
-            el.className = "custom-marker";
-            const badge =
-                categoryBadge[item.type] ?? "bg-gray-100 text-gray-700";
-            const label = categoryMap[item.type] ?? item.type;
+        const favBtn = popupEl.querySelector(".favorite-btn");
+        if (!favBtn) return;
 
-            // 전화번호, 카카오맵 버튼 추가
-            const phoneHtml = item.phone
-                ? `<div class="text-sm text-gray-500">전화: ${item.phone}</div>`
-                : "";
-            const kakaoHtml = item.kakaomap_url
-                ? `<button 
-                    class="mt-1 text-xs px-2 py-1 bg-[#FEE500] text-[#3C1E1E] font-bold rounded shadow hover:bg-yellow-300 transition"
-                    onclick="window.open('${item.kakaomap_url}', '_blank')"
-                >
-                    카카오맵에서 보기
-                </button>`
-                : "";
+        // 팝업 열릴 때 초기 로컬 토글 상태 설정
+        let isToggled = isItemFavorite(item.type, item.place_id);
 
-            const popup = new mapboxgl.Popup({
-                offset: 10,
-                closeButton: false,
-                maxWidth: "400px",
-            }).setHTML(
-                `<div class="flex flex-col p-2 gap-2">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-xl text-gray-700">${item.name}</h3>
-                        <span class="inline-flex w-auto px-2 py-1 rounded-full text-xs font-semibold ${badge}">
-                            ${label}
-                        </span>
-                    </div>
-                    <p class="text-gray-700">${item.address}</p>
-                    ${phoneHtml}
-                    ${kakaoHtml}
-                    <button 
-                        class="mt-2 px-3 py-1 bg-indigo-600 text-white rounded-full font-bold hover:bg-indigo-700 transition detail-btn"
-                        data-area-id="${item.area_id ?? ""}"
-                    >
-                        가까운 지역구 보기
-                    </button>
-                </div>`
-            );
+        // 버튼 아이콘 및 클래스 즉시 변경 함수
+        const updateButtonUI = (toggled: boolean) => {
+            const svg = favBtn.querySelector("svg");
+            if (!svg) return;
 
-            const marker = new mapboxgl.Marker({ element: el })
-                .setLngLat([item.lon, item.lat])
-                .setPopup(popup)
-                .addTo(map);
+            if (toggled) {
+                svg.classList.add("text-yellow-300");
+                svg.classList.remove("text-gray-300");
+            } else {
+                svg.classList.add("text-gray-300");
+                svg.classList.remove("text-yellow-300");
+            }
+        };
 
-            popup.on("open", () => {
-                const btn = popup.getElement()?.querySelector(".detail-btn");
-                if (btn) {
-                    btn.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        const areaId = item.area_id;
-                        console.log(areaId);
-                        if (areaId) {
-                            setSelectedAreaId(areaId);
-                            setShowFocusCard(true);
-                        }
+        // 초기 UI 반영
+        updateButtonUI(isToggled);
+
+        favBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            if (!isLogin) {
+                alert("즐겨찾기 기능은 로그인 후 이용 가능합니다.");
+                return;
+            }
+
+            // 로컬 상태 즉시 토글 및 UI 갱신
+            isToggled = !isToggled;
+            updateButtonUI(isToggled);
+
+            try {
+                if (isToggled) {
+                    await addFavorite({
+                        type: item.type,
+                        place_id: item.place_id,
+                    });
+                } else {
+                    await deleteFavorite({
+                        type: item.type,
+                        place_id: item.place_id,
                     });
                 }
-            });
 
-            searchMarkersRef.current.push({ marker, item });
+                // 토글 상태 전역 상태도 업데이트
+                const key = getItemKey(item.type, item.place_id);
+                setToggledFavorites((prev) => ({
+                    ...prev,
+                    [key]: isToggled,
+                }));
+            } catch (error) {
+                console.error("즐겨찾기 변경 실패", error);
+
+                // 실패 시 롤백: UI 원상복구
+                isToggled = !isToggled;
+                updateButtonUI(isToggled);
+            }
         });
-
-        if (items.length > 0) {
-            map.flyTo({
-                center: [items[0].lon, items[0].lat],
-                zoom: 15,
-                pitch: 45,
+        const detailBtn = popupEl.querySelector(".detail-btn");
+        if (detailBtn) {
+            detailBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const areaId = item.area_id;
+                if (areaId) {
+                    setSelectedAreaId(areaId);
+                    setShowFocusCard(true);
+                }
             });
-            setShowFocusCard(false);
         }
-    }, []);
+    }
+
+    const handleSearchResultClick = useCallback(
+        (items: SearchResult[]) => {
+            const map = mapRef.current;
+            if (!map) return;
+            searchMarkersRef.current.forEach(({ marker }) => marker.remove());
+            searchMarkersRef.current = [];
+            items.forEach((item) => {
+                const el = document.createElement("div");
+                el.className = "custom-marker";
+                const popup = new mapboxgl.Popup({
+                    offset: 10,
+                    closeButton: false,
+                    maxWidth: "400px",
+                }).setHTML(renderPopupHTML(item));
+                popup.on("open", () => {
+                    bindPopupEvents(popup, item);
+                });
+                const marker = new mapboxgl.Marker({ element: el })
+                    .setLngLat([item.lon, item.lat])
+                    .setPopup(popup)
+                    .addTo(map);
+                searchMarkersRef.current.push({ marker, item });
+            });
+            if (items.length > 0) {
+                map.flyTo({
+                    center: [items[0].lon, items[0].lat],
+                    zoom: 15,
+                    pitch: 45,
+                });
+                setShowFocusCard(false);
+            }
+        },
+        [isItemFavorite, setSelectedAreaId]
+    );
 
     const handleSingleResultClick = useCallback((item: SearchResult) => {
         const map = mapRef.current;
