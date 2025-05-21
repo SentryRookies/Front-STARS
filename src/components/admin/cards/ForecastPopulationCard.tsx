@@ -228,13 +228,15 @@ const ForecastPopulationCard = ({
             <div
                 className={`bg-white rounded-lg shadow p-4 h-full flex flex-col ${className}`}
             >
-                <div className="mb-4">
-                    <h3 className="font-semibold text-lg text-gray-700">
-                        인구 예측 추이
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                        향후 12시간 예상 인구 변화
-                    </p>
+                <div className="mb-4 flex items-start justify-between">
+                    <div>
+                        <h3 className="font-semibold text-lg text-gray-700">
+                            인구 예측 추이
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                            향후 12시간 예상 인구 변화
+                        </p>
+                    </div>
                 </div>
                 <div className="flex-grow flex flex-col items-center justify-center space-y-3">
                     <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -252,13 +254,15 @@ const ForecastPopulationCard = ({
             <div
                 className={`bg-white rounded-lg shadow p-4 h-full flex flex-col ${className}`}
             >
-                <div className="mb-4">
-                    <h3 className="font-semibold text-lg text-gray-700">
-                        인구 예측 추이
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                        향후 12시간 예상 인구 변화
-                    </p>
+                <div className="mb-4 flex items-start justify-between">
+                    <div>
+                        <h3 className="font-semibold text-lg text-gray-700">
+                            인구 예측 추이
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                            향후 12시간 예상 인구 변화
+                        </p>
+                    </div>
                 </div>
                 <div className="flex-grow flex flex-col items-center justify-center space-y-4">
                     <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gray-100">
@@ -322,17 +326,43 @@ const ForecastPopulationCard = ({
         );
     };
 
+    // 혼잡도 범례 컴포넌트
+    const CongestionLegend = () => (
+        <div className="flex flex-wrap gap-2 ml-2">
+            {["여유", "보통", "약간 붐빔", "붐빔"].map((level) => (
+                <div key={level} className="flex items-center">
+                    <div
+                        className="w-3 h-3 md:w-4 md:h-4 rounded-full mr-1 border border-gray-200"
+                        style={{
+                            backgroundColor: getCongestionColor(level),
+                        }}
+                    />
+                    <span className="text-xs text-gray-800 font-medium">
+                        {level}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+
     return (
         <div
             className={`bg-white rounded-lg shadow p-4 h-full flex flex-col ${className}`}
         >
-            <div className="mb-4">
-                <h3 className="font-semibold text-lg text-gray-700">
-                    인구 예측 추이
-                </h3>
-                <p className="text-sm text-gray-500">
-                    향후 12시간 예상 인구 변화
-                </p>
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
+                <div>
+                    <h3 className="font-semibold text-lg text-gray-700">
+                        인구 예측 추이
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                        향후 12시간 예상 인구 변화
+                    </p>
+                </div>
+
+                {/* 혼잡도 범례를 오른쪽 위로 이동 */}
+                <div className="flex flex-wrap justify-end">
+                    <CongestionLegend />
+                </div>
             </div>
 
             <div className="flex-grow">
@@ -441,23 +471,6 @@ const ForecastPopulationCard = ({
                         />
                     </ComposedChart>
                 </ResponsiveContainer>
-            </div>
-
-            {/* Color legend for congestion levels */}
-            <div className="flex flex-wrap mt-4 justify-end gap-3 pt-2 border-t border-gray-100">
-                {["여유", "보통", "약간 붐빔", "붐빔"].map((level) => (
-                    <div key={level} className="flex items-center">
-                        <div
-                            className="w-4 h-4 md:w-5 md:h-5 rounded-full mr-1 md:mr-2 border border-gray-200"
-                            style={{
-                                backgroundColor: getCongestionColor(level),
-                            }}
-                        />
-                        <span className="text-xs text-gray-800 font-medium">
-                            {level}
-                        </span>
-                    </div>
-                ))}
             </div>
         </div>
     );

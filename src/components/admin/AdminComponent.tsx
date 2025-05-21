@@ -3,11 +3,11 @@ import { useAdminData } from "../../context/AdminContext";
 import SpotCard from "./cards/spotCard";
 import AdminHeader from "./AdminHeader";
 import CongestionTag from "./cards/CongestionTag";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 
 // 타입 가져오기
-import { CombinedAreaData } from "../../data/adminData";
+import { CombinedAreaData, TouristSpot } from "../../data/adminData";
 import AccidentCard from "./cards/AccidentCard";
 
 export default function AdminComponent() {
@@ -29,6 +29,47 @@ export default function AdminComponent() {
         // refreshing,
     } = useAdminData();
 
+    // 로컬 상태로 touristSpotsData 관리 추가
+    const [localTouristSpotsData, setLocalTouristSpotsData] = useState<
+        TouristSpot[]
+    >([]);
+
+    // touristSpotsData가 변경될 때마다 로컬 상태 업데이트
+    useEffect(() => {
+        if (touristSpotsData && touristSpotsData.length > 0) {
+            setLocalTouristSpotsData((prevData) => {
+                // 첫 로드 시 (이전 데이터가 없는 경우)
+                if (prevData.length === 0) {
+                    return [...touristSpotsData];
+                }
+
+                // 기존 데이터 복사
+                const updatedData = [...prevData];
+
+                // 새로 들어온 데이터로 기존 데이터 업데이트
+                touristSpotsData.forEach((newSpot) => {
+                    // 동일한 지역 찾기 (area_nm으로 식별)
+                    const existingIndex = updatedData.findIndex(
+                        (spot) => spot.area_nm === newSpot.area_nm
+                    );
+
+                    if (existingIndex >= 0) {
+                        // 기존 데이터가 있으면 새 데이터로 업데이트 (병합)
+                        updatedData[existingIndex] = {
+                            ...updatedData[existingIndex], // 기존 데이터 유지
+                            ...newSpot, // 새 데이터로 덮어쓰기
+                        };
+                    } else {
+                        // 기존 데이터에 없는 새 항목이면 추가
+                        updatedData.push(newSpot);
+                    }
+                });
+
+                return updatedData;
+            });
+        }
+    }, [touristSpotsData]);
+
     // 혼잡도 값에 대한 우선순위 매핑
     const congestionOrder = {
         여유: 1,
@@ -49,6 +90,18 @@ export default function AdminComponent() {
         }
     };
 
+    // 정렬 표시 아이콘 렌더링 (유니코드 문자 사용)
+    const renderSortIcon = (field: string) => {
+        if (sortField !== field) return null;
+
+        return sortDirection === "asc" ? (
+            <span className="ml-1">▲</span>
+        ) : (
+            <span className="ml-1">▼</span>
+        );
+    };
+
+    // combinedAreaData를 기반으로 정렬된 목록 생성
     const sortedTouristInfo: CombinedAreaData[] = [...combinedAreaData].sort(
         (a, b) => {
             if (sortField === "spotName") {
@@ -81,17 +134,6 @@ export default function AdminComponent() {
             return 0;
         }
     );
-
-    // 정렬 표시 아이콘 렌더링 (유니코드 문자 사용)
-    const renderSortIcon = (field: string) => {
-        if (sortField !== field) return null;
-
-        return sortDirection === "asc" ? (
-            <span className="ml-1">▲</span>
-        ) : (
-            <span className="ml-1">▼</span>
-        );
-    };
 
     // 관광지 클릭 핸들러 - 선택한 관광지 정보와 함께 디테일 페이지로 이동
     const handleSpotClick = (info: CombinedAreaData) => {
@@ -187,7 +229,7 @@ export default function AdminComponent() {
                             className="flex flex-nowrap lg:flex-col space-x-3 lg:space-x-0 lg:space-y-3 pb-2"
                             style={{ minWidth: "max-content", width: "100%" }}
                         >
-                            {isLoading ? (
+                            {isLoading && touristSpotsData.length === 0 ? (
                                 // 로딩 스켈레톤
                                 [...Array(5)].map((_, idx) => (
                                     <div
@@ -197,8 +239,9 @@ export default function AdminComponent() {
                                         <SpotCardSkeleton />
                                     </div>
                                 ))
-                            ) : touristSpotsData.length > 0 ? (
-                                touristSpotsData.map((spot, idx) => (
+                            ) : localTouristSpotsData.length > 0 ? (
+                                // 로컬 상태의 관광지 데이터 표시
+                                localTouristSpotsData.map((spot, idx) => (
                                     <div
                                         key={idx}
                                         className="w-60 lg:w-full flex-none"
@@ -207,7 +250,7 @@ export default function AdminComponent() {
                                             key={idx}
                                             {...spot}
                                             onClick={() => {
-                                                // Find the corresponding detailed area data
+                                                // 관광지명과 일치하는 combinedAreaData 찾기
                                                 const areaData =
                                                     combinedAreaData.find(
                                                         (area) =>
@@ -215,7 +258,7 @@ export default function AdminComponent() {
                                                             spot.area_nm
                                                     );
                                                 if (areaData) {
-                                                    // Use the same navigation logic as in the table
+                                                    // 일치하는 지역 정보로 상세 페이지 이동
                                                     window.scrollTo(0, 0);
                                                     navigate(
                                                         `/manage/${areaData.area_id}`,
@@ -277,7 +320,7 @@ export default function AdminComponent() {
                                 className="flex flex-nowrap space-x-3 pb-2"
                                 style={{ minWidth: "max-content" }}
                             >
-                                {isLoading ? (
+                                {isLoading && accidentData.length === 0 ? (
                                     // 로딩 스켈레톤
                                     [...Array(5)].map((_, idx) => (
                                         <div
@@ -294,7 +337,7 @@ export default function AdminComponent() {
                                             key={idx}
                                             className="w-32 md:w-40 flex-none cursor-pointer"
                                             onClick={() => {
-                                                // 사고 데이터에서 지역명 추출 (구현에 따라 달라질 수 있음)
+                                                // 사고 데이터에서 지역명 추출
                                                 const accidentLocation =
                                                     data.area_nm;
 
@@ -373,7 +416,7 @@ export default function AdminComponent() {
                                     minWidth: isMobile ? "auto" : "650px",
                                 }}
                             >
-                                {isLoading ? (
+                                {isLoading && combinedAreaData.length === 0 ? (
                                     // 로딩 스켈레톤 - 모바일 최적화
                                     [...Array(10)].map((_, idx) => (
                                         <div

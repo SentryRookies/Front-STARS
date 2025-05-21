@@ -129,9 +129,6 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
                 <h3 className="font-semibold text-lg text-gray-800">
                     날씨 정보
                 </h3>
-                <span className="text-sm text-gray-700">
-                    {weatherData?.area_nm || "위치 정보 없음"}
-                </span>
             </div>
 
             {/* Current temperature and conditions */}

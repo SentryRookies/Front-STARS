@@ -57,12 +57,12 @@ const AdminDetail = () => {
             {
                 name: "남자",
                 value: data.male_ppltn_rate,
-                fill: "#EB6927",
+                fill: "#1447e6",
             },
             {
                 name: "여자",
                 value: data.female_ppltn_rate,
-                fill: "#2D8CFF",
+                fill: "#f6339a",
             },
         ]);
 
@@ -71,7 +71,7 @@ const AdminDetail = () => {
             {
                 name: "거주자",
                 value: data.resnt_ppltn_rate,
-                fill: "#7f22fe",
+                fill: "#fcc800",
             },
             {
                 name: "비거주자",
