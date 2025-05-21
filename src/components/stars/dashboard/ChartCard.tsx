@@ -54,7 +54,11 @@ export default function ChartCard({ data, style, cardRef }: ChartCardProps) {
                 <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={data}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time" tickFormatter={formatHour} />
+                        <XAxis
+                            dataKey="time"
+                            tickFormatter={formatHour}
+                            interval={1}
+                        />
                         <YAxis tickFormatter={formatPopulation} />
                         <Tooltip
                             formatter={(value: number) => [
