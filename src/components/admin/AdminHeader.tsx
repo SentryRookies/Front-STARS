@@ -24,10 +24,10 @@ export default function AdminHeader({ path }: Props) {
     ];
 
     return (
-        <div className="bg-white px-4 sm:px-6 py-4 flex items-center justify-between relative">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-4 flex items-center justify-between relative">
             <div className="flex items-center">
                 <button
-                    className="bg-white shadow-md px-2 sm:px-4 py-2 text-indigo-500 font-semibold hover:bg-indigo-500 hover:text-white transition rounded-md"
+                    className="bg-white/20 backdrop-blur-sm shadow-md px-2 sm:px-4 py-2 text-white font-semibold hover:bg-white/30 hover:text-white transition rounded-md border border-white/30"
                     onClick={() => {
                         navigate(path);
                     }}
@@ -37,7 +37,7 @@ export default function AdminHeader({ path }: Props) {
                         돌아가기
                     </span>
                 </button>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-600 ml-4 sm:ml-8">
+                <h1 className="text-xl sm:text-2xl font-bold text-white ml-4 sm:ml-8">
                     STARS 관리자 통합 화면
                 </h1>
             </div>
@@ -46,7 +46,7 @@ export default function AdminHeader({ path }: Props) {
             <div className="relative">
                 <button
                     onClick={toggleMenu}
-                    className="bg-white shadow-md px-3 py-2 text-gray-700 font-medium hover:bg-gray-100 transition rounded-md flex items-center"
+                    className="bg-white/20 backdrop-blur-sm shadow-md px-3 py-2 text-white font-medium hover:bg-white/30 transition rounded-md flex items-center border border-white/30"
                 >
                     <span>menu</span>
                     <svg

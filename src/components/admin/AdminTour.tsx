@@ -29,20 +29,20 @@ const AdminTour = () => {
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [selectedEvent, setSelectedEvent] = useState<TourList | null>(null);
     const [isMobileView, setIsMobileView] = useState<boolean>(false);
+    const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
     // 화면 크기 체크
     useEffect(() => {
         const checkScreenSize = () => {
             setIsMobileView(window.innerWidth < 768);
+            // 모바일에서는 자동으로 그리드 모드로 변경
+            if (window.innerWidth < 768) {
+                setViewMode("grid");
+            }
         };
 
-        // 초기 체크
         checkScreenSize();
-
-        // 리사이즈 이벤트에 반응
         window.addEventListener("resize", checkScreenSize);
-
-        // 클린업
         return () => window.removeEventListener("resize", checkScreenSize);
     }, []);
 
@@ -80,7 +80,6 @@ const AdminTour = () => {
 
     // 컴포넌트 마운트 시 데이터 로드
     useEffect(() => {
-        console.log("Tour Info component mounted");
         fetchEvents();
     }, []);
 
@@ -116,10 +115,7 @@ const AdminTour = () => {
             }
         };
 
-        // 이벤트 리스너 등록
         window.addEventListener("keydown", handleEscKey);
-
-        // 클린업 함수
         return () => {
             window.removeEventListener("keydown", handleEscKey);
         };
@@ -134,17 +130,9 @@ const AdminTour = () => {
 
         try {
             const date = new Date(dateString);
-            // 모바일뷰에서는 더 짧게 표시
-            if (isMobileView) {
-                return date.toLocaleDateString("ko-KR", {
-                    month: "numeric",
-                    day: "numeric",
-                });
-            }
-
             return date.toLocaleDateString("ko-KR", {
                 year: "numeric",
-                month: "long",
+                month: "short",
                 day: "numeric",
             });
         } catch (error) {
@@ -153,70 +141,361 @@ const AdminTour = () => {
         }
     };
 
-    // 로딩 스켈레톤 컴포넌트 - 테이블용
-    const TableRowSkeleton = () => (
-        <tr className="animate-pulse">
-            <td className="px-4 py-3 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 rounded w-16"></div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 rounded w-32"></div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 rounded w-20"></div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap">
-                <div className="h-6 bg-gray-200 rounded w-12"></div>
-            </td>
-        </tr>
+    // 카테고리별 색상 반환
+    const getCategoryColor = (category: string) => {
+        const colors: Record<string, string> = {
+            음악: "bg-purple-100 text-purple-800 border-purple-300",
+            공연: "bg-pink-100 text-pink-800 border-pink-300",
+            전시: "bg-blue-100 text-blue-800 border-blue-300",
+            축제: "bg-orange-100 text-orange-800 border-orange-300",
+            체험: "bg-green-100 text-green-800 border-green-300",
+            기타: "bg-gray-100 text-gray-800 border-gray-300",
+        };
+        return colors[category] || colors["기타"];
+    };
+
+    // 상태별 배지 색상
+    const getStatusColor = (isFree: boolean) => {
+        return isFree
+            ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+            : "bg-rose-100 text-rose-800 border-rose-300";
+    };
+
+    // 로딩 스켈레톤 컴포넌트
+    const LoadingSkeleton = () => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, idx) => (
+                <div key={idx} className="animate-pulse">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="h-4 bg-gray-200 rounded-full w-20"></div>
+                            <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                        </div>
+                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                </div>
+            ))}
+        </div>
     );
 
-    // 로딩 스켈레톤 컴포넌트 - 카드용
-    const CardSkeleton = () => (
-        <div className="animate-pulse bg-white rounded-lg shadow p-4 mb-3">
-            <div className="flex justify-between mb-2">
-                <div className="h-5 bg-gray-200 rounded w-16"></div>
-                <div className="h-5 bg-gray-200 rounded w-16"></div>
-            </div>
-            <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="flex justify-between mt-3">
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
-                <div className="h-6 bg-gray-200 rounded w-12"></div>
+    // 그리드 뷰 컴포넌트
+    const GridView = () => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredList.map((item, index) => (
+                <div
+                    key={`${item.event_name}-${index}`}
+                    className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ${
+                        !item.is_free ? "cursor-pointer" : ""
+                    }`}
+                    onClick={() => handleEventClick(item)}
+                >
+                    <div className="flex justify-between items-start mb-4">
+                        <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border ${getCategoryColor(item.category)}`}
+                        >
+                            {item.category}
+                        </span>
+                        <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(item.is_free)}`}
+                        >
+                            {item.is_free ? "무료" : "유료"}
+                            {!item.is_free && (
+                                <svg
+                                    className="inline-block w-3 h-3 ml-1"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            )}
+                        </span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
+                        {item.event_name}
+                    </h3>
+
+                    <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center">
+                            <svg
+                                className="w-4 h-4 mr-2 text-gray-400"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                            {item.gu}
+                        </div>
+                        <div className="flex items-center">
+                            <svg
+                                className="w-4 h-4 mr-2 text-gray-400"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                            {formatDate(item.start_date)} ~{" "}
+                            {formatDate(item.end_date)}
+                        </div>
+                    </div>
+
+                    {!item.is_free && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                            <span className="text-xs text-blue-600 font-medium">
+                                클릭하여 요금 정보 보기
+                            </span>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+
+    // 테이블 뷰 컴포넌트
+    const TableView = () => (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-1 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider w-16">
+                                카테고리
+                            </th>
+                            <th className="px-1 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                                행사명
+                            </th>
+                            <th className="px-1 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider w-16">
+                                지역
+                            </th>
+                            <th className="px-1 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider w-20">
+                                기간
+                            </th>
+                            <th className="px-1 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider w-14">
+                                요금
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredList.map((item, index) => (
+                            <tr
+                                key={`${item.event_name}-${index}`}
+                                className={`hover:bg-gray-50 transition-colors ${
+                                    !item.is_free ? "cursor-pointer" : ""
+                                }`}
+                                onClick={() => handleEventClick(item)}
+                            >
+                                <td className="px-1 py-2 whitespace-nowrap w-16">
+                                    <span
+                                        className={`px-1 py-0.5 rounded text-xs font-semibold border ${getCategoryColor(item.category)} truncate block`}
+                                        title={item.category}
+                                    >
+                                        {item.category}
+                                    </span>
+                                </td>
+                                <td className="px-1 py-2 max-w-xs">
+                                    <div
+                                        className="text-sm font-medium text-gray-900 truncate"
+                                        title={item.event_name}
+                                    >
+                                        {item.event_name}
+                                    </div>
+                                </td>
+                                <td className="px-1 py-2 whitespace-nowrap text-sm text-gray-600 w-16">
+                                    <div
+                                        className="truncate text-xs"
+                                        title={item.gu}
+                                    >
+                                        {item.gu}
+                                    </div>
+                                </td>
+                                <td className="px-1 py-2 whitespace-nowrap text-xs text-gray-600 w-20">
+                                    <div
+                                        title={`${formatDate(item.start_date)} ~ ${formatDate(item.end_date)}`}
+                                    >
+                                        <div className="truncate">
+                                            {formatDate(item.start_date)}
+                                        </div>
+                                        <div className="text-gray-400 truncate">
+                                            ~ {formatDate(item.end_date)}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-1 py-2 whitespace-nowrap w-14">
+                                    <span
+                                        className={`px-1 py-0.5 rounded text-xs font-semibold border ${getStatusColor(item.is_free)} truncate block`}
+                                    >
+                                        {item.is_free ? "무료" : "유료"}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
 
     return (
-        <div className="app-full-height bg-gray-100 min-h-screen flex flex-col w-full">
+        <div className="bg-gray-50 min-h-screen flex flex-col w-full">
             {/* Header */}
             <AdminHeader path={"/manage"} />
 
-            {/* Main Container - 패딩 축소 및 컨테이너 확장 */}
-            <div className="flex flex-col p-2 flex-grow overflow-hidden">
-                {/* 에러 메시지 표시 */}
+            {/* 메인 컨테이너 */}
+            <div className="flex-1 p-4 md:p-6">
+                {/* 에러 메시지 */}
                 {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-2 relative">
-                        <strong className="font-bold">오류 발생!</strong>
-                        <span className="block sm:inline"> {error}</span>
-                        <button
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded ml-2"
-                            onClick={() => fetchEvents()}
-                        >
-                            재시도
-                        </button>
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r-lg">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <svg
+                                    className="h-5 w-5 text-red-400"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">
+                                    오류 발생!
+                                </h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    <p>{error}</p>
+                                </div>
+                                <div className="mt-4">
+                                    <button
+                                        onClick={fetchEvents}
+                                        className="bg-red-100 hover:bg-red-200 text-red-800 font-medium py-2 px-4 rounded-lg transition-colors"
+                                    >
+                                        다시 시도
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
-                {/* 필터 섹션 - 높이 축소 */}
-                <div className="bg-white rounded-lg shadow p-2 w-full mb-2">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {/* 컨트롤 섹션 */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        {/* 제목과 카운트 */}
+                        <div className="flex items-center gap-4">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900">
+                                    문화 행사 관리
+                                </h1>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    총{" "}
+                                    <span className="font-semibold text-blue-600">
+                                        {list.length}
+                                    </span>
+                                    개 중{" "}
+                                    <span className="font-semibold text-blue-600">
+                                        {filteredList.length}
+                                    </span>
+                                    개 표시
+                                    {loading && (
+                                        <span className="inline-flex items-center ml-2">
+                                            <svg
+                                                className="animate-spin h-4 w-4 text-blue-500 mr-1"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
+                                            </svg>
+                                            <span className="text-blue-500 text-sm">
+                                                로딩 중
+                                            </span>
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* 뷰 모드 토글 - 모바일에서는 숨김 */}
+                        {!isMobileView && (
+                            <div className="flex items-center gap-2 bg-white rounded-lg p-1">
+                                <button
+                                    onClick={() => setViewMode("grid")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                        viewMode === "grid"
+                                            ? "bg-indigo-600 text-white shadow-md"
+                                            : "bg-white text-gray-900 hover:text-indigo-600 shadow-sm border border-gray-200"
+                                    }`}
+                                >
+                                    <svg
+                                        className="w-4 h-4 inline-block mr-1"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                    </svg>
+                                    그리드
+                                </button>
+                                <button
+                                    onClick={() => setViewMode("table")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                        viewMode === "table"
+                                            ? "bg-indigo-600 text-white shadow-md"
+                                            : "bg-white text-gray-900 hover:text-indigo-600 shadow-sm border border-gray-200"
+                                    }`}
+                                >
+                                    <svg
+                                        className="w-4 h-4 inline-block mr-1"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    테이블
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 필터 및 검색 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                         {/* 카테고리 필터 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 카테고리
                             </label>
                             <select
-                                className="w-full p-1.5 bg-white text-black text-sm border border-gray-300 rounded-md"
+                                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                                 value={filterCategory}
                                 onChange={(e) =>
                                     setFilterCategory(e.target.value)
@@ -231,41 +510,70 @@ const AdminTour = () => {
                             </select>
                         </div>
 
-                        {/* 제목 검색 */}
+                        {/* 검색 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                제목 검색
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                행사명 검색
                             </label>
-                            <input
-                                type="text"
-                                placeholder="행사 제목 검색..."
-                                className="w-full p-1.5 text-sm border bg-white text-black border-gray-300 rounded-md"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="행사 제목 검색..."
+                                    className="w-full px-4 py-2 pl-10 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
+                                />
+                                <svg
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                            </div>
                         </div>
 
-                        {/* 필터 리셋 및 새로고침 버튼 */}
-                        <div className="flex items-end space-x-2">
+                        {/* 액션 버튼들 */}
+                        <div className="flex items-end gap-2">
                             <button
-                                className="bg-gray-500 hover:bg-gray-700 text-white text-sm py-1.5 px-3 rounded"
+                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
                                 onClick={() => {
                                     setFilterCategory("");
                                     setSearchTerm("");
                                 }}
                             >
+                                <svg
+                                    className="w-4 h-4 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                </svg>
                                 초기화
                             </button>
                             <button
-                                className={`flex items-center bg-blue-500 hover:bg-blue-700 text-white text-sm py-1.5 px-3 rounded ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                                className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                                 onClick={fetchEvents}
                                 disabled={loading}
                             >
                                 {loading ? (
                                     <>
                                         <svg
-                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="animate-spin w-4 h-4 mr-2"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                         >
@@ -286,304 +594,99 @@ const AdminTour = () => {
                                         새로고침
                                     </>
                                 ) : (
-                                    "새로고침"
+                                    <>
+                                        <svg
+                                            className="w-4 h-4 mr-2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                            />
+                                        </svg>
+                                        새로고침
+                                    </>
                                 )}
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* 문화 행사 목록 - 확장 */}
-                <div className="bg-white rounded-lg shadow p-2 w-full flex-grow flex flex-col overflow-hidden">
-                    <h2 className="text-xl font-semibold mb-2">
-                        문화 행사 목록
-                        <span className="text-gray-500 text-sm ml-2">
-                            총 {list.length}개 중 {filteredList.length}개 표시
-                            중
-                        </span>
-                        {loading && (
-                            <span className="text-sm text-blue-500 font-normal ml-2 items-center inline-flex">
-                                <svg
-                                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
-                                로딩 중
-                            </span>
-                        )}
-                    </h2>
-
-                    {/* 로딩 중 && 데이터 없음 표시 */}
-                    {loading && list.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                            데이터를 불러오는 중입니다...
+                {/* 컨텐츠 영역 */}
+                <div>
+                    {loading && list.length === 0 ? (
+                        <LoadingSkeleton />
+                    ) : filteredList.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                            <svg
+                                className="mx-auto h-12 w-12 text-gray-400 mb-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 20.657a7.962 7.962 0 01-6-2.366"
+                                />
+                            </svg>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                {list.length > 0
+                                    ? "검색 조건에 맞는 행사가 없습니다"
+                                    : "등록된 문화 행사가 없습니다"}
+                            </h3>
+                            <p className="text-gray-500">
+                                {list.length > 0
+                                    ? "다른 검색 조건을 시도해보세요."
+                                    : "새로운 문화 행사를 등록해보세요."}
+                            </p>
                         </div>
-                    )}
-
-                    {/* 필터링 후 결과 없음 */}
-                    {!loading && filteredList.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                            {list.length > 0
-                                ? "검색 조건에 맞는 행사가 없습니다."
-                                : "사용 가능한 행사 데이터가 없습니다."}
-                        </div>
-                    )}
-
-                    {/* 모바일 뷰 (카드형) - 높이 조정 */}
-                    {isMobileView && (
-                        <div className="overflow-y-auto flex-grow h-full">
-                            <div className="space-y-3 pr-1">
-                                {loading && list.length === 0
-                                    ? [...Array(5)].map((_, index) => (
-                                          <CardSkeleton key={index} />
-                                      ))
-                                    : filteredList.map((item, index) => (
-                                          <div
-                                              key={index}
-                                              className={`bg-white p-3 rounded-lg border ${
-                                                  !item.is_free
-                                                      ? "cursor-pointer"
-                                                      : ""
-                                              } ${index % 2 === 0 ? "" : "bg-gray-50"}`}
-                                              onClick={() =>
-                                                  handleEventClick(item)
-                                              }
-                                          >
-                                              <div className="flex justify-between items-center mb-1">
-                                                  <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                                                      {item.category}
-                                                  </span>
-                                                  <span className="text-xs text-gray-500">
-                                                      {item.gu}
-                                                  </span>
-                                              </div>
-                                              <h3
-                                                  className="font-medium text-sm mb-1 truncate text-gray-900"
-                                                  title={item.event_name}
-                                              >
-                                                  {item.event_name}
-                                              </h3>
-                                              <div className="flex text-xs text-gray-500 mb-2">
-                                                  {formatDate(item.start_date)}{" "}
-                                                  ~ {formatDate(item.end_date)}
-                                              </div>
-                                              <div className="flex justify-between items-center">
-                                                  <span className="text-xs text-gray-500">
-                                                      {item.gu}
-                                                  </span>
-                                                  <span
-                                                      className={`px-2 py-1 text-xs rounded-full ${
-                                                          item.is_free
-                                                              ? "bg-green-100 text-green-800"
-                                                              : "bg-red-100 text-red-800 flex items-center"
-                                                      }`}
-                                                  >
-                                                      {item.is_free
-                                                          ? "무료"
-                                                          : "유료"}
-                                                      {!item.is_free && (
-                                                          <svg
-                                                              xmlns="http://www.w3.org/2000/svg"
-                                                              className="h-3 w-3 ml-1"
-                                                              fill="none"
-                                                              viewBox="0 0 24 24"
-                                                              stroke="currentColor"
-                                                          >
-                                                              <path
-                                                                  strokeLinecap="round"
-                                                                  strokeLinejoin="round"
-                                                                  strokeWidth={
-                                                                      2
-                                                                  }
-                                                                  d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
-                                                              />
-                                                          </svg>
-                                                      )}
-                                                  </span>
-                                              </div>
-                                          </div>
-                                      ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 데스크톱 뷰 (테이블형) - 높이 조정 및 수평 스크롤 추가 */}
-                    {!isMobileView && (
-                        <div className="relative flex-grow flex flex-col overflow-hidden">
-                            {/* 테이블 전체 컨테이너 - 수평 스크롤 추가 */}
-                            <div className="overflow-x-auto flex-grow flex flex-col">
-                                {/* 테이블 헤더 - 고정 */}
-                                <div>
-                                    <table className="min-w-full w-full table-fixed">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="w-1/6 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    카테고리
-                                                </th>
-                                                <th className="w-2/5 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    제목
-                                                </th>
-                                                <th className="w-1/4 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    기간
-                                                </th>
-                                                <th className="w-1/6 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    요금
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-
-                                {/* 테이블 본문 - 스크롤 확장 */}
-                                <div className="overflow-y-auto flex-grow">
-                                    <table className="min-w-full w-full table-fixed">
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {loading && list.length === 0
-                                                ? [...Array(10)].map(
-                                                      (_, index) => (
-                                                          <TableRowSkeleton
-                                                              key={index}
-                                                          />
-                                                      )
-                                                  )
-                                                : filteredList.map(
-                                                      (item, index) => (
-                                                          <tr
-                                                              key={index}
-                                                              className={`${
-                                                                  index % 2 ===
-                                                                  0
-                                                                      ? "bg-white"
-                                                                      : "bg-gray-50"
-                                                              } hover:bg-gray-100 transition-colors ${
-                                                                  !item.is_free
-                                                                      ? "cursor-pointer"
-                                                                      : ""
-                                                              }`}
-                                                              onClick={() =>
-                                                                  handleEventClick(
-                                                                      item
-                                                                  )
-                                                              }
-                                                          >
-                                                              <td className="w-1/6 px-4 py-3 text-sm text-gray-900">
-                                                                  <div className="flex flex-col">
-                                                                      <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded truncate w-fit">
-                                                                          {
-                                                                              item.category
-                                                                          }
-                                                                      </span>
-                                                                      <span className="text-xs mt-1 text-gray-500 truncate">
-                                                                          {
-                                                                              item.gu
-                                                                          }
-                                                                      </span>
-                                                                  </div>
-                                                              </td>
-                                                              <td className="w-2/5 px-4 py-3 text-sm text-gray-900 font-medium">
-                                                                  <div
-                                                                      className="truncate"
-                                                                      title={
-                                                                          item.event_name
-                                                                      }
-                                                                  >
-                                                                      {
-                                                                          item.event_name
-                                                                      }
-                                                                  </div>
-                                                              </td>
-                                                              <td className="w-1/4 px-4 py-3 text-sm text-gray-900">
-                                                                  {formatDate(
-                                                                      item.start_date
-                                                                  )}{" "}
-                                                                  ~{" "}
-                                                                  {formatDate(
-                                                                      item.end_date
-                                                                  )}
-                                                              </td>
-                                                              <td className="w-1/6 px-4 py-3 text-sm text-gray-900">
-                                                                  <div className="flex items-center">
-                                                                      <span
-                                                                          className={`px-2 py-1 text-xs rounded-full ${
-                                                                              item.is_free
-                                                                                  ? "bg-green-100 text-green-800"
-                                                                                  : "bg-red-100 text-red-800"
-                                                                          }`}
-                                                                      >
-                                                                          {item.is_free
-                                                                              ? "무료"
-                                                                              : "유료"}
-                                                                      </span>
-                                                                      {!item.is_free && (
-                                                                          <span className="ml-2 text-blue-500 text-xs">
-                                                                              <svg
-                                                                                  xmlns="http://www.w3.org/2000/svg"
-                                                                                  className="h-4 w-4 inline"
-                                                                                  fill="none"
-                                                                                  viewBox="0 0 24 24"
-                                                                                  stroke="currentColor"
-                                                                              >
-                                                                                  <path
-                                                                                      strokeLinecap="round"
-                                                                                      strokeLinejoin="round"
-                                                                                      strokeWidth={
-                                                                                          2
-                                                                                      }
-                                                                                      d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
-                                                                                  />
-                                                                              </svg>
-                                                                          </span>
-                                                                      )}
-                                                                  </div>
-                                                              </td>
-                                                          </tr>
-                                                      )
-                                                  )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                    ) : viewMode === "grid" || isMobileView ? (
+                        <GridView />
+                    ) : (
+                        <TableView />
                     )}
                 </div>
             </div>
 
             {/* 요금 정보 모달 */}
             {selectedEvent && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg shadow-lg max-w-lg w-full max-h-[80vh] overflow-y-auto">
-                        <div className="p-4 border-b">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-black">
-                                    요금 정보
-                                </h3>
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                    onClick={closeModal}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* 모달 헤더 */}
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-1">
+                                        요금 정보
+                                    </h3>
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold bg-white/20 border border-white/30`}
+                                    >
+                                        {selectedEvent.category}
+                                    </span>
+                                </div>
                                 <button
                                     onClick={closeModal}
-                                    className="text-gray-400 bg-white hover:text-gray-600"
+                                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
                                     aria-label="닫기"
-                                    title="닫기 (Esc)"
                                 >
                                     <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6"
+                                        className="w-5 h-5"
                                         fill="none"
-                                        viewBox="0 0 24 24"
                                         stroke="currentColor"
+                                        viewBox="0 0 24 24"
                                     >
                                         <path
                                             strokeLinecap="round"
@@ -595,65 +698,129 @@ const AdminTour = () => {
                                 </button>
                             </div>
                         </div>
-                        <div className="p-4 text-black">
-                            <h4 className="font-bold text-lg mb-2 text-black">
+
+                        {/* 모달 컨텐츠 */}
+                        <div className="p-6">
+                            <h4 className="text-xl font-bold text-gray-900 mb-4">
                                 {selectedEvent.event_name}
                             </h4>
-                            <div className="mb-4 text-black">
-                                <span className="text-gray-600 font-medium">
-                                    카테고리:
-                                </span>{" "}
-                                {selectedEvent.category}
-                            </div>
-                            <div className="mb-4 text-black">
-                                <span className="text-gray-600 font-medium">
-                                    장소:
-                                </span>{" "}
-                                {selectedEvent.gu}
-                            </div>
-                            <div className="mb-4 text-black">
-                                <span className="text-gray-600 font-medium">
-                                    기간:
-                                </span>{" "}
-                                {formatDate(selectedEvent.start_date)} ~{" "}
-                                {formatDate(selectedEvent.end_date)}
-                            </div>
-                            <div className="mb-4">
-                                <span className="text-gray-600 font-medium">
-                                    요금 정보:
-                                </span>
-                                <div className="mt-2 p-3 bg-gray-50 rounded-lg whitespace-pre-wrap text-black">
-                                    {selectedEvent.event_fee ||
-                                        "요금 정보가 없습니다."}
+
+                            <div className="space-y-4">
+                                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <svg
+                                        className="w-5 h-5 text-gray-400 mr-3"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    <div>
+                                        <p className="text-sm text-gray-600">
+                                            장소
+                                        </p>
+                                        <p className="font-medium text-gray-900">
+                                            {selectedEvent.gu}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <svg
+                                        className="w-5 h-5 text-gray-400 mr-3"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    <div>
+                                        <p className="text-sm text-gray-600">
+                                            기간
+                                        </p>
+                                        <p className="font-medium text-gray-900">
+                                            {formatDate(
+                                                selectedEvent.start_date
+                                            )}{" "}
+                                            ~{" "}
+                                            {formatDate(selectedEvent.end_date)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                                    <div className="flex items-start">
+                                        <svg
+                                            className="w-5 h-5 text-blue-600 mr-3 mt-0.5"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-blue-900 mb-2">
+                                                요금 정보
+                                            </p>
+                                            <div className="bg-white/70 p-3 rounded-lg">
+                                                <p className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">
+                                                    {selectedEvent.event_fee ||
+                                                        "상세한 요금 정보가 제공되지 않았습니다."}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div className="flex items-start">
+                                        <svg
+                                            className="w-5 h-5 text-amber-600 mr-3 mt-0.5"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                        <div>
+                                            <p className="text-sm font-medium text-amber-900 mb-1">
+                                                안내사항
+                                            </p>
+                                            <p className="text-xs text-amber-800">
+                                                요금은 변동될 수 있으니 방문 전
+                                                공식 사이트나 전화로 확인해
+                                                주세요.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="p-3 bg-yellow-50 text-yellow-800 rounded-lg text-sm">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5 inline-block mr-1"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
-                                    />
-                                </svg>
-                                요금은 변동될 수 있으니 방문 전 공식 사이트를
-                                확인해 주세요.
-                            </div>
                         </div>
-                        <div className="p-4 border-t flex justify-end">
+
+                        {/* 모달 푸터 */}
+                        <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
                             <button
                                 onClick={closeModal}
-                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                title="닫기 (Esc)"
+                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium py-3 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                             >
-                                닫기
+                                확인
                             </button>
+                            <p className="text-xs text-gray-500 text-center mt-2">
+                                ESC 키를 눌러서도 닫을 수 있습니다
+                            </p>
                         </div>
                     </div>
                 </div>
