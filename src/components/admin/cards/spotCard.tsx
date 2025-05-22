@@ -1,4 +1,4 @@
-// src/components/admin/cards/spotCard.tsx
+// src/components/admin/cards/SpotCard.tsx
 import { useMemo } from "react";
 import CongestionTag from "./CongestionTag";
 import { useMediaQuery } from "../../../hooks/useMediaQuery";

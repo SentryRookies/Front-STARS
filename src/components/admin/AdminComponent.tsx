@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useAdminData } from "../../context/AdminContext";
-import SpotCard from "./cards/spotCard";
+import SpotCard from "./cards/SpotCard";
 import AdminHeader from "./AdminHeader";
 import CongestionTag from "./cards/CongestionTag";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 
 // 타입 가져오기
@@ -175,18 +175,6 @@ export default function AdminComponent() {
         }
     };
 
-    // 로딩 스켈레톤 컴포넌트
-    const SpotCardSkeleton = () => (
-        <div className="p-3 bg-white border rounded-lg shadow-sm animate-pulse">
-            <div className="flex justify-between items-center mb-2">
-                <div className="h-5 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-6 bg-gray-200 rounded w-16"></div>
-            </div>
-            <div className="w-full bg-gray-200 rounded h-3 mb-2"></div>
-            <div className="mt-2 h-5 bg-gray-200 rounded w-1/3"></div>
-        </div>
-    );
-
     return (
         <div className="bg-gray-100 flex flex-col w-full h-screen">
             {/* Header */}
@@ -212,9 +200,14 @@ export default function AdminComponent() {
                 {/* 주요 인구 혼잡 현황 섹션 - 헤더 패딩 감소 */}
                 <div className="w-full lg:w-1/3 bg-white rounded-lg shadow-md order-1 flex flex-col">
                     <h2 className="text-sm md:text-base lg:text-lg p-2 font-bold text-black border-b flex justify-between items-center">
-                        <span className={isMobile ? "text-sm" : ""}>
-                            주요 인구 혼잡 현황
-                        </span>
+                        <div className="flex items-center">
+                            <span className={isMobile ? "text-sm" : ""}>
+                                주요 인구 혼잡 현황
+                            </span>
+                            <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                                {touristSpotsData.length}곳
+                            </span>
+                        </div>
                         {isLoading && (
                             <span className="text-xs md:text-sm text-blue-500 font-normal flex items-center">
                                 <svg
@@ -318,11 +311,48 @@ export default function AdminComponent() {
                         />
                     </div>
 
-                    {/* 관광지 정보 테이블 - 납작한 디자인 적용 */}
+                    {/* 관광지 정보 테이블 - 제목 추가 */}
                     <div className="flex-1 w-full bg-white rounded-lg shadow-md overflow-hidden border flex flex-col">
-                        {/* 테이블 헤더 - 패딩 감소 */}
+                        {/* 테이블 제목 헤더 - 더 납작하게 */}
+                        <h2 className="text-sm md:text-base lg:text-lg p-1.5 font-bold text-black border-b flex justify-between items-center">
+                            <div className="flex items-center">
+                                <span className={isMobile ? "text-sm" : ""}>
+                                    전체 관광지 현황
+                                </span>
+                                <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                                    {combinedAreaData.length}곳
+                                </span>
+                            </div>
+                            {isLoading && (
+                                <span className="text-xs md:text-sm text-blue-500 font-normal flex items-center">
+                                    <svg
+                                        className="animate-spin -ml-1 mr-1 h-3 w-3 md:h-3 md:w-3 text-blue-500"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                    로딩 중
+                                </span>
+                            )}
+                        </h2>
+
+                        {/* 테이블 헤더 - 더 납작하게 */}
                         <div
-                            className="flex bg-gray-100 py-1 md:py-2 border-b font-medium text-xs md:text-base w-full"
+                            className="flex bg-gray-100 py-1 border-b font-medium text-xs md:text-sm w-full"
                             style={{ minWidth: isMobile ? "auto" : "650px" }}
                         >
                             <div
@@ -360,7 +390,7 @@ export default function AdminComponent() {
                                     [...Array(15)].map((_, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex py-1.5 border-b animate-pulse"
+                                            className="flex py-1 border-b animate-pulse"
                                         >
                                             <div
                                                 className={`${isMobile ? "w-2/3" : "w-1/4"} flex justify-center`}
@@ -385,27 +415,27 @@ export default function AdminComponent() {
                                         </div>
                                     ))
                                 ) : sortedTouristInfo.length > 0 ? (
-                                    // 실제 데이터 행 - 패딩 감소
+                                    // 실제 데이터 행 - 훨씬 더 납작하게
                                     sortedTouristInfo.map((info, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex py-1.5 border-b hover:bg-gray-50 transition-colors text-xs md:text-sm cursor-pointer"
+                                            className="flex py-0.5 border-b hover:bg-gray-50 transition-colors text-xs md:text-sm cursor-pointer"
                                             onClick={() =>
                                                 handleSpotClick(info)
                                             }
                                         >
                                             <div
-                                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black overflow-hidden text-ellipsis px-1 ${isMobile ? "text-xs font-medium" : ""}`}
+                                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black overflow-hidden text-ellipsis px-1 ${isMobile ? "text-xs font-medium" : ""} flex items-center justify-center`}
                                             >
                                                 {info.area_nm}
                                             </div>
                                             {!isMobile && (
                                                 <>
-                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1">
+                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1 flex items-center justify-center">
                                                         {info.population
                                                             ?.area_cd || "N/A"}
                                                     </div>
-                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1">
+                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1 flex items-center justify-center">
                                                         {info.population
                                                             ?.ppltn_time ||
                                                             "N/A"}
@@ -421,6 +451,7 @@ export default function AdminComponent() {
                                                             ?.area_congest_lvl ||
                                                         "여유"
                                                     }
+                                                    size={"sm"}
                                                 />
                                             </div>
                                         </div>
