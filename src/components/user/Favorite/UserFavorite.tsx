@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Favorite } from "../../../data/adminData";
 import { getUserFavoriteList, deleteFavorite } from "../../../api/mypageApi";
-import { categoryMap, getTypeStyle } from "./userFavoriteUtils";
+import { categoryMap, getTypeStyle } from "./UserFavoriteUtils";
 
 const UserFavorite = () => {
     // 즐겨찾기 데이터 상태
