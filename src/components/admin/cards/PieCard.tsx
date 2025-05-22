@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { PieChart, Pie, Legend, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, ResponsiveContainer, Tooltip, Cell } from "recharts";
 
 interface Data {
     name: string;
@@ -12,7 +12,6 @@ interface PieCardProps {
     datas: Data[];
 }
 
-// 파이차트 내 비율 숫자 넣기 위한 데이터타입
 interface RenderLabelProps {
     cx: number;
     cy: number;
@@ -24,6 +23,7 @@ interface RenderLabelProps {
 }
 
 const RADIAN = Math.PI / 180;
+
 const renderCustomizedLabel = ({
     cx,
     cy,
@@ -32,7 +32,10 @@ const renderCustomizedLabel = ({
     outerRadius,
     percent,
 }: RenderLabelProps) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    // 8% 미만은 라벨 표시하지 않음
+    if (percent < 0.08) return null;
+
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -41,10 +44,11 @@ const renderCustomizedLabel = ({
             x={x}
             y={y}
             fill="white"
-            textAnchor={x > cx ? "start" : "end"}
+            textAnchor="middle"
             dominantBaseline="central"
             fontSize="12"
-            fontWeight="bold"
+            fontWeight="700"
+            className="drop-shadow-sm"
         >
             {`${(percent * 100).toFixed(0)}%`}
         </text>
@@ -56,8 +60,34 @@ const PieCard = ({ datas, name }: PieCardProps) => {
     const [dimensions, setDimensions] = useState({ width: 300, height: 200 });
     const [isVisible, setIsVisible] = useState(false);
 
+    // 더 다양한 샘플 데이터
+    const sampleData = [
+        { name: "남성", value: 52.3, fill: "#3b82f6" },
+        { name: "여성", value: 47.7, fill: "#ec4899" },
+    ];
+
+    const data = datas || sampleData;
+    const chartName = name || "성별 분포";
+
+    // 예쁜 색상 팔레트
+    const beautifulColors = [
+        "#3b82f6", // blue
+        "#ec4899", // pink
+        "#10b981", // emerald
+        "#f59e0b", // amber
+        "#8b5cf6", // violet
+        "#06b6d4", // cyan
+        "#84cc16", // lime
+        "#ef4444", // red
+    ];
+
+    // 데이터에 예쁜 색상 적용
+    const coloredData = data.map((item, index) => ({
+        ...item,
+        fill: item.fill || beautifulColors[index % beautifulColors.length],
+    }));
+
     useEffect(() => {
-        // 컴포넌트가 마운트된 후 약간의 지연을 두고 차트를 표시
         const timer = setTimeout(() => {
             setIsVisible(true);
         }, 100);
@@ -72,16 +102,13 @@ const PieCard = ({ datas, name }: PieCardProps) => {
             }
         };
 
-        // 초기 크기 설정
         updateDimensions();
 
-        // ResizeObserver를 사용하여 컨테이너 크기 변화 감지
         const resizeObserver = new ResizeObserver(updateDimensions);
         if (containerRef.current) {
             resizeObserver.observe(containerRef.current);
         }
 
-        // 윈도우 리사이즈 이벤트 리스너
         window.addEventListener("resize", updateDimensions);
 
         return () => {
@@ -93,68 +120,117 @@ const PieCard = ({ datas, name }: PieCardProps) => {
         };
     }, []);
 
-    // 컨테이너 사이즈에 비례하여 반지름 계산
-    const smallerDimension = Math.min(dimensions.width, dimensions.height);
-    const outerRadius = Math.max(40, smallerDimension * 0.35); // 파이 차트 크기 조절
-
-    // 툴팁 포맷 함수 수정 - 현재 항목의 이름과 값을 모두 표시
-    const customTooltipFormatter = (value: number, name: string) => {
-        // entry.payload에는 현재 데이터 객체가 포함됨
-        return [`${value}%`, `${name}`];
+    const CustomTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0];
+            return (
+                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                    <div className="flex items-center gap-2">
+                        <div
+                            className="w-3 h-3 rounded-full shadow-sm"
+                            style={{ backgroundColor: data.payload.fill }}
+                        />
+                        <div>
+                            <p className="font-semibold text-gray-900">
+                                {data.name}
+                            </p>
+                            <p className="text-lg font-bold text-gray-800">
+                                {data.value}%
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
         <div
             ref={containerRef}
-            className="bg-white shadow rounded-lg p-4 flex flex-col w-full h-full"
+            className={`bg-white rounded-lg border border-gray-200 p-4 transition-all duration-500 ${
+                isVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-4"
+            }`}
         >
-            <h3 className="font-semibold text-xl text-black mb-2">{name}</h3>
-            <div
-                className="flex-grow flex items-center justify-center"
-                style={{ minHeight: "180px" }}
-            >
+            <div className="mb-3">
+                <div className="flex items-center gap-2">
+                    <div className="w-1 h-5 bg-indigo-500 rounded"></div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                        {chartName}
+                    </h3>
+                </div>
+            </div>
+
+            <div className="h-48 flex items-center justify-center">
                 {isVisible && dimensions.width > 0 && dimensions.height > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart
-                            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                        >
-                            <Legend
-                                layout="horizontal"
-                                verticalAlign="bottom"
-                                align="center"
-                                wrapperStyle={{
-                                    fontSize: "14px",
-                                    fontWeight: "bold",
-                                    paddingTop: "10px",
-                                }}
-                                iconSize={10}
-                            />
-                            <Tooltip
-                                formatter={customTooltipFormatter}
-                                contentStyle={{ fontSize: "14px" }}
-                            />
+                        <PieChart>
+                            <defs>
+                                {coloredData.map((item, index) => (
+                                    <filter
+                                        key={`shadow-${index}`}
+                                        id={`shadow-${index}`}
+                                    >
+                                        <feDropShadow
+                                            dx="1"
+                                            dy="4"
+                                            stdDeviation="6"
+                                            floodOpacity="0.35"
+                                        />
+                                    </filter>
+                                ))}
+                            </defs>
+                            <Tooltip content={<CustomTooltip />} />
                             <Pie
-                                data={datas}
+                                data={coloredData}
                                 dataKey="value"
                                 nameKey="name"
                                 cx="50%"
-                                cy="80%"
-                                startAngle={0}
-                                endAngle={180}
+                                cy="50%"
+                                startAngle={90}
+                                endAngle={450}
                                 label={renderCustomizedLabel}
                                 labelLine={false}
-                                outerRadius={outerRadius}
-                                innerRadius={outerRadius * 0.4} // 도넛 형태로 변경
-                            />
+                                outerRadius={80}
+                                innerRadius={35}
+                                stroke="white"
+                                strokeWidth={3}
+                                animationBegin={200}
+                                animationDuration={1000}
+                            >
+                                {coloredData.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={entry.fill}
+                                        filter={`url(#shadow-${index})`}
+                                        className="hover:brightness-110 transition-all duration-200"
+                                    />
+                                ))}
+                            </Pie>
                         </PieChart>
                     </ResponsiveContainer>
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-gray-400 text-xs">
-                            로딩 중...
-                        </span>
+                    <div className="flex items-center justify-center text-gray-400 text-sm">
+                        데이터 로딩 중...
                     </div>
                 )}
+            </div>
+
+            {/* 커스텀 범례 */}
+            <div className="flex flex-wrap justify-center gap-3 mt-2">
+                {coloredData.map((item, index) => (
+                    <div key={index} className="flex items-center gap-1">
+                        <div
+                            className="w-3 h-3 rounded-full shadow-sm"
+                            style={{ backgroundColor: item.fill }}
+                        />
+                        <span className="text-xs font-medium text-gray-600">
+                            {item.name} ({item.value}%)
+                        </span>
+                    </div>
+                ))}
             </div>
         </div>
     );
