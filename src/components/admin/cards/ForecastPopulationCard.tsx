@@ -344,13 +344,13 @@ const ForecastPopulationCard = ({
             ))}
         </div>
     );
-
     return (
         <div
             className={`bg-white rounded-lg shadow p-4 h-full flex flex-col ${className}`}
         >
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
-                <div>
+                <div className="flex items-center gap-2">
+                    <div className="w-1 h-6 bg-indigo-500 rounded"></div>
                     <h3 className="font-semibold text-lg text-gray-700">
                         인구 예측 추이
                     </h3>
