@@ -12,7 +12,6 @@ const categoryMap: Record<string, string> = {
     attraction: "관광명소",
     cafe: "카페",
     restaurant: "음식점",
-    culturalevent: "문화행사",
 };
 const reverseCategoryMap: Record<string, string> = Object.entries(
     categoryMap
@@ -130,11 +129,11 @@ const AdminUserFavorite = () => {
         switch (type?.toLowerCase()) {
             case "cafe":
                 return {
-                    bg: "bg-amber-50",
-                    border: "border-amber-200",
-                    text: "text-amber-800",
-                    tag: "bg-amber-100",
-                    tagText: "text-amber-800",
+                    bg: "bg-yellow-50",
+                    border: "border-yellow-200",
+                    text: "text-yellow-800",
+                    tag: "bg-yellow-100",
+                    tagText: "text-yellow-800",
                     icon: "☕",
                 };
             case "restaurant":
@@ -148,30 +147,21 @@ const AdminUserFavorite = () => {
                 };
             case "accommodation":
                 return {
-                    bg: "bg-purple-50",
-                    border: "border-purple-200",
-                    text: "text-purple-800",
-                    tag: "bg-purple-100",
-                    tagText: "text-purple-800",
-                    icon: "🏨",
-                };
-            case "attraction":
-                return {
                     bg: "bg-blue-50",
                     border: "border-blue-200",
                     text: "text-blue-800",
                     tag: "bg-blue-100",
                     tagText: "text-blue-800",
-                    icon: "🎭",
+                    icon: "🏨",
                 };
-            case "culturalevent":
+            case "attraction":
                 return {
-                    bg: "bg-violet-50",
-                    border: "border-violet-200",
-                    text: "text-violet-800",
-                    tag: "bg-violet-100",
-                    tagText: "text-violet-800",
-                    icon: "🎫",
+                    bg: "bg-green-50",
+                    border: "border-green-200",
+                    text: "text-green-800",
+                    tag: "bg-green-100",
+                    tagText: "text-green-800",
+                    icon: "🎭",
                 };
             default:
                 return {
@@ -282,7 +272,7 @@ const AdminUserFavorite = () => {
     return (
         <div className="bg-gray-100 flex flex-col w-full app-full-height overflow-hidden">
             <AdminHeader path={"/manage"} />
-            <div className="p-2 sm:p-4 flex-1 overflow-hidden flex flex-col">
+            <div className="p-2 sm:p-4 flex-1 overflow-y-auto flex flex-col">
                 {/* 모바일: 사용자 목록에서 즐겨찾기/전체순위로 이동 시 뒤로가기 */}
                 {isMobileView && mobileTab !== 0 && (
                     <div className="mb-2 flex">
@@ -309,7 +299,7 @@ const AdminUserFavorite = () => {
 
                 {/* PC: 3분할 레이아웃 */}
                 {!isMobileView ? (
-                    <div className="w-full h-full flex flex-col flex-1 overflow-hidden">
+                    <div className="w-full h-full flex flex-col flex-1">
                         {/* 상단 2분할 */}
                         <div className="flex flex-row flex-none h-[55%] min-h-[350px]">
                             {/* 좌측상단: 사용자 목록 */}
