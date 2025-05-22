@@ -184,7 +184,6 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                 <motion.div
                     onClick={() => {
                         onDetail();
-                        window.fullpage_api?.moveSectionDown();
                     }}
                     className="cursor-pointer bg-white rounded-2xl shadow-lg md:p-6 p-4 flex items-center justify-center md:text-4xl text-xl font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white"
                     whileHover={{ y: -8 }}
