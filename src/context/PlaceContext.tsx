@@ -24,7 +24,10 @@ interface CongestionData {
     area_ppltn_min: number;
     area_ppltn_max: number;
     ppltn_time: string;
-    fcst_ppltn?: ForecastPopulation[]; // ✅ 추가
+    fcst_ppltn?: ForecastPopulation[];
+    male_ppltn_rate?: number;
+    female_ppltn_rate?: number;
+    ppltn_rates?: number[];
 }
 
 interface PlaceContextType {

@@ -231,8 +231,8 @@ const UserFavorite = () => {
 
                 {/* 카드 헤더 */}
                 <div
-                    className="flex justify-between items-center cursor-pointer ml-2"
-                    onClick={() => toggleExpand(fav.favorite_id)}
+                    className="flex justify-between items-start cursor-pointer"
+                    onClick={() => toggleExpand(fav.favorite_id || 0)}
                 >
                     <div className="flex items-center flex-1 min-w-0">
                         {/*<div*/}
@@ -259,7 +259,7 @@ const UserFavorite = () => {
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                toggleExpand(fav.favorite_id);
+                                toggleExpand(fav.favorite_id || 0);
                             }}
                             className="text-gray-400 bg-white hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
                         >

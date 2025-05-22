@@ -34,6 +34,7 @@ export const typeStyles: Record<
         bgColor: "bg-red-50",
         icon: "🍽️",
         borderColor: "border-red-200",
+
     },
 };
 

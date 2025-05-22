@@ -4,6 +4,7 @@ import API_SERVER_HOST from "./apiConfig";
 const prefix = `${API_SERVER_HOST}/place/search`;
 
 export interface SearchResult {
+    id?: number;
     place_id: number;
     name: string;
     address: string;
@@ -15,7 +16,6 @@ export interface SearchResult {
     title?: string;
     area_id?: number; // 추가
 }
-
 // 통합 이름 검색
 export const searchByKeyword = async (
     keyword: string
