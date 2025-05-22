@@ -1,6 +1,6 @@
-// Enhanced UserFavorite.tsx with improved design and fully working features
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+// Fixed UserFavorite.tsx - 깜빡임 문제 해결
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { motion } from "framer-motion";
 import { Favorite } from "../../../data/adminData";
 import { getUserFavoriteList, deleteFavorite } from "../../../api/mypageApi";
 
@@ -68,11 +68,8 @@ const UserFavorite = () => {
     // 검색어
     const [searchTerm, setSearchTerm] = useState<string>("");
 
-    // 모바일 여부를 저장하는 상태
-    // const [isMobile, setIsMobile] = useState(false);
-
-    // 즐겨찾기 데이터 로드 함수
-    const loadFavorites = async () => {
+    // 즐겨찾기 데이터 로드 함수 - useCallback으로 최적화
+    const loadFavorites = useCallback(async () => {
         setIsLoading(true);
         setError(null);
 
@@ -93,83 +90,70 @@ const UserFavorite = () => {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    // 화면 크기가 변경될 때 모바일 여부 감지
-    // useEffect(() => {
-    //     const checkIfMobile = () => {
-    //         setIsMobile(window.innerWidth < 768);
-    //     };
-    //
-    //     // 초기 체크
-    //     checkIfMobile();
-    //
-    //     // 리사이즈 이벤트 리스너 추가
-    //     window.addEventListener("resize", checkIfMobile);
-    //
-    //     // 컴포넌트 언마운트 시 이벤트 리스너 제거
-    //     return () => {
-    //         window.removeEventListener("resize", checkIfMobile);
-    //     };
-    // }, []);
+    }, []);
 
     // 컴포넌트 마운트 시 즐겨찾기 데이터 로드
     useEffect(() => {
         loadFavorites();
+    }, [loadFavorites]);
+
+    // 삭제 핸들러 - useCallback으로 최적화
+    const handleDelete = useCallback(
+        async (fav: Favorite) => {
+            if (window.confirm("즐겨찾기를 삭제하시겠습니까?")) {
+                setDeletingId(fav.favorite_id);
+
+                try {
+                    const response = await deleteFavorite(fav);
+                    console.log("삭제 결과: ", response);
+
+                    if (response.message === "즐겨찾기 삭제 완료") {
+                        // 성공적으로 삭제되면 상태에서도 삭제
+                        await loadFavorites();
+                    } else {
+                        // 실패 시 알림
+                        alert(response.message || "삭제에 실패했습니다.");
+                    }
+                } catch (err) {
+                    alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+                    console.log(err);
+                } finally {
+                    setDeletingId(null); // 삭제 중 표시 제거
+                }
+            }
+        },
+        [loadFavorites]
+    );
+
+    // 필터링된 즐겨찾기 목록 - useMemo로 최적화
+    const filteredFavorites = useMemo(() => {
+        return favorites.filter((item) => {
+            // 카테고리 필터
+            const categoryMatch =
+                selectedCategory === "all" || item.type === selectedCategory;
+
+            // 검색어 필터
+            const searchMatch =
+                searchTerm === "" ||
+                item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.address.toLowerCase().includes(searchTerm.toLowerCase());
+
+            return categoryMatch && searchMatch;
+        });
+    }, [favorites, selectedCategory, searchTerm]);
+
+    // 항목 확장 토글 - useCallback으로 최적화
+    const toggleExpand = useCallback((id: number) => {
+        setExpandedId((expandedId) => (expandedId === id ? null : id));
     }, []);
 
-    // 삭제 핸들러
-    const handleDelete = async (fav: Favorite) => {
-        if (window.confirm("즐겨찾기를 삭제하시겠습니까?")) {
-            setDeletingId(fav.favorite_id);
-
-            try {
-                const response = await deleteFavorite(fav);
-                console.log("삭제 결과: ", response);
-
-                if (response.message === "즐겨찾기 삭제 완료") {
-                    // 성공적으로 삭제되면 상태에서도 삭제
-                    await loadFavorites();
-                } else {
-                    // 실패 시 알림
-                    alert(response.message || "삭제에 실패했습니다.");
-                }
-            } catch (err) {
-                alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-                console.log(err);
-            } finally {
-                setDeletingId(null); // 삭제 중 표시 제거
-            }
-        }
-    };
-
-    // 필터링된 즐겨찾기 목록
-    const filteredFavorites = favorites.filter((item) => {
-        // 카테고리 필터
-        const categoryMatch =
-            selectedCategory === "all" || item.type === selectedCategory;
-
-        // 검색어 필터
-        const searchMatch =
-            searchTerm === "" ||
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.address.toLowerCase().includes(searchTerm.toLowerCase());
-
-        return categoryMatch && searchMatch;
-    });
-
-    // 항목 확장 토글
-    const toggleExpand = (id: number) => {
-        setExpandedId(expandedId === id ? null : id);
-    };
-
-    // 특정 타입에 따른 스타일 가져오기
-    const getTypeStyle = (type: string) => {
+    // 특정 타입에 따른 스타일 가져오기 - useCallback으로 최적화
+    const getTypeStyle = useCallback((type: string) => {
         return typeStyles[type] || defaultStyle;
-    };
+    }, []);
 
-    // 로딩 스켈레톤 컴포넌트
-    const FavoriteCardSkeleton = () => (
+    // 로딩 스켈레톤 컴포넌트 - React.memo로 최적화
+    const FavoriteCardSkeleton = React.memo(() => (
         <div className="animate-pulse bg-white rounded-xl shadow-sm p-4 border border-gray-100">
             <div className="flex justify-between items-center">
                 <div className="flex items-center">
@@ -183,16 +167,11 @@ const UserFavorite = () => {
             </div>
             <div className="mt-3 h-3 bg-gray-200 rounded w-full"></div>
         </div>
-    );
+    ));
 
-    // 오류 메시지 컴포넌트
-    const ErrorMessage = () => (
-        <motion.div
-            className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl flex flex-col items-center text-center"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-        >
+    // 오류 메시지 컴포넌트 - React.memo로 최적화
+    const ErrorMessage = React.memo(() => (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl flex flex-col items-center text-center">
             <svg
                 className="w-12 h-12 text-red-500 mb-3"
                 fill="none"
@@ -215,17 +194,14 @@ const UserFavorite = () => {
             >
                 다시 시도
             </button>
-        </motion.div>
-    );
+        </div>
+    ));
 
-    // 아무것도 없을 때 표시할 컴포넌트
-    const EmptyState = () => (
-        <motion.div
+    // 아무것도 없을 때 표시할 컴포넌트 - React.memo로 최적화
+    const EmptyState = React.memo(() => (
+        <div
             className="bg-gradient-to-b from-indigo-50 to-white border border-indigo-100 rounded-xl p-12 text-center w-full flex flex-col items-center justify-center"
             style={{ minHeight: "60vh" }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
         >
             <div className="max-w-md mx-auto flex flex-col items-center">
                 <div className="relative mb-8">
@@ -274,24 +250,17 @@ const UserFavorite = () => {
                     지도로 돌아가기
                 </button>
             </div>
-        </motion.div>
-    );
+        </div>
+    ));
 
-    // 즐겨찾기 카드 컴포넌트
-    const FavoriteCard = ({ fav }: { fav: Favorite }) => {
+    // 즐겨찾기 카드 컴포넌트 - React.memo로 최적화
+    const FavoriteCard = React.memo(({ fav }: { fav: Favorite }) => {
         const style = getTypeStyle(fav.type);
         const isExpanded = expandedId === fav.favorite_id;
         const isDeleting = deletingId === fav.favorite_id;
 
         return (
-            <motion.div
-                layout
-                className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 relative overflow-hidden transition-all"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.3 }}
-            >
+            <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 relative overflow-hidden transition-all">
                 {/* 삭제 중 오버레이 */}
                 {isDeleting && (
                     <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
@@ -354,82 +323,80 @@ const UserFavorite = () => {
                     </div>
                 </div>
 
-                {/* 확장 영역 */}
-                <AnimatePresence>
-                    {isExpanded && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="mt-4 border-t border-gray-100 pt-4 space-y-3"
-                        >
-                            <div className="flex justify-between pt-3">
-                                <button
-                                    onClick={() => {
-                                        // 지도에서 해당 위치로 이동 구현
-                                        if (window.fullpage_api) {
-                                            window.fullpage_api.moveSlideLeft();
-                                            // 지도 컴포넌트로 위치 정보 전달 로직 추가
-                                        }
-                                    }}
-                                    className="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm flex items-center"
+                {/* 확장 영역 - AnimatePresence 제거하고 CSS transition 사용 */}
+                {isExpanded && (
+                    <div className="mt-4 border-t border-gray-100 pt-4 space-y-3 transition-all duration-300">
+                        <div className="flex justify-between pt-3">
+                            <button
+                                onClick={() => {
+                                    // 지도에서 해당 위치로 이동 구현
+                                    if (window.fullpage_api) {
+                                        window.fullpage_api.moveSlideLeft();
+                                        // 지도 컴포넌트로 위치 정보 전달 로직 추가
+                                    }
+                                }}
+                                className="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm flex items-center"
+                            >
+                                <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
                                 >
-                                    <svg
-                                        className="w-4 h-4 mr-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                                        />
-                                    </svg>
-                                    지도에서 보기
-                                </button>
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                                    />
+                                </svg>
+                                지도에서 보기
+                            </button>
 
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(fav);
-                                    }}
-                                    className="text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm flex items-center"
-                                    disabled={isDeleting}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(fav);
+                                }}
+                                className="text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm flex items-center"
+                                disabled={isDeleting}
+                            >
+                                <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
                                 >
-                                    <svg
-                                        className="w-4 h-4 mr-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                        />
-                                    </svg>
-                                    삭제하기
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                </svg>
+                                삭제하기
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
         );
-    };
+    });
 
-    // 카테고리 필터 버튼
-    const CategoryFilter = () => {
-        const categories = [
-            { id: "all", name: "전체" },
-            ...Object.entries(categoryMap).map(([id, name]) => ({ id, name })),
-        ];
+    // 카테고리 필터 버튼 - React.memo로 최적화
+    const CategoryFilter = React.memo(() => {
+        const categories = useMemo(
+            () => [
+                { id: "all", name: "전체" },
+                ...Object.entries(categoryMap).map(([id, name]) => ({
+                    id,
+                    name,
+                })),
+            ],
+            []
+        );
 
         return (
             <div className="flex flex-wrap gap-2 mb-4">
@@ -457,7 +424,7 @@ const UserFavorite = () => {
                 })}
             </div>
         );
-    };
+    });
 
     // 메인 컴포넌트 렌더링
     return (
@@ -535,17 +502,15 @@ const UserFavorite = () => {
                     // 즐겨찾기 없음
                     <EmptyState />
                 ) : (
-                    // 즐겨찾기 목록
-                    <AnimatePresence>
-                        <div className="space-y-4">
-                            {filteredFavorites.map((favorite) => (
-                                <FavoriteCard
-                                    key={favorite.favorite_id}
-                                    fav={favorite}
-                                />
-                            ))}
-                        </div>
-                    </AnimatePresence>
+                    // 즐겨찾기 목록 - motion 제거하고 일반 div 사용
+                    <div className="space-y-4">
+                        {filteredFavorites.map((favorite) => (
+                            <FavoriteCard
+                                key={favorite.favorite_id}
+                                fav={favorite}
+                            />
+                        ))}
+                    </div>
                 )}
             </div>
 
