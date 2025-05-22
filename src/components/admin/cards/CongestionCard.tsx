@@ -23,12 +23,15 @@ const CongestionCard = ({ congestionLevel }: CongestionCardProps) => {
 
     return (
         <div
-            className={`${getBgColor()} p-3 rounded-lg shadow flex items-center h-32`}
+            className={`${getBgColor()} p-4 rounded-lg shadow flex items-center h-32 border border-white/20`}
         >
             <div className="w-full">
-                <h3 className="font-semibold text-sm text-white opacity-80 mb-1">
-                    혼잡정도
-                </h3>
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-5 bg-white/90 rounded shadow-sm"></div>
+                    <h3 className="font-semibold text-sm text-white opacity-90">
+                        혼잡정도
+                    </h3>
+                </div>
                 <div className="flex flex-col justify-between">
                     <p className="text-white text-3xl font-bold">
                         {congestionLevel}
