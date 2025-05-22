@@ -143,8 +143,7 @@ export default function SearchBarWithMenu({
                 isOpen={isMenuOpen}
                 searchData={searchResults}
                 hasSearched={hasSearched}
-                onResultClick={onResultClick}
-                onSingleResultClick={onSingleResultClick}
+                onResultClick={onSingleResultClick}
             />
         </div>
     );

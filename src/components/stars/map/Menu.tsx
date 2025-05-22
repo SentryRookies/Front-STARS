@@ -6,8 +6,7 @@ interface MenuProps {
     isOpen: boolean;
     searchData?: SearchResult[];
     hasSearched: boolean;
-    onResultClick?: (items: SearchResult[]) => void; // 배열
-    onSingleResultClick?: (item: SearchResult) => void; // 단일
+    onResultClick?: (item: SearchResult) => void;
 }
 
 type DropdownType = "category" | null;
@@ -17,6 +16,7 @@ const categoryMap: Record<string, string> = {
     attraction: "관광명소",
     cafe: "카페",
     restaurant: "음식점",
+    cultural_event: "문화행사",
     culturalevent: "문화행사",
 };
 
@@ -42,7 +42,7 @@ export default function Menu({
     isOpen,
     searchData,
     hasSearched,
-    onSingleResultClick,
+    onResultClick,
 }: MenuProps) {
     const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
     const [selectedCategory, setSelectedCategory] =
@@ -50,15 +50,15 @@ export default function Menu({
     const { isLogin, doLogout, moveToLogin } = useCustomLogin();
 
     // 카테고리 필터링
-    const dataToShow =
-        !searchData || searchData.length === 0
-            ? []
-            : searchData.filter((item) => {
-                  return (
-                      selectedCategory === "카테고리" ||
-                      item.type === reverseCategoryMap[selectedCategory]
-                  );
-              });
+    const dataToShow = useMemo(() => {
+        if (!searchData || searchData.length === 0) return [];
+        return searchData.filter((item) => {
+            return (
+                selectedCategory === "카테고리" ||
+                item.type === reverseCategoryMap[selectedCategory]
+            );
+        });
+    }, [searchData, selectedCategory]);
 
     return (
         <div
@@ -125,7 +125,7 @@ export default function Menu({
                             <li
                                 key={`${item.place_id ?? `${item.name}-${item.address}`}-${idx}`}
                                 className="py-6 border-b md:mr-2 flex items-center cursor-pointer hover:bg-purple-50"
-                                onClick={() => onSingleResultClick?.(item)} // 단일 클릭만 처리
+                                onClick={() => onResultClick?.(item)} // 클릭 시 단일 핸들러 호출
                             >
                                 <div className="flex-[3] flex flex-col items-center justify-center text-center">
                                     <div className="font-semibold text-gray-800 text-lg">
@@ -138,9 +138,9 @@ export default function Menu({
 
                                 <div
                                     className={`
-                        flex-[1] flex items-center justify-center text-sm px-2 py-1 rounded
-                        ${categoryColorMap[categoryMap[item.type] ?? item.type] ?? "text-gray-700"}
-                    `}
+                                        flex-[1] flex items-center justify-center text-sm px-2 py-1 rounded
+                                        ${categoryColorMap[categoryMap[item.type] ?? item.type] ?? "text-gray-700"}
+                                    `}
                                 >
                                     {categoryMap[item.type] ?? item.type}
                                 </div>
