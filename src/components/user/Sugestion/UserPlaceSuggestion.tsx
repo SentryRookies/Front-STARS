@@ -145,29 +145,6 @@ export default function UserPlaceSuggestion({
     }
   }, [endDate, questionType]);
 
-  // 시간이 변경될 때 오전/오후 상태 자동 업데이트
-  useEffect(() => {
-    if (startTime) {
-      const hour = parseInt(startTime.split('T')[1]?.split(':')[0] || '0');
-      if (hour >= 12) {
-        setTimePeriod(1); // 오후
-      } else {
-        setTimePeriod(0); // 오전
-      }
-    }
-  }, [startTime]);
-
-  useEffect(() => {
-    if (finishTime) {
-      const hour = parseInt(finishTime.split('T')[1]?.split(':')[0] || '0');
-      if (hour >= 12) {
-        setEndTimePeriod(1); // 오후
-      } else {
-        setEndTimePeriod(0); // 오전
-      }
-    }
-  }, [finishTime]);
-
   // 현재 월의 날짜 생성
   const getDaysInMonth = (year: number, month: number) => {
     const date = new Date(year, month, 1);
@@ -379,6 +356,16 @@ export default function UserPlaceSuggestion({
       alert("여행 종료 시간을 선택해주세요.");
       return;
     }
+    
+    if (startTime >= finishTime){
+      alert("여행 시간을 다시 선택해주세요.")
+      return;
+    }
+    
+    if (startDate && startDate < new Date()){
+      alert("여행 날짜를 다시 선택해주세요.")
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -391,12 +378,12 @@ export default function UserPlaceSuggestion({
         optional_request: optionalRequest
       };
 
-      console.log('제출된 데이터:', requestData);
+      // console.log('제출된 데이터:', requestData);
       
       const response = await createUserSuggestion(userData.user_id, requestData);
       
       if (response) {
-        console.log("여행 루트 추천 생성 성공:", response);
+        // console.log("여행 루트 추천 생성 성공:", response);
         setSuggestionResult(response);
         setIsCreate(false);
         setShowResult(true);
@@ -441,7 +428,7 @@ export default function UserPlaceSuggestion({
                 </div>
                 <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight">
                   {index === 0 && "혼잡도 기반 추천"}
-                  {index === 1 && "날짜 지정 코스"}
+                  {index === 1 && "날짜 지정 당일치기 코스"}
                   {index === 2 && "1박 이상 코스"}
                 </div>
               </div>
@@ -557,7 +544,7 @@ export default function UserPlaceSuggestion({
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs text-gray-500 mb-1">출발 날짜</div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="text-sm font-medium text-gray-900">
                         {startDate ? formatDateKR(startDate) : '날짜를 선택하세요'}
                       </div>
                     </div>
@@ -732,28 +719,35 @@ export default function UserPlaceSuggestion({
               ) : (
                 // 기존 일정 여행/숙박 여행 종료 시간 UI 코드 (그대로 유지)
                 <div className="relative">
-                  <div
-                    className="bg-white rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-purple-400 transition-colors"
-                    onClick={() => {
-                      setShowEndCalendar(!showEndCalendar);
-                      setShowStartCalendar(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-xs text-gray-500 mb-1">종료 날짜</div>
-                        <div className="text-sm font-medium">
-                          {endDate ? formatDateKR(endDate) : '날짜를 선택하세요'}
+                  {/* questionType 2만 종료 날짜를 따로 받음 */}
+                  {questionType === 2?
+                    <>
+                      <div
+                        className="bg-white rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-purple-400 transition-colors"
+                        onClick={() => {
+                          setShowEndCalendar(!showEndCalendar);
+                          setShowStartCalendar(false);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1">종료 날짜</div>
+                            <div className="text-sm font-medium">
+                              {endDate ? formatDateKR(endDate) : '날짜를 선택하세요'}
+                            </div>
+                          </div>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
                         </div>
                       </div>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  </div>
 
-                  {/* 캘린더 팝업 */}
-                  {showEndCalendar && renderCalendar(false)}
+                      {/* 캘린더 팝업 */}
+                      {showEndCalendar && renderCalendar(false)}
+                    </>
+                    :null
+                  }
+
 
                   {/* 시간 선택 (날짜가 선택된 경우에만 표시) */}
                   {endDate && (
@@ -832,15 +826,29 @@ export default function UserPlaceSuggestion({
 
               {/* 날짜 범위 요약 표시 */}
               {questionType > 0 && startDate && endDate && (
-                <div className="mt-2 bg-purple-50 p-2 rounded-lg">
-                  <div className="text-xs text-gray-600 mb-1">선택한 여행 기간</div>
-                  <div className="text-sm font-medium flex justify-between">
-                    <span>{formatDateKR(startDate)} ~ {formatDateKR(endDate)}</span>
-                    <span className="text-purple-500">
-                      {Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) + 1)}일
-                    </span>
-                  </div>
-                </div>
+                <>
+                  {questionType === 1?
+                      <div className="mt-2 bg-purple-50 p-2 rounded-lg">
+                      <div className="text-xs text-gray-600 mb-1">선택한 여행 날짜</div>
+                      <div className="text-sm font-medium flex justify-between">
+                        <span>{formatDateKR(startDate)} {startTime.split("T")[1]}~{finishTime.split("T")[1]}</span>
+                        <span className="text-purple-500">
+                          {Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) + 1)}일
+                        </span>
+                      </div>
+                    </div>
+                    :
+                    <div className="mt-2 bg-purple-50 p-2 rounded-lg">
+                      <div className="text-xs text-gray-600 mb-1">선택한 여행 기간</div>
+                      <div className="text-sm font-medium flex justify-between">
+                        <span>{formatDateKR(startDate)} ~ {formatDateKR(endDate)}</span>
+                        <span className="text-purple-500">
+                          {Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) + 1)}일
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </>
               )}
             </div>
 

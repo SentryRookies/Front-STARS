@@ -2,23 +2,30 @@ import React, { useMemo, useState, useRef } from 'react';
 import { Clock, MapPin, Calendar, DollarSign, Home, Coffee, Heart } from 'lucide-react';
 import { Suggestion } from './PlaceSuggestionShow';
 import { parseItineraryFromMarkdown } from './TravelItineraryParser';
-import { 
-  getIconByKeyword, 
-  emojiToIcon, 
-  TipIcon,
-  TransportIcon,
-  WalkIcon,
-  FoodIcon,
-  ParkIcon,
-  TaxiIcon,
-  TicketIcon
-} from './TravelItineraryIcons';
-import { ParsedItinerary, TimeItem, DaySchedule } from './TravelItineraryTypes';
+import { TimeItem, DaySchedule } from './TravelItineraryTypes';
 
 interface ImprovedTravelItineraryProps {
   suggestion: Suggestion;
   onClose: () => void;
 }
+
+// 아이콘 컴포넌트
+export const TipIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4 text-purple-600" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path d="M21 10 10 21l-3.5-3.5L18 6l3 3Z" />
+        <path d="m2.5 17.5 3 3L9 18l-3-3Z" />
+        <path d="M14 8 8 14" />
+    </svg>
+);
 
 const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ suggestion, onClose }) => {
   // 현재 활성화된 일자 탭 상태
@@ -448,7 +455,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
   const createdDateTime = formatDateTimeComponents(suggestion.created_at);
   
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl overflow-y-auto max-h-[80vh] shadow-lg">
+    <div className=" w-[100%] max-w-[500px] bg-white rounded-xl overflow-y-auto max-h-[80vh] shadow-lg hide-scrollbar">
       {/* 헤더와 닫기 버튼 */}
       <div className="relative bg-purple-500 p-4 rounded-t-xl">
         <button 

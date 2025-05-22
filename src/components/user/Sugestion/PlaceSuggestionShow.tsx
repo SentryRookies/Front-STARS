@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Clock, MapPin, Calendar, DollarSign, X, Home, Coffee } from 'lucide-react';
+import { MapPin, Calendar, Coffee } from 'lucide-react';
 import { getUserSuggestionList } from "../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
 import UserPlaceSuggestion from "./UserPlaceSuggestion";
 import { FaBars } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 import { UserInfo as UserInfoType } from "../../../data/UserInfoData";
 import { getUserProfile } from "../../../api/mypageApi";
@@ -41,7 +42,7 @@ export default function PlaceSuggestionShow({
     isOpen,
     onClose,
 }: SuggestionProps) {
-    // 장소 추천 데이터 상태
+    // 이전 장소 추천 데이터
     const [suggestionList, setSuggestionList] = useState<Suggestion[]>([]);
     // 사용자 정보 데이터
     const [userData, setUserData] = useState<UserInfoType | null>(null);
@@ -53,7 +54,7 @@ export default function PlaceSuggestionShow({
     // 에러 상태
     const [error, setError] = useState<string | null>(null);
 
-    // 맞춤코스 추천 ai작동 결과
+    // 맞춤코스 추천 ai작동 결과, 데이터
     const [showResult, setShowResult] = useState<boolean>(false);
     const [suggestionResult, setSuggestionResult] = useState<Suggestion>({} as Suggestion);
 
@@ -67,7 +68,7 @@ export default function PlaceSuggestionShow({
 
             if (response) {
                 setUserData(response);
-                console.log('회원정보!!!', response)
+                // console.log('회원정보!!!', response)
 
                 await loadSuggestion(response.user_id);
 
@@ -78,7 +79,7 @@ export default function PlaceSuggestionShow({
             }
         } catch (err) {
             console.error(err);
-            setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+            setError("로그인 후 이용 가능합니다.");
             // 오류 발생 시 기본 데이터 설정
             setUserData(initialUserData);
         } finally {
@@ -92,7 +93,6 @@ export default function PlaceSuggestionShow({
         setError(null);
 
         try {
-            console.log('?DSDFSDFSDFS')
             console.log(userId)
             const response = await getUserSuggestionList(userId);
 
@@ -141,6 +141,51 @@ export default function PlaceSuggestionShow({
         setSuggestionResult({} as Suggestion);
     };
 
+        // 오류 메시지 컴포넌트
+        const ErrorMessage = () => (
+            <motion.div
+                className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl flex flex-col items-center text-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+            >
+                <svg
+                    className="w-12 h-12 text-red-500 mb-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                </svg>
+                <h3 className="text-lg font-bold mb-2">오류 발생</h3>
+                <p className="mb-4">{error}</p>
+            </motion.div>
+        );
+
+        // 로딩 스켈레톤 컴포넌트
+        const FavoriteCardSkeleton = () => (
+            <div className="animate-pulse bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                        <div className="w-8 h-8 bg-gray-200 rounded-full mr-3"></div>
+                        <div>
+                            <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-32"></div>
+                        </div>
+                    </div>
+                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                </div>
+                <div className="mt-3 h-3 bg-gray-200 rounded w-full"></div>
+            </div>
+        );
+
+
     return (
         <div id="place_suggestion_wrap"
             className={`absolute md:bottom-0 bottom-0 max-h-[80vh] bg-white shadow-lg rounded-2xl transition-transform duration-300 z-20 overflow-hidden ${isOpen
@@ -179,7 +224,7 @@ export default function PlaceSuggestionShow({
                 
                 {isCreate ? (
                     <UserPlaceSuggestion 
-                        setIsCreate={setIsCreate} 
+                        setIsCreate={setIsCreate}
                         setShowResult={setShowResult} 
                         setSuggestionResult={setSuggestionResult}
                         userData={userData} 
@@ -191,7 +236,7 @@ export default function PlaceSuggestionShow({
                         onClose={handleCloseResult} 
                     />
                 ) : showResult ? (
-                    <div>생성 실패~</div>
+                    <div>생성 실패</div>
                 ) : (
                     <div className="position-relative">
                         {/* 헤더 */}
@@ -207,7 +252,23 @@ export default function PlaceSuggestionShow({
                                 이전 여행 코스
                             </h3>
                             
-                            {suggestionList.length != 0 ? (
+                            
+                            {
+                                isLoading ? (
+                                    // 로딩 중
+                                    <div className="space-y-4">
+                                        {Array(3)
+                                            .fill(0)
+                                            .map((_, index) => (
+                                                <FavoriteCardSkeleton key={index} />
+                                            ))}
+                                    </div>
+                                ) : error ? (
+                                    // 오류 발생
+                                    <ErrorMessage />
+                                ):
+                            
+                            suggestionList.length != 0 ? (
                                 <div className="space-y-3">
                                     {suggestionList.map((item, index) => (
                                         <div 

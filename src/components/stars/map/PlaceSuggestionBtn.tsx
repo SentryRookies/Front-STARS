@@ -30,7 +30,7 @@ export default function PlaceSuggestionBtn({}: PlaceSuggestionBtnProps) {
                     className="flex-shrink-0 bg-transparent mr-3 focus:outline-none border-0
 font-bold text-center text-purple-500"
                     onClick={toggleSuggestion}>
-                    여행코스 ❯
+                    여행코스 추천 ❯
                 </button>
                 <PlaceSuggestionShow isOpen={isSuggestionOpen}
                     onClose={handleClose} />
