@@ -70,12 +70,13 @@ export interface Data {
 
 // 즐겨찾기 데이터
 export type Favorite = {
-    favorite_id: number;
+    favorite_id?: number;
     type: string;
-    name: string;
-    address: string;
-    place_id: string;
-    user_id: string;
+    name?: string;
+    address?: string;
+    place_id?: number;
+    user_id?: string;
+    id?: number | string;
 };
 
 // 관리자 페이지 즐겨찾기 모아보기용

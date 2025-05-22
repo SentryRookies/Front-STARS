@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { CountUp } from "countup.js";
-import { getAreaList, getPlaceListByArea } from "../../../api/starsApi";
 import { SearchResult } from "../../../api/searchApi";
+import useAreaList from "../../../hooks/useAreaList";
+import usePlaceListByArea from "../../../hooks/usePlaceListByArea";
 
 interface AreaFocusCardProps {
     areaId: number;
@@ -18,7 +19,7 @@ interface AreaDetail {
     category: string;
     lat: number;
     lon: number;
-    seoul_id: string;
+    seoul_id?: string;
     name_eng: string;
 }
 
@@ -50,22 +51,28 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     );
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
 
+    // Use custom hooks for optimization
+    const { areaList } = useAreaList();
+    const { placeList } = usePlaceListByArea(show && areaId ? areaId : null);
+
+    // Find the selected area from the cached area list
     useEffect(() => {
-        if (!show || !areaId) return;
+        if (!show || !areaId || areaList.length === 0) return;
 
-        getAreaList().then((areaList: AreaDetail[]) => {
-            const selected = areaList.find((a) => a.area_id === Number(areaId));
-            if (selected) setArea(selected);
-        });
+        const selected = areaList.find((a) => a.area_id === Number(areaId));
+        if (selected) setArea(selected as AreaDetail);
+    }, [areaId, show, areaList]);
 
-        getPlaceListByArea(areaId).then((placeList: PlaceCategoryContent[]) => {
-            const summary: Record<string, number> = {};
-            placeList.forEach((item) => {
-                summary[item.type] = item.content.length;
-            });
-            setPlaceSummary(summary);
+    // Calculate place summary from the cached place list
+    useEffect(() => {
+        if (!show || !areaId || !placeList.length) return;
+
+        const summary: Record<string, number> = {};
+        placeList.forEach((item: PlaceCategoryContent) => {
+            summary[item.type] = item.content.length;
         });
-    }, [areaId, show]);
+        setPlaceSummary(summary);
+    }, [areaId, show, placeList]);
 
     useEffect(() => {
         if (!show || !visitorCountRef.current) return;
@@ -83,28 +90,33 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
         if (!countUp.error) countUp.start();
     }, [area, show]);
 
-    const handleCategoryClick = async (type: string) => {
-        const placeList = await getPlaceListByArea(areaId);
-        const categoryItem = placeList.find(
-            (item: PlaceCategoryContent) => item.type === type
-        );
-        if (!categoryItem) return;
+    // Optimized with useCallback instead of useMemo for function memoization
+    const handleCategoryClick = useCallback(
+        (type: string) => {
+            if (!placeList.length) return;
 
-        const items: SearchResult[] = categoryItem.content.map(
-            (place: PlaceContent) => ({
-                place_id: place.id,
-                name: place.name,
-                address: place.address,
-                lon: place.lon,
-                lat: place.lat,
-                phone: place.phone,
-                kakaomap_url: place.kakaomap_url,
-                type,
-                area_id: areaId, // 추가
-            })
-        );
-        onCategoryClick?.(items);
-    };
+            const categoryItem = placeList.find(
+                (item: PlaceCategoryContent) => item.type === type
+            );
+            if (!categoryItem) return;
+
+            const items: SearchResult[] = categoryItem.content.map(
+                (place: PlaceContent) => ({
+                    place_id: place.id,
+                    name: place.name,
+                    address: place.address,
+                    lon: place.lon,
+                    lat: place.lat,
+                    phone: place.phone,
+                    kakaomap_url: place.kakaomap_url,
+                    type,
+                    area_id: areaId,
+                })
+            );
+            onCategoryClick?.(items);
+        },
+        [placeList, areaId, onCategoryClick]
+    );
 
     return (
         <div
@@ -170,7 +182,10 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
 
                 {/* 버튼 */}
                 <motion.div
-                    onClick={onDetail}
+                    onClick={() => {
+                        onDetail();
+                        window.fullpage_api?.moveSectionDown();
+                    }}
                     className="cursor-pointer bg-white rounded-2xl shadow-lg md:p-6 p-4 flex items-center justify-center md:text-4xl text-xl font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white"
                     whileHover={{ y: -8 }}
                 >
@@ -181,4 +196,5 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     );
 };
 
-export default AreaFocusCard;
+// Use React.memo to prevent unnecessary re-renders
+export default React.memo(AreaFocusCard);

@@ -6,7 +6,8 @@ interface MenuProps {
     isOpen: boolean;
     searchData?: SearchResult[];
     hasSearched: boolean;
-    onResultClick?: (item: SearchResult) => void;
+    onResultClick?: (items: SearchResult[]) => void; // 배열
+    onSingleResultClick?: (item: SearchResult) => void; // 단일
 }
 
 type DropdownType = "category" | null;
@@ -41,7 +42,7 @@ export default function Menu({
     isOpen,
     searchData,
     hasSearched,
-    onResultClick,
+    onSingleResultClick,
 }: MenuProps) {
     const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
     const [selectedCategory, setSelectedCategory] =
@@ -49,15 +50,15 @@ export default function Menu({
     const { isLogin, doLogout, moveToLogin } = useCustomLogin();
 
     // 카테고리 필터링
-    const dataToShow = useMemo(() => {
-        if (!searchData || searchData.length === 0) return [];
-        return searchData.filter((item) => {
-            return (
-                selectedCategory === "카테고리" ||
-                item.type === reverseCategoryMap[selectedCategory]
-            );
-        });
-    }, [searchData, selectedCategory]);
+    const dataToShow =
+        !searchData || searchData.length === 0
+            ? []
+            : searchData.filter((item) => {
+                  return (
+                      selectedCategory === "카테고리" ||
+                      item.type === reverseCategoryMap[selectedCategory]
+                  );
+              });
 
     return (
         <div
@@ -124,7 +125,7 @@ export default function Menu({
                             <li
                                 key={`${item.place_id ?? `${item.name}-${item.address}`}-${idx}`}
                                 className="py-6 border-b md:mr-2 flex items-center cursor-pointer hover:bg-purple-50"
-                                onClick={() => onResultClick?.(item)} // 클릭 시 단일 핸들러 호출
+                                onClick={() => onSingleResultClick?.(item)} // 단일 클릭만 처리
                             >
                                 <div className="flex-[3] flex flex-col items-center justify-center text-center">
                                     <div className="font-semibold text-gray-800 text-lg">
@@ -137,9 +138,9 @@ export default function Menu({
 
                                 <div
                                     className={`
-                                        flex-[1] flex items-center justify-center text-sm px-2 py-1 rounded
-                                        ${categoryColorMap[categoryMap[item.type] ?? item.type] ?? "text-gray-700"}
-                                    `}
+                        flex-[1] flex items-center justify-center text-sm px-2 py-1 rounded
+                        ${categoryColorMap[categoryMap[item.type] ?? item.type] ?? "text-gray-700"}
+                    `}
                                 >
                                     {categoryMap[item.type] ?? item.type}
                                 </div>
