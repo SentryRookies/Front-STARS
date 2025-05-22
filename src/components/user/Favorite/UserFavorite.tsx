@@ -1,53 +1,8 @@
-// Compact UserFavorite.tsx - 더 납작한 디자인
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+// Enhanced UserFavorite.tsx with improved design and fully working features
+import React, { useState, useEffect, useMemo } from "react";
 import { Favorite } from "../../../data/adminData";
 import { getUserFavoriteList, deleteFavorite } from "../../../api/mypageApi";
-
-// 카테고리 타입별 정의
-const categoryMap: Record<string, string> = {
-    accommodation: "숙박",
-    attraction: "관광명소",
-    cafe: "카페",
-    restaurant: "음식점",
-};
-
-// 타입별 색상 및 아이콘 정의
-const typeStyles: Record<
-    string,
-    { color: string; bgColor: string; icon: string; borderColor: string }
-> = {
-    accommodation: {
-        color: "text-blue-600",
-        bgColor: "bg-blue-50",
-        icon: "🏨",
-        borderColor: "border-blue-200",
-    },
-    attraction: {
-        color: "text-green-600",
-        bgColor: "bg-green-50",
-        icon: "🎭",
-        borderColor: "border-green-200",
-    },
-    cafe: {
-        color: "text-yellow-600",
-        bgColor: "bg-yellow-50",
-        icon: "☕",
-        borderColor: "border-yellow-200",
-    },
-    restaurant: {
-        color: "text-red-600",
-        bgColor: "bg-red-50",
-        icon: "🍽️",
-        borderColor: "border-red-200",
-    },
-};
-
-// 기본 스타일
-const defaultStyle = {
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
-    icon: "📍",
-};
+import { categoryMap, getTypeStyle } from "./userFavoriteUtils";
 
 const UserFavorite = () => {
     // 즐겨찾기 데이터 상태
@@ -65,8 +20,11 @@ const UserFavorite = () => {
     // 검색어
     const [searchTerm, setSearchTerm] = useState<string>("");
 
-    // 즐겨찾기 조회
-    const loadFavorites = useCallback(async () => {
+    // 모바일 여부를 저장하는 상태
+    // const [isMobile, setIsMobile] = useState(false);
+
+    // 즐겨찾기 데이터 로드 함수
+    const loadFavorites = async () => {
         setIsLoading(true);
         setError(null);
 
@@ -87,67 +45,75 @@ const UserFavorite = () => {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    };
+
+    // 화면 크기가 변경될 때 모바일 여부 감지
+    // useEffect(() => {
+    //     const checkIfMobile = () => {
+    //         setIsMobile(window.innerWidth < 768);
+    //     };
+    //
+    //     // 초기 체크
+    //     checkIfMobile();
+    //
+    //     // 리사이즈 이벤트 리스너 추가
+    //     window.addEventListener("resize", checkIfMobile);
+    //
+    //     // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    //     return () => {
+    //         window.removeEventListener("resize", checkIfMobile);
+    //     };
+    // }, []);
 
     // 컴포넌트 마운트 시 즐겨찾기 데이터 로드
     useEffect(() => {
         loadFavorites();
-    }, [loadFavorites]);
+    }, []);
 
     // 삭제 핸들러
-    const handleDelete = useCallback(
-        async (fav: Favorite) => {
-            if (window.confirm("즐겨찾기를 삭제하시겠습니까?")) {
-                setDeletingId(fav.favorite_id);
+    const handleDelete = async (fav: Favorite) => {
+        if (window.confirm("즐겨찾기를 삭제하시겠습니까?")) {
+            setDeletingId(fav.favorite_id || null); // 삭제 중 표시
 
-                try {
-                    const response = await deleteFavorite(fav);
-                    console.log("삭제 결과: ", response);
+            try {
+                const response = await deleteFavorite(fav);
+                console.log("삭제 결과: ", response);
 
-                    if (response.message === "즐겨찾기 삭제 완료") {
-                        // 성공적으로 삭제되면 상태에서도 삭제
-                        await loadFavorites();
-                    } else {
-                        // 실패 시 알림
-                        alert(response.message || "삭제에 실패했습니다.");
-                    }
-                } catch (err) {
-                    alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-                    console.log(err);
-                } finally {
-                    setDeletingId(null); // 삭제 중 표시 제거
+                if (response.message === "즐겨찾기 삭제 완료") {
+                    // 성공적으로 삭제되면 상태에서도 삭제
+                    await loadFavorites();
+                } else {
+                    // 실패 시 알림
+                    alert(response.message || "삭제에 실패했습니다.");
                 }
+            } catch (err) {
+                alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+                console.log(err);
+            } finally {
+                setDeletingId(null); // 삭제 중 표시 제거
             }
-        },
-        [loadFavorites]
-    );
+        }
+    };
 
-    // 필터링된 즐겨찾기 목록 - useMemo로 최적화
-    const filteredFavorites = useMemo(() => {
-        return favorites.filter((item) => {
-            // 카테고리 필터
-            const categoryMatch =
-                selectedCategory === "all" || item.type === selectedCategory;
+    // 필터링된 즐겨찾기 목록
+    const filteredFavorites = favorites.filter((item) => {
+        // 카테고리 필터
+        const categoryMatch =
+            selectedCategory === "all" || item.type === selectedCategory;
 
-            // 검색어 필터
-            const searchMatch =
-                searchTerm === "" ||
-                item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.address.toLowerCase().includes(searchTerm.toLowerCase());
+        // 검색어 필터
+        const searchMatch =
+            searchTerm === "" ||
+            item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.address?.toLowerCase().includes(searchTerm.toLowerCase());
 
-            return categoryMatch && searchMatch;
-        });
-    }, [favorites, selectedCategory, searchTerm]);
+        return categoryMatch && searchMatch;
+    });
 
     // 항목 확장 토글
-    const toggleExpand = useCallback((id: number) => {
-        setExpandedId((expandedId) => (expandedId === id ? null : id));
-    }, []);
-
-    // 특정 타입에 따른 스타일 가져오기
-    const getTypeStyle = useCallback((type: string) => {
-        return typeStyles[type] || defaultStyle;
-    }, []);
+    const toggleExpand = (id: number) => {
+        setExpandedId(expandedId === id ? null : id);
+    };
 
     // 로딩 스켈레톤 컴포넌트
     const FavoriteCardSkeleton = React.memo(() => (
