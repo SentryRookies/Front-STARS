@@ -1,5 +1,20 @@
 import React from "react";
-import { WeatherData } from "../../../data/adminData";
+
+interface WeatherData {
+    temp: number;
+    sensible_temp: number;
+    min_temp: number;
+    max_temp: number;
+    pm10: number;
+    pm25: number;
+    weather_time: string;
+    fcst24hours: Array<{
+        fcst_dt: string;
+        pre_sky_stts: string;
+        pre_temp: number;
+        pre_rain_chance: number;
+    }>;
+}
 
 interface WeatherCardProps {
     datas: WeatherData | undefined;
@@ -61,13 +76,61 @@ const formatForecastTime = (timeString: string): string => {
 
 // WeatherCard component
 const WeatherCard = ({ datas }: WeatherCardProps) => {
+    // 샘플 데이터 (실제 props가 없는 경우)
+    const sampleData: WeatherData = {
+        temp: 23,
+        sensible_temp: 25,
+        min_temp: 18,
+        max_temp: 28,
+        pm10: 45,
+        pm25: 25,
+        weather_time: "2025-05-22 15:00",
+        fcst24hours: [
+            {
+                fcst_dt: "202505221500",
+                pre_sky_stts: "맑음",
+                pre_temp: 23,
+                pre_rain_chance: 0,
+            },
+            {
+                fcst_dt: "202505221600",
+                pre_sky_stts: "구름조금",
+                pre_temp: 24,
+                pre_rain_chance: 10,
+            },
+            {
+                fcst_dt: "202505221700",
+                pre_sky_stts: "구름많음",
+                pre_temp: 25,
+                pre_rain_chance: 20,
+            },
+            {
+                fcst_dt: "202505221800",
+                pre_sky_stts: "흐림",
+                pre_temp: 24,
+                pre_rain_chance: 30,
+            },
+            {
+                fcst_dt: "202505221900",
+                pre_sky_stts: "비",
+                pre_temp: 22,
+                pre_rain_chance: 80,
+            },
+        ],
+    };
+
+    const weatherData = datas || sampleData;
+
     // If no data, show "No data" message
-    if (!datas) {
+    if (!weatherData) {
         return (
-            <div className="bg-white p-3 rounded-lg h-full flex flex-col justify-center items-center shadow-sm border border-gray-100">
-                <h3 className="font-bold text-lg text-gray-800 mb-2">
-                    날씨 정보
-                </h3>
+            <div className="bg-white p-4 rounded-lg border border-gray-200 h-full flex flex-col justify-center items-center">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-5 bg-indigo-500 rounded"></div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                        날씨 정보
+                    </h3>
+                </div>
                 <div className="flex flex-col items-center">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -90,9 +153,6 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
             </div>
         );
     }
-
-    // Use the weather data
-    const weatherData = datas;
 
     // Check for forecast data
     const hasForecast =
@@ -123,17 +183,18 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
 
     return (
         <div
-            className={`${tempGradient} p-3 rounded-lg h-full flex flex-col border border-white/20 shadow-lg backdrop-blur-sm`}
+            className={`${tempGradient} p-4 rounded-lg h-full flex flex-col border border-white/20 shadow-lg backdrop-blur-sm`}
         >
-            {/* Header section */}
-            <div className="flex justify-between items-start mb-2">
-                <h3 className="font-bold text-lg text-white drop-shadow-lg">
+            {/* Header section with accent bar */}
+            <div className="flex items-center gap-2">
+                <div className="w-1 h-5 bg-white/90 rounded shadow-sm"></div>
+                <h3 className="text-lg font-bold text-white drop-shadow-lg">
                     날씨 정보
                 </h3>
             </div>
 
             {/* Current temperature and conditions */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
                 <div>
                     <p className="text-3xl font-extrabold text-white drop-shadow-lg">
                         {weatherData?.temp || "?"}°C
@@ -159,13 +220,13 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
             </div>
 
             {/* Min/Max temperature */}
-            <div className="flex justify-between text-xs text-white mb-2 font-semibold drop-shadow-md">
+            <div className="flex justify-between text-xs text-white mb-3 font-semibold drop-shadow-md">
                 <span>최저 {weatherData?.min_temp || "?"}°C</span>
                 <span>최고 {weatherData?.max_temp || "?"}°C</span>
             </div>
 
             {/* Air quality */}
-            <div className="bg-white/95 rounded-md p-2 mb-2 text-xs border border-white/50 backdrop-blur-sm shadow-md">
+            <div className="bg-white/95 rounded-md p-2 mb-3 text-xs border border-white/50 backdrop-blur-sm shadow-md">
                 <div className="flex justify-between mb-1">
                     <span className="text-slate-800 font-semibold">
                         미세먼지
@@ -214,7 +275,7 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
             )}
 
             {/* Update time */}
-            <div className="text-right text-xs text-white/95 mt-1 font-semibold drop-shadow-md">
+            <div className="text-right text-xs text-white/95 mt-2 font-semibold drop-shadow-md">
                 {weatherData?.weather_time || "업데이트 시간 정보 없음"} 기준
             </div>
         </div>
