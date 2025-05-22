@@ -174,10 +174,10 @@ const PieCard = ({ datas, name }: PieCardProps) => {
                                         id={`shadow-${index}`}
                                     >
                                         <feDropShadow
-                                            dx="0"
-                                            dy="2"
-                                            stdDeviation="3"
-                                            floodOpacity="0.3"
+                                            dx="1"
+                                            dy="4"
+                                            stdDeviation="6"
+                                            floodOpacity="0.35"
                                         />
                                     </filter>
                                 ))}
