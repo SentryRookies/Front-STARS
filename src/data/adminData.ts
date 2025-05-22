@@ -74,7 +74,7 @@ export type Favorite = {
     type: string;
     name?: string;
     address?: string;
-    place_id?: number | string;
+    place_id?: number;
     user_id?: string;
     id?: number | string;
 };

@@ -3,54 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Favorite } from "../../../data/adminData";
 import { getUserFavoriteList, deleteFavorite } from "../../../api/mypageApi";
-
-// 카테고리 타입별 정의
-const categoryMap: Record<string, string> = {
-    accommodation: "숙박",
-    attraction: "관광명소",
-    cafe: "카페",
-    restaurant: "음식점",
-    culturalevent: "문화행사",
-};
-
-// 타입별 색상 및 아이콘 정의
-const typeStyles: Record<
-    string,
-    { color: string; bgColor: string; icon: string }
-> = {
-    accommodation: {
-        color: "text-purple-600",
-        bgColor: "bg-purple-50",
-        icon: "🏨",
-    },
-    attraction: {
-        color: "text-blue-600",
-        bgColor: "bg-blue-50",
-        icon: "🎭",
-    },
-    cafe: {
-        color: "text-amber-600",
-        bgColor: "bg-amber-50",
-        icon: "☕",
-    },
-    restaurant: {
-        color: "text-red-600",
-        bgColor: "bg-red-50",
-        icon: "🍽️",
-    },
-    culturalevent: {
-        color: "text-violet-600",
-        bgColor: "bg-violet-50",
-        icon: "🎫",
-    },
-};
-
-// 기본 스타일
-const defaultStyle = {
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
-    icon: "📍",
-};
+import { categoryMap, typeStyles, defaultStyle, getTypeStyle } from "./userFavoriteUtils";
 
 const UserFavorite = () => {
     // 즐겨찾기 데이터 상태
@@ -161,11 +114,6 @@ const UserFavorite = () => {
     // 항목 확장 토글
     const toggleExpand = (id: number) => {
         setExpandedId(expandedId === id ? null : id);
-    };
-
-    // 특정 타입에 따른 스타일 가져오기
-    const getTypeStyle = (type: string) => {
-        return typeStyles[type] || defaultStyle;
     };
 
     // 로딩 스켈레톤 컴포넌트
