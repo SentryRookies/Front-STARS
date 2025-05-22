@@ -97,6 +97,12 @@ const PieCard = ({ datas, name }: PieCardProps) => {
     const smallerDimension = Math.min(dimensions.width, dimensions.height);
     const outerRadius = Math.max(40, smallerDimension * 0.35); // 파이 차트 크기 조절
 
+    // 툴팁 포맷 함수 수정 - 현재 항목의 이름과 값을 모두 표시
+    const customTooltipFormatter = (value: number, name: string) => {
+        // entry.payload에는 현재 데이터 객체가 포함됨
+        return [`${value}%`, `${name}`];
+    };
+
     return (
         <div
             ref={containerRef}
@@ -124,7 +130,7 @@ const PieCard = ({ datas, name }: PieCardProps) => {
                                 iconSize={10}
                             />
                             <Tooltip
-                                formatter={(value) => [`${value}%`, "비율"]}
+                                formatter={customTooltipFormatter}
                                 contentStyle={{ fontSize: "14px" }}
                             />
                             <Pie

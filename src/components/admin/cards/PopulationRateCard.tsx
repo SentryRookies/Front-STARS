@@ -64,8 +64,8 @@ const PopulationRateCard = ({ population }: PopulationRateProps) => {
             const data = payload[0].payload;
             return (
                 <div className="bg-white p-2 border shadow-md rounded">
-                    <p className="font-semibold">{data.name}</p>
-                    <p className="text-sm">{`${data.value}%`}</p>
+                    <p className="font-semibold text-black">{data.name}</p>
+                    <p className="text-sm text-black">{`${data.value}%`}</p>
                 </div>
             );
         }

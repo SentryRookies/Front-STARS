@@ -1,13 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useAdminData } from "../../context/AdminContext";
-import SpotCard from "./cards/spotCard";
+import SpotCard from "./cards/SpotCard";
 import AdminHeader from "./AdminHeader";
 import CongestionTag from "./cards/CongestionTag";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 
 // 타입 가져오기
-import { CombinedAreaData } from "../../data/adminData";
+import {
+    CombinedAreaData,
+    TouristSpot,
+    AccidentData,
+} from "../../data/adminData";
 import AccidentCard from "./cards/AccidentCard";
 
 export default function AdminComponent() {
@@ -29,6 +33,47 @@ export default function AdminComponent() {
         // refreshing,
     } = useAdminData();
 
+    // 로컬 상태로 touristSpotsData 관리 추가
+    const [localTouristSpotsData, setLocalTouristSpotsData] = useState<
+        TouristSpot[]
+    >([]);
+
+    // touristSpotsData가 변경될 때마다 로컬 상태 업데이트
+    useEffect(() => {
+        if (touristSpotsData && touristSpotsData.length > 0) {
+            setLocalTouristSpotsData((prevData) => {
+                // 첫 로드 시 (이전 데이터가 없는 경우)
+                if (prevData.length === 0) {
+                    return [...touristSpotsData];
+                }
+
+                // 기존 데이터 복사
+                const updatedData = [...prevData];
+
+                // 새로 들어온 데이터로 기존 데이터 업데이트
+                touristSpotsData.forEach((newSpot) => {
+                    // 동일한 지역 찾기 (area_nm으로 식별)
+                    const existingIndex = updatedData.findIndex(
+                        (spot) => spot.area_nm === newSpot.area_nm
+                    );
+
+                    if (existingIndex >= 0) {
+                        // 기존 데이터가 있으면 새 데이터로 업데이트 (병합)
+                        updatedData[existingIndex] = {
+                            ...updatedData[existingIndex], // 기존 데이터 유지
+                            ...newSpot, // 새 데이터로 덮어쓰기
+                        };
+                    } else {
+                        // 기존 데이터에 없는 새 항목이면 추가
+                        updatedData.push(newSpot);
+                    }
+                });
+
+                return updatedData;
+            });
+        }
+    }, [touristSpotsData]);
+
     // 혼잡도 값에 대한 우선순위 매핑
     const congestionOrder = {
         여유: 1,
@@ -49,6 +94,18 @@ export default function AdminComponent() {
         }
     };
 
+    // 정렬 표시 아이콘 렌더링 (유니코드 문자 사용)
+    const renderSortIcon = (field: string) => {
+        if (sortField !== field) return null;
+
+        return sortDirection === "asc" ? (
+            <span className="ml-1">▲</span>
+        ) : (
+            <span className="ml-1">▼</span>
+        );
+    };
+
+    // combinedAreaData를 기반으로 정렬된 목록 생성
     const sortedTouristInfo: CombinedAreaData[] = [...combinedAreaData].sort(
         (a, b) => {
             if (sortField === "spotName") {
@@ -82,17 +139,6 @@ export default function AdminComponent() {
         }
     );
 
-    // 정렬 표시 아이콘 렌더링 (유니코드 문자 사용)
-    const renderSortIcon = (field: string) => {
-        if (sortField !== field) return null;
-
-        return sortDirection === "asc" ? (
-            <span className="ml-1">▲</span>
-        ) : (
-            <span className="ml-1">▼</span>
-        );
-    };
-
     // 관광지 클릭 핸들러 - 선택한 관광지 정보와 함께 디테일 페이지로 이동
     const handleSpotClick = (info: CombinedAreaData) => {
         // 페이지 이동 전 스크롤 위치 초기화
@@ -107,26 +153,27 @@ export default function AdminComponent() {
         });
     };
 
-    // 로딩 스켈레톤 컴포넌트
-    const SpotCardSkeleton = () => (
-        <div className="p-3 bg-white border rounded-lg shadow-sm animate-pulse">
-            <div className="flex justify-between items-center mb-2">
-                <div className="h-5 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-6 bg-gray-200 rounded w-16"></div>
-            </div>
-            <div className="w-full bg-gray-200 rounded h-3 mb-2"></div>
-            <div className="mt-2 h-5 bg-gray-200 rounded w-1/3"></div>
-        </div>
-    );
+    // 사고정보 클릭 핸들러
+    const handleAccidentClick = (accident: AccidentData) => {
+        // 사고 데이터에서 지역명 추출
+        const accidentLocation = accident.area_nm;
 
-    const AccidentCardSkeleton = () => (
-        <div className="p-3 bg-white border rounded-lg shadow-sm animate-pulse">
-            <div className="h-5 bg-gray-200 rounded w-1/2 mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded-full w-8 mx-auto mb-2"></div>
-            <div className="h-6 bg-gray-200 rounded w-full mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto"></div>
-        </div>
-    );
+        // 지역명과 일치하는 combinedAreaData 찾기
+        const matchedArea = combinedAreaData.find(
+            (area) => area.area_nm === accidentLocation
+        );
+
+        if (matchedArea) {
+            // 일치하는 지역 데이터가 있으면 상세 페이지로 이동
+            handleSpotClick(matchedArea);
+        } else {
+            // 일치하는 지역이 없을 경우 사용자에게 알림
+            console.log(
+                `관련 지역 정보를 찾을 수 없습니다: ${accidentLocation}`
+            );
+            alert(`관련 지역 정보를 찾을 수 없습니다: ${accidentLocation}`);
+        }
+    };
 
     return (
         <div className="bg-gray-100 flex flex-col w-full h-screen">
@@ -136,7 +183,7 @@ export default function AdminComponent() {
 
             {/* 오류 메시지 표시 */}
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-4 mt-4 relative">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mx-4 mt-3 relative">
                     <strong className="font-bold">오류 발생!</strong>
                     <span className="block sm:inline"> {error}</span>
                     <button
@@ -148,18 +195,23 @@ export default function AdminComponent() {
                 </div>
             )}
 
-            {/* Main Container - 남은 공간을 모두 차지하도록 flex-1 설정 */}
-            <div className="flex-1 flex flex-col lg:flex-row p-2 md:p-4 space-y-4 lg:space-y-0 lg:space-x-4 overflow-hidden">
-                {/* 주요 인구 혼잡 현황 섹션 - 왼쪽에 배치 (큰 화면) / 위에 배치 (작은 화면) */}
+            {/* Main Container - 패딩 감소 */}
+            <div className="flex-1 flex flex-col lg:flex-row p-1 md:p-2 space-y-3 lg:space-y-0 lg:space-x-3 overflow-hidden">
+                {/* 주요 인구 혼잡 현황 섹션 - 헤더 패딩 감소 */}
                 <div className="w-full lg:w-1/3 bg-white rounded-lg shadow-md order-1 flex flex-col">
-                    <h2 className="text-base md:text-lg lg:text-xl p-3 font-bold text-black border-b flex justify-between items-center">
-                        <span className={isMobile ? "text-sm" : ""}>
-                            주요 인구 혼잡 현황
-                        </span>
+                    <h2 className="text-sm md:text-base lg:text-lg p-2 font-bold text-black border-b flex justify-between items-center">
+                        <div className="flex items-center">
+                            <span className={isMobile ? "text-sm" : ""}>
+                                주요 인구 혼잡 현황
+                            </span>
+                            <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                                {touristSpotsData.length}곳
+                            </span>
+                        </div>
                         {isLoading && (
                             <span className="text-xs md:text-sm text-blue-500 font-normal flex items-center">
                                 <svg
-                                    className="animate-spin -ml-1 mr-2 h-3 w-3 md:h-4 md:w-4 text-blue-500"
+                                    className="animate-spin -ml-1 mr-1 h-3 w-3 md:h-3 md:w-3 text-blue-500"
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -182,32 +234,40 @@ export default function AdminComponent() {
                             </span>
                         )}
                     </h2>
-                    <div className="p-2 flex-1 overflow-x-auto lg:overflow-y-auto">
+                    <div className="p-1.5 flex-1 overflow-x-auto lg:overflow-y-auto">
                         <div
-                            className="flex flex-nowrap lg:flex-col space-x-3 lg:space-x-0 lg:space-y-3 pb-2"
+                            className="flex flex-nowrap lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 pb-1"
                             style={{ minWidth: "max-content", width: "100%" }}
                         >
-                            {isLoading ? (
-                                // 로딩 스켈레톤
+                            {/* SpotCard 컴포넌트 간격 감소 */}
+                            {isLoading && touristSpotsData.length === 0 ? (
+                                // 로딩 스켈레톤 - 더 납작하게
                                 [...Array(5)].map((_, idx) => (
                                     <div
                                         key={idx}
-                                        className="w-60 lg:w-full flex-none"
+                                        className="w-56 lg:w-full flex-none"
                                     >
-                                        <SpotCardSkeleton />
+                                        <div className="p-2 bg-white border rounded-lg shadow-sm animate-pulse">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                                                <div className="h-5 bg-gray-200 rounded w-16"></div>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded h-2.5 mb-1"></div>
+                                            <div className="mt-1 h-4 bg-gray-200 rounded w-1/3"></div>
+                                        </div>
                                     </div>
                                 ))
-                            ) : touristSpotsData.length > 0 ? (
-                                touristSpotsData.map((spot, idx) => (
+                            ) : localTouristSpotsData.length > 0 ? (
+                                // SpotCard 컴포넌트에 더 작은 간격과 크기 적용
+                                localTouristSpotsData.map((spot, idx) => (
                                     <div
                                         key={idx}
-                                        className="w-60 lg:w-full flex-none"
+                                        className="w-56 lg:w-full flex-none"
                                     >
                                         <SpotCard
                                             key={idx}
                                             {...spot}
                                             onClick={() => {
-                                                // Find the corresponding detailed area data
                                                 const areaData =
                                                     combinedAreaData.find(
                                                         (area) =>
@@ -215,7 +275,6 @@ export default function AdminComponent() {
                                                             spot.area_nm
                                                     );
                                                 if (areaData) {
-                                                    // Use the same navigation logic as in the table
                                                     window.scrollTo(0, 0);
                                                     navigate(
                                                         `/manage/${areaData.area_id}`,
@@ -232,8 +291,7 @@ export default function AdminComponent() {
                                     </div>
                                 ))
                             ) : (
-                                // 데이터 없음
-                                <div className="p-4 text-center text-gray-500">
+                                <div className="p-3 text-center text-gray-500">
                                     현재 혼잡 현황 데이터가 없습니다.
                                 </div>
                             )}
@@ -241,15 +299,34 @@ export default function AdminComponent() {
                     </div>
                 </div>
 
-                {/* 오른쪽 컨텐츠 컨테이너 */}
-                <div className="flex-1 flex flex-col w-full lg:w-2/3 space-y-4 order-2 overflow-hidden">
-                    <div className="w-full border rounded-lg shadow-md bg-white">
-                        <h2 className="text-lg md:text-xl p-3 font-bold text-black border-b flex justify-between items-center">
-                            <span>사고 정보</span>
+                {/* 오른쪽 컨텐츠 컨테이너 - 간격 감소 */}
+                <div className="flex-1 flex flex-col w-full lg:w-2/3 space-y-3 order-2 overflow-hidden">
+                    {/* 개선된 사고 정보 섹션 - 높이 감소 */}
+                    <div className="w-full h-[250px] flex flex-col">
+                        <AccidentCard
+                            accidentData={accidentData}
+                            isLoading={isLoading}
+                            isMobile={isMobile}
+                            onSelectAccident={handleAccidentClick}
+                        />
+                    </div>
+
+                    {/* 관광지 정보 테이블 - 제목 추가 */}
+                    <div className="flex-1 w-full bg-white rounded-lg shadow-md overflow-hidden border flex flex-col">
+                        {/* 테이블 제목 헤더 - 더 납작하게 */}
+                        <h2 className="text-sm md:text-base lg:text-lg p-1.5 font-bold text-black border-b flex justify-between items-center">
+                            <div className="flex items-center">
+                                <span className={isMobile ? "text-sm" : ""}>
+                                    전체 관광지 현황
+                                </span>
+                                <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                                    {combinedAreaData.length}곳
+                                </span>
+                            </div>
                             {isLoading && (
-                                <span className="text-sm text-blue-500 font-normal flex items-center">
+                                <span className="text-xs md:text-sm text-blue-500 font-normal flex items-center">
                                     <svg
-                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500"
+                                        className="animate-spin -ml-1 mr-1 h-3 w-3 md:h-3 md:w-3 text-blue-500"
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
@@ -272,76 +349,10 @@ export default function AdminComponent() {
                                 </span>
                             )}
                         </h2>
-                        <div className="p-2 overflow-x-auto">
-                            <div
-                                className="flex flex-nowrap space-x-3 pb-2"
-                                style={{ minWidth: "max-content" }}
-                            >
-                                {isLoading ? (
-                                    // 로딩 스켈레톤
-                                    [...Array(5)].map((_, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="w-32 md:w-40 flex-none"
-                                        >
-                                            <AccidentCardSkeleton />
-                                        </div>
-                                    ))
-                                ) : accidentData.length > 0 ? (
-                                    // 실제 데이터 - 모바일 여부 전달 및 클릭 이벤트 추가
-                                    accidentData.map((data, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="w-32 md:w-40 flex-none cursor-pointer"
-                                            onClick={() => {
-                                                // 사고 데이터에서 지역명 추출 (구현에 따라 달라질 수 있음)
-                                                const accidentLocation =
-                                                    data.area_nm;
 
-                                                // 지역명과 일치하는 combinedAreaData 찾기
-                                                const matchedArea =
-                                                    combinedAreaData.find(
-                                                        (area) =>
-                                                            area.area_nm ===
-                                                            accidentLocation
-                                                    );
-
-                                                if (matchedArea) {
-                                                    // 일치하는 지역 데이터가 있으면 상세 페이지로 이동
-                                                    handleSpotClick(
-                                                        matchedArea
-                                                    );
-                                                } else {
-                                                    // 일치하는 지역이 없을 경우 사용자에게 알림
-                                                    console.log(
-                                                        `관련 지역 정보를 찾을 수 없습니다: ${accidentLocation}`
-                                                    );
-                                                    alert(
-                                                        `관련 지역 정보를 찾을 수 없습니다: ${accidentLocation}`
-                                                    );
-                                                }
-                                            }}
-                                        >
-                                            <AccidentCard
-                                                datas={data}
-                                                isMobile={isMobile}
-                                            />
-                                        </div>
-                                    ))
-                                ) : (
-                                    // 데이터 없음
-                                    <div className="p-4 text-center text-gray-500 w-full">
-                                        사고 정보가 없거나 불러올 수 없습니다.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 관광지 정보 테이블 - flex-1로 남은 공간 차지 */}
-                    <div className="flex-1 w-full bg-white rounded-lg shadow-md overflow-hidden border flex flex-col">
+                        {/* 테이블 헤더 - 더 납작하게 */}
                         <div
-                            className="flex bg-gray-100 py-2 md:py-3 border-b font-medium text-sm md:text-lg w-full"
+                            className="flex bg-gray-100 py-1 border-b font-medium text-xs md:text-sm w-full"
                             style={{ minWidth: isMobile ? "auto" : "650px" }}
                         >
                             <div
@@ -367,63 +378,64 @@ export default function AdminComponent() {
                                 혼잡도 {renderSortIcon("congestion")}
                             </div>
                         </div>
+                        {/* 테이블 데이터 부분 */}
                         <div className="flex-1 overflow-y-auto overflow-x-hidden">
                             <div
                                 style={{
                                     minWidth: isMobile ? "auto" : "650px",
                                 }}
                             >
-                                {isLoading ? (
-                                    // 로딩 스켈레톤 - 모바일 최적화
-                                    [...Array(10)].map((_, idx) => (
+                                {isLoading && combinedAreaData.length === 0 ? (
+                                    // 로딩 스켈레톤 - 더 납작하게
+                                    [...Array(15)].map((_, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex py-3 border-b animate-pulse"
+                                            className="flex py-1 border-b animate-pulse"
                                         >
                                             <div
-                                                className={`${isMobile ? "w-2/3" : "w-1/4"} px-1`}
+                                                className={`${isMobile ? "w-2/3" : "w-1/4"} flex justify-center`}
                                             >
-                                                <div className="h-4 bg-gray-200 rounded"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-16"></div>
                                             </div>
                                             {!isMobile && (
                                                 <>
-                                                    <div className="w-1/4 px-1">
-                                                        <div className="h-4 bg-gray-200 rounded"></div>
+                                                    <div className="w-1/4 flex justify-center">
+                                                        <div className="h-3 bg-gray-200 rounded w-12"></div>
                                                     </div>
-                                                    <div className="w-1/4 px-1">
-                                                        <div className="h-4 bg-gray-200 rounded"></div>
+                                                    <div className="w-1/4 flex justify-center">
+                                                        <div className="h-3 bg-gray-200 rounded w-14"></div>
                                                     </div>
                                                 </>
                                             )}
                                             <div
                                                 className={`${isMobile ? "w-1/3" : "w-1/4"} flex justify-center`}
                                             >
-                                                <div className="h-4 bg-gray-200 rounded w-16"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-10"></div>
                                             </div>
                                         </div>
                                     ))
                                 ) : sortedTouristInfo.length > 0 ? (
-                                    // 실제 데이터 - 모바일 최적화
+                                    // 실제 데이터 행 - 훨씬 더 납작하게
                                     sortedTouristInfo.map((info, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex py-3 border-b hover:bg-gray-100 transition-colors text-xs md:text-base cursor-pointer"
+                                            className="flex py-0.5 border-b hover:bg-gray-50 transition-colors text-xs md:text-sm cursor-pointer"
                                             onClick={() =>
                                                 handleSpotClick(info)
                                             }
                                         >
                                             <div
-                                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black overflow-hidden text-ellipsis px-1 ${isMobile ? "text-xs font-medium" : ""}`}
+                                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black overflow-hidden text-ellipsis px-1 ${isMobile ? "text-xs font-medium" : ""} flex items-center justify-center`}
                                             >
                                                 {info.area_nm}
                                             </div>
                                             {!isMobile && (
                                                 <>
-                                                    <div className="w-1/4 text-center text-black overflow-hidden text-ellipsis px-1">
+                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1 flex items-center justify-center">
                                                         {info.population
                                                             ?.area_cd || "N/A"}
                                                     </div>
-                                                    <div className="w-1/4 text-center text-black overflow-hidden text-ellipsis px-1">
+                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1 flex items-center justify-center">
                                                         {info.population
                                                             ?.ppltn_time ||
                                                             "N/A"}
@@ -431,7 +443,7 @@ export default function AdminComponent() {
                                                 </>
                                             )}
                                             <div
-                                                className={`${isMobile ? "w-1/3" : "w-1/4"} text-center overflow-hidden flex justify-center`}
+                                                className={`${isMobile ? "w-1/3" : "w-1/4"} text-center overflow-hidden flex justify-center items-center`}
                                             >
                                                 <CongestionTag
                                                     level={
@@ -439,16 +451,13 @@ export default function AdminComponent() {
                                                             ?.area_congest_lvl ||
                                                         "여유"
                                                     }
-                                                    size={
-                                                        isMobile ? "xs" : "sm"
-                                                    }
+                                                    size={"sm"}
                                                 />
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    // 데이터 없음
-                                    <div className="p-4 text-center text-gray-500">
+                                    <div className="p-3 text-center text-gray-500">
                                         관광지 정보가 없습니다.
                                     </div>
                                 )}
@@ -457,7 +466,6 @@ export default function AdminComponent() {
                     </div>
                 </div>
             </div>
-            {/* End of Main Container*/}
         </div>
     );
 }

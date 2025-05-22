@@ -48,7 +48,7 @@ export default function AdminHeader({ path }: Props) {
                     onClick={toggleMenu}
                     className="bg-white shadow-md px-3 py-2 text-gray-700 font-medium hover:bg-gray-100 transition rounded-md flex items-center"
                 >
-                    <span>메뉴</span>
+                    <span>menu</span>
                     <svg
                         className={`w-4 h-4 ml-2 transition-transform ${isMenuOpen ? "rotate-180" : ""}`}
                         xmlns="http://www.w3.org/2000/svg"

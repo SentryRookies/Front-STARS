@@ -84,11 +84,11 @@ const CongestionTag = ({ level, size = "md" }: CongestionTagProps) => {
     return (
         <div
             className={`
-                rounded-full border 
-                ${getStyles()} 
-                ${getSizeClass()}
-                font-medium whitespace-nowrap
-            `}
+                    rounded-full border 
+                    ${getStyles()} 
+                    ${getSizeClass()}
+                    font-medium whitespace-nowrap
+                `}
         >
             {getDisplayText()}
         </div>

@@ -462,6 +462,46 @@ const AdminTraffic = () => {
         }
     };
 
+    const getTrafficSpeed = (area: MapData): string => {
+        if (!area.trafficData?.road_traffic_idx) return "text-black";
+
+        // 올바른 경로로 접근
+        const status = area.trafficData.road_traffic_idx;
+
+        switch (status) {
+            case "서행":
+                return "text-orange-600"; // Orange
+            case "정체":
+                return "text-red-500"; // Red
+            case "원활":
+                return "text-green-500"; // Green
+            case "보통":
+                return "text-yellow-500"; // Yellow
+            default:
+                return "text-gray-500"; // Gray (알 수 없는 상태)
+        }
+    };
+
+    const getTrafficBorder = (area: MapData): string => {
+        if (!area.trafficData?.road_traffic_idx) return "border-black";
+
+        // 올바른 경로로 접근
+        const status = area.trafficData.road_traffic_idx;
+
+        switch (status) {
+            case "서행":
+                return "border-orange-300 bg-orange-100"; // Orange
+            case "정체":
+                return "border-red-300 bg-red-100"; // Red
+            case "원활":
+                return "border-green-300 bg-green-100"; // Green
+            case "보통":
+                return "border-yellow-300 bg-yellow-100"; // Yellow
+            default:
+                return "border-gray-300 bg-gray-100"; // Gray (알 수 없는 상태)
+        }
+    };
+
     // 각 지역별 주차장 대수 계산
     const getParkingCount = (area: MapData | undefined): number => {
         if (!area || !area.parkData || !area.parkData.prk_stts) return 0;
@@ -506,7 +546,7 @@ const AdminTraffic = () => {
 
                     <div className="p-2 md:p-4 border-b">
                         <div className="flex justify-between items-center mb-2 md:mb-3">
-                            <h2 className="text-lg md:text-xl font-bold">
+                            <h2 className="text-xl font-bold">
                                 교통 & 주차 현황
                             </h2>
 
@@ -532,8 +572,8 @@ const AdminTraffic = () => {
                                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                                         />
                                     </svg>
-                                    <span className="hidden sm:inline">
-                                        초기 화면
+                                    <span className="hidden sm:inline ">
+                                        초기화
                                     </span>
                                 </button>
                             </div>
@@ -576,11 +616,11 @@ const AdminTraffic = () => {
                             filteredMapData.map((area, idx) => (
                                 <div
                                     key={idx}
-                                    className={`p-2 md:p-3 border rounded-lg mb-2 md:mb-3 cursor-pointer transition-all duration-200 ${
+                                    className={`p-2 md:p-3 border-2 rounded-lg mb-2 md:mb-3 cursor-pointer transition-all duration-200 ${
                                         selectedArea === area.area_nm
                                             ? "bg-blue-50 border-blue-300 shadow-md"
                                             : "hover:bg-gray-50"
-                                    }`}
+                                    } ${getTrafficBorder(area)}`}
                                     onClick={() => {
                                         setSelectedArea(area.area_nm);
                                     }}
@@ -589,7 +629,9 @@ const AdminTraffic = () => {
                                         {area.area_nm}
                                     </h3>
                                     <div className="flex flex-row justify-between items-center mt-1">
-                                        <span className="text-xs md:text-sm">
+                                        <span
+                                            className={`text-xs md:text-sm ${getTrafficSpeed(area)}`}
+                                        >
                                             교통: {getTrafficStatusText(area)}
                                         </span>
                                         <span className="text-xs md:text-sm">
