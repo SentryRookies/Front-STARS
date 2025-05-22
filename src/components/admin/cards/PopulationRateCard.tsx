@@ -129,15 +129,15 @@ const PopulationRateCard = ({ population }: PopulationRateProps) => {
             className={`bg-white rounded-lg border border-gray-200 p-6 transition-all duration-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
         >
             <div className="mb-6">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2">
                     <div className="w-1 h-6 bg-indigo-500 rounded"></div>
                     <h3 className="text-xl font-bold text-gray-900">
                         연령대별 분포
                     </h3>
+                    <p className="text-sm text-gray-500">
+                        평균 {averageValue.toFixed(1)}% 기준
+                    </p>
                 </div>
-                <p className="text-sm text-gray-500 ml-3">
-                    평균 {averageValue.toFixed(1)}% 기준
-                </p>
             </div>
 
             <div className="h-48">
