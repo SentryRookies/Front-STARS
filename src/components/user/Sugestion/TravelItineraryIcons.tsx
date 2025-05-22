@@ -151,6 +151,7 @@ export const emojiToIcon: Record<string, React.ReactElement> = {
     '🕑': <Clock className="w-4 h-4 text-blue-600" />,
     '🕕': <Clock className="w-4 h-4 text-blue-600" />,
     '🕔': <Clock className="w-4 h-4 text-blue-600" />,
+    '🕒': <Clock className="w-4 h-4 text-blue-600" />,
     '🚇': <TransportIcon />,
     '🚶': <WalkIcon />,
     '🚕': <TaxiIcon />,

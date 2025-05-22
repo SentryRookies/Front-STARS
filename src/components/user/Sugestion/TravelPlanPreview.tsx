@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { Clock, MapPin, Calendar, DollarSign, Home, Coffee } from 'lucide-react';
+import { Clock, MapPin, Calendar, DollarSign, Home, Coffee, Heart } from 'lucide-react';
 import { Suggestion } from './PlaceSuggestionShow';
 import { parseItineraryFromMarkdown } from './TravelItineraryParser';
 import { 
@@ -49,40 +49,72 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
     return { date: dateStr, time: timeStr };
   };
   
-  // 일정 기간을 표시하는 함수
-  const formatDateRange = (startTime: string, finishTime: string) => {
-    const start = new Date(startTime);
-    const end = new Date(finishTime);
+  // AI 추천사를 추출하고 원본 텍스트에서 제거하는 함수
+  const extractAndCleanAnswer = (answerText: string) => {
+    // AI 추천사 패턴들 - 여러 문장을 포함하도록 수정
+    const recommendationPatterns = [
+     /(?:이 일정은|위 일정은|이 여행 코스는)[\s\S]*?(?:성격|성향)[\s\S]*$/,  
+  /이 일정을 통해[\s\S]*$/,
+  /이 코스는[\s\S]*$/
+    ];
     
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: '2-digit', 
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+    let recommendation = '';
+    let cleanedAnswer = answerText;
+    
+    // 추천사 찾기 및 제거
+    for (const pattern of recommendationPatterns) {
+      const match = answerText.match(pattern);
+      if (match) {
+        // 첫 번째 매치를 AI 추천사로 사용
+        if (!recommendation) {
+          let matchedText = match[0].replace(/^\$\s*/, '').trim();
+          recommendation = matchedText;
+        }
+        // 매치된 텍스트를 원본에서 제거
+        cleanedAnswer = cleanedAnswer.replace(match[0], '');
+        break; // 첫 번째 매치만 사용
+      }
+    }
+    
+    // 기본 추천사가 없으면 기본값 설정
+    if (!recommendation) {
+      recommendation = "즐거운 여행 되세요!";
+    }
+    
+    
+    
+    // 불필요한 공백과 줄바꿈 정리
+    cleanedAnswer = cleanedAnswer
+      .replace(/\n{3,}/g, '\n\n')  // 3개 이상의 연속 줄바꿈을 2개로
+      .replace(/\s+\n/g, '\n')     // 줄 끝의 공백 제거
+      .trim();
+    
+    return {
+      aiRecommendation: recommendation,
+      cleanedAnswer
     };
-    
-    const startStr = new Intl.DateTimeFormat('ko-KR', options).format(start);
-    const endStr = new Intl.DateTimeFormat('ko-KR', options).format(end);
-    
-    return `${startStr} 시작 ~ ${endStr} 종료`;
   };
   
-  // 비용 패턴
-  const costPattern = /(비용|예상 비용|비용:|예상 비용:)?\s*약\s*(\d{1,3}(,\d{3})*원|\d+,?\d*원)/;
-  
-  // 파싱된 일정
-  const parsedItinerary = useMemo(() => {
-  // 파싱 전에 모든 $ 기호 제거 (더 철저하게)
-  const cleanedAnswer = suggestion.answer.replace(/\$\s*/g, '');
-  return parseItineraryFromMarkdown(cleanedAnswer);
-}, [suggestion.answer]);
+  // 파싱된 일정과 AI 추천사
+  const parsedData = useMemo(() => {
+    const result = extractAndCleanAnswer(suggestion.answer);
+    // $ 기호 제거 후 파싱
+    const finalCleanedAnswer = result.cleanedAnswer.replace(/\$\s*/g, '');
+    const parsed = parseItineraryFromMarkdown(finalCleanedAnswer);
+    
+    return {
+      parsedItinerary: parsed,
+      aiRecommendation: result.aiRecommendation
+    };
+  }, [suggestion.answer]);
+
+  const { parsedItinerary, aiRecommendation } = parsedData;
 
   // 일자 탭 클릭 핸들러
   const handleDayTabClick = (index: number) => {
     setActiveDay(index);
     // 스크롤 컨테이너가 있으면 해당 일자로 스크롤
-    if (scrollRef.current) {
+    if (scrollRef.current && parsedItinerary.days.length > 0) {
       const container = scrollRef.current;
       const dayWidth = container.scrollWidth / parsedItinerary.days.length;
       container.scrollTo({
@@ -93,13 +125,13 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
   };
 
   // 스크롤 이벤트 핸들러 (스크롤 시 activeDay 업데이트)
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (scrollRef.current) {
+  const handleScroll = () => {
+    if (scrollRef.current && parsedItinerary.days.length > 0) {
       const container = scrollRef.current;
       const scrollLeft = container.scrollLeft;
       const dayWidth = container.scrollWidth / parsedItinerary.days.length;
       const newActiveDay = Math.round(scrollLeft / dayWidth);
-      if (newActiveDay !== activeDay) {
+      if (newActiveDay !== activeDay && newActiveDay >= 0 && newActiveDay < parsedItinerary.days.length) {
         setActiveDay(newActiveDay);
       }
     }
@@ -107,6 +139,10 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
 
   // 일자 탭 렌더링
   const renderDayTabs = () => {
+    if (!parsedItinerary.days || parsedItinerary.days.length === 0) {
+      return null;
+    }
+
     return (
       <div className="flex overflow-x-auto hide-scrollbar mb-3">
         {parsedItinerary.days.map((day, index) => (
@@ -120,7 +156,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
             onClick={() => handleDayTabClick(index)}
           >
             <span className="text-sm font-medium whitespace-nowrap">
-              {day.title.includes('Day') ? day.title.split('-')[0].trim() : `Day ${index + 1}`}
+              {day.title && day.title.includes('Day') ? day.title.split('-')[0].trim() : `Day ${index + 1}`}
             </span>
           </div>
         ))}
@@ -129,7 +165,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
   };
   
   // 시간과 내용을 처리하는 함수
-  function processTimeAndContent(timeStr: string, contentStr: string) {
+  const processTimeAndContent = (timeStr: string, contentStr: string) => {
     // 결과 객체 초기화
     const result = {
       startTime: '',
@@ -188,7 +224,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
     result.title = result.title.replace(/^\$\s+/, '');
     
     return result;
-  }
+  };
 
   // 완전히 새로운 시간 항목 컴포넌트
   const TimeItemComponent: React.FC<{ item: TimeItem }> = ({ item }) => {
@@ -218,10 +254,19 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
       : remainingTitle;
 
     // $ 기호로 시작하는 세부 항목 처리 ($ 제거)
-    const processedDetails = item.details.map(detail => {
-  // $ 기호로 시작하는 모든 문자열 처리
-  return detail.replace(/^\$\s*/g, '').trim();
-});
+    const processedDetails = item.details
+  .map(detail => {
+    // $ 기호로 시작하는 모든 문자열 처리
+    let cleaned = detail.replace(/^\$\s*/g, '').trim();
+    
+    // "추천 이유:" 라벨 제거 (뒤의 텍스트는 유지)
+    cleaned = cleaned.replace(/^추천\s*이유:\s*/i, '');
+    cleaned = cleaned.replace(/^추천\s*사유:\s*/i, '');
+    cleaned = cleaned.replace(/^추천\s*포인트:\s*/i, '');
+    
+    return cleaned;
+  })
+  .filter(detail => detail.length > 0); // 빈 문자열 제거
     
     return (
       <div className="py-4 border-b border-gray-100 last:border-b-0">
@@ -253,13 +298,10 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
             <div className="space-y-2">
               {processedDetails.map((detail, index) => {
                 // 시계 아이콘이 있는 시간 패턴 확인
-                const clockMatch = detail.match(/^(🕓|🕙|🕛|🕑|🕕|🕔|⏰|⌚️)\s*(\d{1,2}:\d{2})/);
+                const clockMatch = detail.match(/^(🕓|🕙|🕛|🕑|🕕|🕔|⏰|⌚️|🕒)\s*(\d{1,2}:\d{2})/);
                 
                 // 일반 시간 패턴 확인 (시계 아이콘 없이 숫자만)
                 const timeMatch = !clockMatch && detail.match(/^(\d{1,2}:\d{2})/);
-                
-                // 비용 관련 항목인지 확인
-                const isCost = detail.includes('원') || detail.includes('비용');
                 
                 // 이모지 확인
                 const hasEmoji = /[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(detail);
@@ -285,13 +327,6 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
                       </div>
                     </div>
                   );
-                } else if (isCost) {
-                  return (
-                    <div key={index} className="flex items-start ml-6">
-                      <DollarSign className="w-4 h-4 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-green-600">{detail}</div>
-                    </div>
-                  );
                 } else if (hasEmoji) {
                   // 이모지가 있는 경우 원본 텍스트 그대로 표시하되 적당한 여백 추가
                   return (
@@ -300,7 +335,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
                     </div>
                   );
                 } else {
-                  // 다른 항목은 들여쓰기하여 표시
+                  // 다른 항목은 들여쓰기하여 표시 (비용 포함 모든 항목을 회색으로 표시)
                   return (
                     <div key={index} className="flex items-start ml-6">
                       <div className="text-sm text-gray-600">{detail}</div>
@@ -359,6 +394,14 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
 
   // 일자별 컨텐츠 렌더링 - 수평 스크롤 방식
   const renderDaysWithHorizontalScroll = () => {
+    if (!parsedItinerary.days || parsedItinerary.days.length === 0) {
+      return (
+        <div className="py-3 px-4 text-sm text-gray-500 bg-gray-50 rounded-lg">
+          일정이 곧 생성될 예정입니다.
+        </div>
+      );
+    }
+
     return (
       <div className="relative">
         {/* 일자 탭 */}
@@ -407,7 +450,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl overflow-y-auto max-h-[80vh] shadow-lg">
       {/* 헤더와 닫기 버튼 */}
-      <div className="relative bg-gradient-to-r from-purple-600 to-purple-400 p-4 rounded-t-xl">
+      <div className="relative bg-purple-500 p-4 rounded-t-xl">
         <button 
           className="absolute right-3 top-3 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-1.5 transition-colors"
           onClick={onClose}
@@ -452,9 +495,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
           {suggestion.optional_request && (
             <div className="flex items-start">
               <div className="bg-purple-100 rounded-full p-1.5 mr-2 mt-0.5">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                </svg>
+                <Coffee className="w-4 h-4 text-purple-600" />
               </div>
               <div>
                 <div className="text-xs font-medium text-gray-700">요청사항</div>
@@ -466,7 +507,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
 
         {/* 팁 섹션 */}
         {parsedItinerary.tipSection && (
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-3 mb-4 border-l-4 border-purple-400">
+          <div className="bg-purple-50 rounded-lg p-3 mb-4 border-l-4 border-purple-400">
             <div className="flex items-start">
               <div className="flex-shrink-0 mr-2 text-purple-600 flex items-center justify-center">
                 <TipIcon />
@@ -500,7 +541,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
             <Calendar className="w-4 h-4 mr-1.5 text-purple-500" />
             일정표
           </h3>
-          {parsedItinerary.days.length > 1 && (
+          {parsedItinerary.days && parsedItinerary.days.length > 1 && (
             <div className="text-xs text-gray-500">좌우 스크롤로 일정 확인</div>
           )}
         </div>
@@ -508,20 +549,24 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
         {/* 수평 스크롤 방식의 일자별 일정 */}
         {renderDaysWithHorizontalScroll()}
 
-        {/* 추가 정보 표시 */}
-        {parsedItinerary.additionalInfos.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {parsedItinerary.additionalInfos.map((info, index) => {
-              // $ 기호 제거
-              const cleanInfo = info.replace(/^\$\s+/, '');
-              return (
-                <p key={index} className="text-xs text-gray-600 italic pl-3 border-l-2 border-gray-200">
-                  {cleanInfo}
+        {/* AI 추천사 섹션 - 개선된 로직으로 표시 */}
+        <div className="mt-4 mb-4">
+          <div className="relative bg-gray-100 rounded-lg p-4">
+            <div className="flex items-start">
+              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                <Heart className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-1">AI 추천사</div>
+                <p className="text-sm text-gray-700">
+                  {aiRecommendation}
                 </p>
-              );
-            })}
+              </div>
+            </div>
+            {/* 말풍선 꼬리 */}
+            <div className="absolute bottom-0 left-6 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-100 transform translate-y-full"></div>
           </div>
-        )}
+        </div>
 
         {/* 생성 정보 */}
         <div className="flex justify-end items-center text-xs text-gray-400 mt-3">
@@ -530,7 +575,7 @@ const ImprovedTravelItinerary: React.FC<ImprovedTravelItineraryProps> = ({ sugge
 
         {/* 확인 버튼 */}
         <button 
-          className="w-full mt-5 bg-gradient-to-r from-purple-600 to-purple-400 text-white py-3 px-4 rounded-xl font-medium hover:from-purple-700 hover:to-purple-500 transition-colors shadow-sm"
+          className="w-full mt-5 bg-purple-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-purple-600 transition-colors shadow-sm"
           onClick={onClose}
         >
           확인

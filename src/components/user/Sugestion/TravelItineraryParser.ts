@@ -34,7 +34,7 @@ export function parseItineraryFromMarkdown(markdownText: string): ParsedItinerar
   const dayPattern = /^📅\s*Day\s*\d+\s*-\s*(.*)/i;
   
   // 모든 시간 이모지를 포함하도록 패턴 수정
-  const timePattern = /^(🕓|🕙|🕛|🕑|🕕|🕔|🕠|🕞|🕗|🕘|🕚|🕖|⏰)?\s*(\d{1,2}:\d{2})\s*(.*)$/;
+  const timePattern = /^(🕓|🕙|🕛|🕑|🕕|🕔|🕠|🕞|🕗|🕘|🕚|🕖|🕒|⏰)?\s*(\d{1,2}:\d{2})\s*(.*)$/;
   const subItemPattern = /^\s*-\s*(.*)/;
   const separatorPattern = /^---$/;
 
