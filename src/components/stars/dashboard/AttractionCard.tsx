@@ -34,7 +34,7 @@ export default function AttractionTableCard({
                 {attractions.map((a, idx) => (
                     <li
                         key={idx}
-                        className="p-3 rounded-xl hover:bg-orange-50 transition"
+                        className="p-3 rounded-xl bg-gray-50 hover:bg-orange-50 shadow-sm transition"
                     >
                         <p className="text-sm font-semibold text-gray-800">
                             {a.name}
