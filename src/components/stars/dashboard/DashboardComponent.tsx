@@ -13,6 +13,7 @@ import TrafficInfoCard from "./TrafficInfoCard";
 import AccidentAlertCard from "./AccidentAlertCard";
 import CongestionStatusCard from "./CongestionStatusCard";
 import AttractionCard from "./AttractionCard";
+import AttractionTableCard from "./AttractionCard";
 import CulturalEventCard from "./CulturalEventCard";
 import { scrollToTop } from "../../../utils/scrollToTop";
 
@@ -428,6 +429,15 @@ export default function DashboardComponent() {
                 {/*        cardRef={(el) => (cardRefs.current[100 + i] = el)}*/}
                 {/*    />*/}
                 {/*))}*/}
+
+                {/* 관광지 카드 - 리스트형 하나로 묶어서 출력 */}
+                {attractions.length > 0 && (
+                    <AttractionTableCard
+                        attractions={attractions}
+                        style={cardStyles[100]} // 인덱스는 하나만 사용
+                        cardRef={(el) => (cardRefs.current[100] = el)}
+                    />
+                )}
 
                 {/*/!* POI 카드들 *!/*/}
                 {/*<POICardList*/}

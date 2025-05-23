@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import React from "react";
 
 interface Attraction {
     name: string;
@@ -8,43 +7,57 @@ interface Attraction {
     homepage_url?: string;
 }
 
-interface AttractionCardProps {
-    attraction: Attraction;
+interface AttractionTableCardProps {
+    attractions: Attraction[];
     style: { opacity: number; y: number; scale: number };
     cardRef: (el: HTMLDivElement | null) => void;
 }
 
-export default function AttractionCard({
-    attraction,
+export default function AttractionTableCard({
+    attractions,
     style,
     cardRef,
-}: AttractionCardProps) {
+}: AttractionTableCardProps) {
     return (
         <motion.div
-            className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3 bg-orange-500 rounded-3xl shadow-lg p-4 my-2"
+            className="col-span-12 md:col-span-6 bg-white rounded-3xl shadow-lg p-4 my-2"
             whileHover={{ y: -6 }}
             animate={style}
             style={style}
             ref={cardRef}
         >
-            <p className="text-md text-gray-200">관광지</p>
-            <p className="text-2xl font-bold text-white">{attraction.name}</p>
-            <p className="text-sm text-gray-100 mt-1">{attraction.address}</p>
-            {attraction.phone && (
-                <p className="text-sm text-gray-100 mt-1">
-                    ☎ {attraction.phone}
-                </p>
-            )}
-            {attraction.homepage_url && (
-                <a
-                    href={`https://${attraction.homepage_url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-yellow-300 mt-1 underline block"
-                >
-                    홈페이지 방문
-                </a>
-            )}
+            <h3 className="text-lg font-bold text-orange-500 mb-3">
+                관광지 목록
+            </h3>
+
+            <ul className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-none rounded-xl">
+                {attractions.map((a, idx) => (
+                    <li
+                        key={idx}
+                        className="p-3 rounded-xl hover:bg-orange-50 transition"
+                    >
+                        <p className="text-sm font-semibold text-gray-800">
+                            {a.name}
+                        </p>
+                        <p className="text-xs text-gray-500">{a.address}</p>
+                        {a.phone && (
+                            <p className="text-xs text-gray-500">
+                                ☎ {a.phone}
+                            </p>
+                        )}
+                        {a.homepage_url && (
+                            <a
+                                href={`https://${a.homepage_url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block mt-2 px-4 py-1 text-xs text-white hover:text-white bg-orange-500 rounded-lg shadow hover:bg-orange-600 transition"
+                            >
+                                홈페이지 방문
+                            </a>
+                        )}
+                    </li>
+                ))}
+            </ul>
         </motion.div>
     );
 }
