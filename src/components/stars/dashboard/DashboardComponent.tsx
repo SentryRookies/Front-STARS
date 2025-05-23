@@ -6,7 +6,7 @@ import VisitorCountCard from "./VisitorCountCard";
 import AreaInfoCard from "./AreaInfoCard";
 import WeatherCard from "./WeatherCard";
 import ChartCard from "./ChartCard";
-import POICardList from "./POICardList";
+import POITableCard from "./POICardList";
 import RatesCard from "./RatesCard";
 import TrafficInfoCard from "./TrafficInfoCard";
 // import ParkingInfoCard from "./ParkingInfoCard";
@@ -37,6 +37,7 @@ interface POI {
     name: string;
     address: string;
     tel: string;
+    type: "cafe" | "restaurant" | "accommodation";
 }
 
 interface POIRawItem {
@@ -130,6 +131,12 @@ export default function DashboardComponent() {
 
     const { accidentData } = usePlace();
 
+    const cafePOIs = poiList.filter((poi) => poi.type === "cafe");
+    const restaurantPOIs = poiList.filter((poi) => poi.type === "restaurant");
+    const accommodationPOIs = poiList.filter(
+        (poi) => poi.type === "accommodation"
+    );
+
     const selectedAccidents = useMemo(() => {
         if (!selectedAreaId || !accidentData) return [];
         return accidentData.filter((acc) => acc.area_id === selectedAreaId);
@@ -184,21 +191,27 @@ export default function DashboardComponent() {
 
         getPlaceListByArea(selectedAreaId).then(
             (placeList: PlaceListItem[]) => {
-                const poiTypes: PlaceType[] = [
+                type POIType = "cafe" | "restaurant" | "accommodation";
+
+                const poiTypes: POIType[] = [
                     "restaurant",
                     "cafe",
                     "accommodation",
                 ];
 
                 const pois: POI[] = placeList
-                    .filter((p) => poiTypes.includes(p.type))
-                    .flatMap((p) =>
-                        (p.content as unknown as POIRawItem[]).map((item) => ({
+                    .filter((p) => poiTypes.includes(p.type as POIType)) // filter는 단순 확인만
+                    .flatMap((p) => {
+                        const poiType = p.type as POIType;
+                        const poiItems = p.content as POIRawItem[];
+
+                        return poiItems.map((item) => ({
                             name: item.name || item.cafe_name || "이름 없음",
                             address: item.address,
                             tel: item.phone || "정보없음",
-                        }))
-                    );
+                            type: poiType,
+                        }));
+                    });
                 setPoiList(pois);
 
                 const attractionData =
@@ -380,6 +393,25 @@ export default function DashboardComponent() {
                     cardRef={(el) => (cardRefs.current[9] = el)}
                     mapData={map}
                     accidentData={selectedAccidents}
+                />
+
+                <POITableCard
+                    title="카페"
+                    pois={cafePOIs}
+                    style={cardStyles[300]}
+                    cardRef={(el) => (cardRefs.current[300] = el)}
+                />
+                <POITableCard
+                    title="식당"
+                    pois={restaurantPOIs}
+                    style={cardStyles[301]}
+                    cardRef={(el) => (cardRefs.current[301] = el)}
+                />
+                <POITableCard
+                    title="숙박업소"
+                    pois={accommodationPOIs}
+                    style={cardStyles[302]}
+                    cardRef={(el) => (cardRefs.current[302] = el)}
                 />
 
                 {/*<ParkingInfoCard*/}

@@ -1,3 +1,4 @@
+// ✅ POITableCard.tsx
 import { motion } from "framer-motion";
 
 interface POI {
@@ -6,39 +7,46 @@ interface POI {
     tel: string;
 }
 
-interface POICardListProps {
+interface POITableCardProps {
+    title: string;
     pois: POI[];
-    baseIndex: number;
-    cardRefs: React.MutableRefObject<(HTMLDivElement | null)[]>;
-    cardStyles: {
-        [key: number]: { opacity: number; y: number; scale: number };
-    };
+    style: { opacity: number; y: number; scale: number };
+    cardRef: (el: HTMLDivElement | null) => void;
 }
 
-export default function POICardList({
+export default function POITableCard({
+    title,
     pois,
-    baseIndex,
-    cardRefs,
-    cardStyles,
-}: POICardListProps) {
+    style,
+    cardRef,
+}: POITableCardProps) {
     return (
-        <motion.div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4 my-2">
-            {pois.map((poi, idx) => (
-                <motion.div
-                    key={idx}
-                    className="bg-white rounded-3xl shadow-lg p-4 my-2"
-                    whileHover={{ y: -6 }}
-                    animate={cardStyles[baseIndex + idx]}
-                    style={cardStyles[baseIndex + idx]}
-                    ref={(el) => {
-                        cardRefs.current[baseIndex + idx] = el;
-                    }}
-                >
-                    <p className="text-md font-bold">{poi.name}</p>
-                    <p className="text-sm text-gray-500">{poi.address}</p>
-                    <p className="text-sm text-gray-700 mt-1">☎ {poi.tel}</p>
-                </motion.div>
-            ))}
+        <motion.div
+            className="col-span-12 sm:col-span-6 md:col-span-4 bg-white rounded-3xl shadow-lg p-4 my-2"
+            whileHover={{ y: -6 }}
+            animate={style}
+            style={style}
+            ref={cardRef}
+        >
+            <h3 className="text-lg font-bold text-gray-800 mb-3">{title}</h3>
+            <ul className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-none rounded-xl">
+                {pois.map((poi, idx) => (
+                    <li
+                        key={idx}
+                        className="bg-gray-50 hover:bg-indigo-50 transition rounded-xl px-4 py-3 shadow-sm"
+                    >
+                        <p className="text-sm font-semibold text-gray-800 truncate">
+                            📍 {poi.name}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">
+                            {poi.address}
+                        </p>
+                        <p className="text-xs text-indigo-600 font-medium mt-1">
+                            ☎ {poi.tel}
+                        </p>
+                    </li>
+                ))}
+            </ul>
         </motion.div>
     );
 }
