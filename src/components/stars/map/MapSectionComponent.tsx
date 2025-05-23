@@ -16,6 +16,7 @@ import {
     deleteFavorite,
 } from "../../../api/mypageApi";
 import { Favorite } from "../../../data/adminData";
+import { AccidentAlertModal } from "../../alert/AccidentModal";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const categoryMap: Record<string, string> = {
@@ -56,6 +57,7 @@ export default function MapSectionComponent() {
         selectedAreaId,
         setSelectedAreaId,
         setTriggerCountUp, // triggerCountUp 미사용이므로 제거
+        accidentData, // 사고정보
     } = usePlace();
     const [showFocusCard, setShowFocusCard] = useState(false);
     const { alerts, dismissAlert } = useCongestionAlert();
@@ -501,6 +503,11 @@ export default function MapSectionComponent() {
                     onCategoryClick={handleSearchResultClick}
                 />
             )}
+            <AccidentAlertModal
+                accidents={accidentData}
+                onViewArea={handleViewArea}
+            />
+
             <AlertModal
                 alerts={alerts}
                 onDismiss={dismissAlert}
