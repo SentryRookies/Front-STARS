@@ -68,6 +68,7 @@ export default function MapSectionComponent() {
     const [toggledFavorites, setToggledFavorites] = useState<
         Record<string, boolean>
     >({});
+    const isAnimatingRef = useRef(false);
     // 아이템별 고유 키 생성 헬퍼
     const getItemKey = (type: string, place_id: string | number) =>
         `${type}:${String(place_id)}`;
@@ -444,6 +445,8 @@ export default function MapSectionComponent() {
                     center: [items[0].lon, items[0].lat],
                     zoom: 15,
                     pitch: 45,
+                    duration: 500,
+                    easing: (t) => t * (2 - t),
                 });
                 setShowFocusCard(false);
             }
@@ -451,22 +454,70 @@ export default function MapSectionComponent() {
         [isItemFavorite, setSelectedAreaId]
     );
 
+    // const handleSingleResultClick = useCallback((item: SearchResult) => {
+    //     const map = mapRef.current;
+    //     if (!map) return;
+    //     searchMarkersRef.current.forEach(({ marker }) =>
+    //         marker.getPopup()?.remove()
+    //     );
+    //     const found = searchMarkersRef.current.find(
+    //         (m) => m.item.name === item.name && m.item.address === item.address
+    //     );
+    //     if (found) {
+    //         map.jumpTo({
+    //             center: [item.lon, item.lat],
+    //             zoom: 17,
+    //             pitch: 45,
+    //         });
+    //         found.marker.togglePopup();
+    //     }
+    // }, []);
+
     const handleSingleResultClick = useCallback((item: SearchResult) => {
         const map = mapRef.current;
-        if (!map) return;
+        if (!map || isAnimatingRef.current) return;
+
+        // 좌표값 검증
+        if (!item.lon || !item.lat || isNaN(item.lon) || isNaN(item.lat)) {
+            console.warn("Invalid coordinates:", item);
+            return;
+        }
+
         searchMarkersRef.current.forEach(({ marker }) =>
             marker.getPopup()?.remove()
         );
+
         const found = searchMarkersRef.current.find(
             (m) => m.item.name === item.name && m.item.address === item.address
         );
+
         if (found) {
+            isAnimatingRef.current = true;
+            map.stop();
+
+            const onMoveEnd = () => {
+                map.off("moveend", onMoveEnd);
+                isAnimatingRef.current = false;
+                found.marker.togglePopup();
+            };
+
+            map.on("moveend", onMoveEnd);
+
             map.flyTo({
                 center: [item.lon, item.lat],
                 zoom: 17,
                 pitch: 45,
+                essential: true,
             });
-            found.marker.togglePopup();
+
+            // 타임아웃으로 안전장치 추가
+            setTimeout(() => {
+                if (isAnimatingRef.current) {
+                    map.off("moveend", onMoveEnd);
+                    isAnimatingRef.current = false;
+                    found.marker.togglePopup();
+                }
+            }, 3000); // 3초 후 강제 완료
         }
     }, []);
 
