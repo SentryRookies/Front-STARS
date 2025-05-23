@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { AccidentData } from "../../data/adminData";
 
 interface AccidentAlertModalProps {
     accidents: AccidentData[];
+    onViewArea?: (areaId: number) => void;
 }
 
 // 사고 유형별 아이콘 매핑 (실제 데이터: "공사")
@@ -67,6 +68,7 @@ const getDtypeColor = (dtype: string): string => {
 
 export const AccidentAlertModal: React.FC<AccidentAlertModalProps> = ({
     accidents,
+    onViewArea,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -93,20 +95,14 @@ export const AccidentAlertModal: React.FC<AccidentAlertModalProps> = ({
         >
     );
 
-    const handleViewArea = (areaId: number, areaName: string) => {
-        console.log(`${areaName}(ID: ${areaId}) 지역 보기 요청`);
-        alert(`${areaName} 지역으로 이동합니다.`);
-        setIsOpen(false);
-    };
-
     return (
-        <div className="fixed top-6 left-6 z-30">
+        <div className="absolute md:top-20 top-36 right-4 z-10 flex flex-col items-end gap-2">
             {/* 토글 버튼 */}
             <motion.button
-                className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg font-semibold transition-all duration-300 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg font-semibold text-base transition-all duration-300 ${
                     activeAccidents.length > 0
                         ? "bg-red-500 text-white hover:bg-red-600"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                        : "bg-white text-gray-500 hover:bg-gray-200"
                 }`}
                 onClick={() => setIsOpen(!isOpen)}
                 whileHover={{ scale: 1.05 }}
@@ -121,205 +117,200 @@ export const AccidentAlertModal: React.FC<AccidentAlertModalProps> = ({
                             animate={{ scale: [1, 1.5, 1] }}
                             transition={{ duration: 1, repeat: Infinity }}
                         />
+                        <svg
+                            className={`w-4 h-4 ml-1 transform transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
                     </>
                 ) : (
                     <>
                         <span className="text-lg">✅</span>
                         <span>사고 없음</span>
+                        <svg
+                            className={`w-4 h-4 ml-1 transform transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
                     </>
                 )}
             </motion.button>
 
             {/* 모달 */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        className="absolute top-16 left-0 w-96 max-h-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden"
-                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        {/* 헤더 */}
-                        <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-4">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl">🚨</span>
-                                <h3 className="text-lg font-bold">사고 현황</h3>
-                            </div>
-                            <p className="text-sm text-red-100 mt-1">
-                                현재 {activeAccidents.length}건의 사고가
-                                발생했습니다
-                            </p>
-                        </div>
-
-                        {/* 내용 */}
-                        <div className="max-h-80 overflow-y-auto">
-                            {activeAccidents.length === 0 ? (
-                                <div className="p-8 text-center">
-                                    <div className="text-6xl mb-4">✅</div>
-                                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
-                                        모든 지역이 안전합니다
-                                    </h4>
-                                    <p className="text-gray-500 text-sm">
-                                        현재 발생한 사고가 없습니다.
-                                    </p>
+            <div
+                className={`w-full transition-all overflow-hidden ${
+                    isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+                }`}
+            >
+                <motion.div
+                    className="md:max-h-96 max-h-80 rounded-2xl overflow-hidden md:w-96 w-80"
+                    initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {/* 내용 */}
+                    <div className="md:max-h-80 max-h-64 overflow-y-auto">
+                        {activeAccidents.length === 0 ? (
+                            <div className="md:p-8 p-6 text-center">
+                                <div className="md:text-6xl text-4xl mb-4">
+                                    ✅
                                 </div>
-                            ) : (
-                                <div className="p-4 space-y-4">
-                                    {Object.values(accidentsByArea).map(
-                                        ({ area_id, area_name, accidents }) => (
-                                            <motion.div
-                                                key={area_id}
-                                                className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                            >
-                                                {/* 지역 정보 */}
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div>
-                                                        <h4 className="font-semibold text-gray-800">
-                                                            {area_name}
-                                                        </h4>
-                                                        <p className="text-xs text-gray-500">
-                                                            관광특구 ·{" "}
-                                                            {accidents.length}건
-                                                            발생
-                                                        </p>
-                                                    </div>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleViewArea(
-                                                                area_id,
-                                                                area_name
-                                                            )
-                                                        }
-                                                        className="px-3 py-1 bg-indigo-500 text-white text-xs rounded-full hover:bg-indigo-600 transition-colors"
-                                                    >
-                                                        지역 보기
-                                                    </button>
-                                                </div>
-
-                                                {/* 사고 목록 */}
-                                                <div className="space-y-2">
-                                                    {accidents.map(
-                                                        (accident, idx) => (
-                                                            <div
-                                                                key={`${accident.area_id}-${idx}`}
-                                                                className="bg-gray-50 rounded-lg p-3"
-                                                            >
-                                                                {/* 사고 정보 */}
-                                                                <div className="flex items-start gap-2 mb-2">
-                                                                    <span className="text-lg flex-shrink-0">
-                                                                        {getAccidentIcon(
-                                                                            accident.acdnt_type
-                                                                        )}
-                                                                    </span>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-center gap-2 mb-1">
-                                                                            <span
-                                                                                className={`px-2 py-0.5 text-xs font-semibold rounded-full ${getAccidentColor(accident.acdnt_type)} text-white`}
-                                                                            >
-                                                                                {
-                                                                                    accident.acdnt_type
-                                                                                }
-                                                                            </span>
-                                                                            <span
-                                                                                className={`px-2 py-0.5 text-xs font-semibold rounded-full ${getDtypeColor(accident.acdnt_dtype)}`}
-                                                                            >
-                                                                                {
-                                                                                    accident.acdnt_dtype
-                                                                                }
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="text-sm text-gray-800 leading-snug">
-                                                                            <span className="font-medium text-gray-900">
-                                                                                📍{" "}
-                                                                                {
-                                                                                    accident.area_nm
-                                                                                }
-                                                                            </span>
-                                                                            <br />
-                                                                            {
-                                                                                accident.acdnt_info
-                                                                            }
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* 시간 정보 */}
-                                                                <div className="text-xs text-gray-500 mt-2 space-y-1">
-                                                                    <div className="flex justify-between">
-                                                                        <span>
-                                                                            🕐
-                                                                            발생시간:
-                                                                        </span>
-                                                                        <span className="font-medium">
-                                                                            {
-                                                                                accident.acdnt_occr_dt
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="flex justify-between">
-                                                                        <span>
-                                                                            ⏰
-                                                                            예상해제:
-                                                                        </span>
-                                                                        <span className="font-medium">
-                                                                            {
-                                                                                accident.exp_clr_dt
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                    {accident.acdnt_time !==
-                                                                        accident.acdnt_occr_dt && (
-                                                                        <div className="flex justify-between">
-                                                                            <span>
-                                                                                📡
-                                                                                업데이트:
-                                                                            </span>
-                                                                            <span className="font-medium">
-                                                                                {
-                                                                                    accident.acdnt_time
-                                                                                }
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </motion.div>
-                                        )
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 푸터 */}
-                        {activeAccidents.length > 0 && (
-                            <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-                                <p className="text-xs text-gray-500 text-center">
-                                    실시간 사고 정보는 5분마다 업데이트됩니다
+                                <h4 className="md:text-lg text-base font-semibold text-gray-800 mb-2">
+                                    모든 지역이 안전합니다
+                                </h4>
+                                <p className="text-gray-500 md:text-sm text-xs">
+                                    현재 발생한 사고가 없습니다.
                                 </p>
                             </div>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        ) : (
+                            <div className="space-y-1.5">
+                                {Object.values(accidentsByArea).map(
+                                    ({ area_id, area_name, accidents }) => (
+                                        <motion.div
+                                            key={area_id}
+                                            className="border bg-white border-gray-200 rounded-xl md:p-3 p-2.5 hover:shadow-md transition-shadow"
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                        >
+                                            {/* 지역 정보 */}
+                                            <div className="flex items-center justify-between md:mb-2.5 mb-2">
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-800 md:text-base text-sm">
+                                                        {area_name}
+                                                    </h4>
+                                                    <p className="md:text-xs text-xs text-gray-500">
+                                                        관광특구 ·{" "}
+                                                        {accidents.length}건
+                                                        발생
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onViewArea?.(area_id);
+                                                        setIsOpen(!isOpen);
+                                                    }}
+                                                    className="md:px-3 md:py-1 px-2 py-1 bg-indigo-500 text-white md:text-xs text-xs rounded-full hover:bg-indigo-600 transition-colors"
+                                                >
+                                                    지역 보기
+                                                </button>
+                                            </div>
 
-            {/* 배경 오버레이 */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        className="fixed inset-0 bg-black bg-opacity-20 -z-10"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setIsOpen(false)}
-                    />
-                )}
-            </AnimatePresence>
+                                            {/* 사고 목록 */}
+                                            <div className="md:space-y-1.5 space-y-1">
+                                                {accidents.map(
+                                                    (accident, idx) => (
+                                                        <div
+                                                            key={`${accident.area_id}-${idx}`}
+                                                            className="bg-gray-50 rounded-lg md:p-2.5 p-2"
+                                                        >
+                                                            {/* 사고 정보 */}
+                                                            <div className="flex items-start gap-2 md:mb-1.5 mb-1">
+                                                                <span className="md:text-lg text-base flex-shrink-0">
+                                                                    {getAccidentIcon(
+                                                                        accident.acdnt_type
+                                                                    )}
+                                                                </span>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2 md:mb-1 mb-0.5">
+                                                                        <span
+                                                                            className={`md:px-2 md:py-0.5 px-1.5 py-0.5 md:text-xs text-xs font-semibold rounded-full ${getAccidentColor(accident.acdnt_type)} text-white`}
+                                                                        >
+                                                                            {
+                                                                                accident.acdnt_type
+                                                                            }
+                                                                        </span>
+                                                                        <span
+                                                                            className={`md:px-2 md:py-0.5 px-1.5 py-0.5 md:text-xs text-xs font-semibold rounded-full ${getDtypeColor(accident.acdnt_dtype)}`}
+                                                                        >
+                                                                            {
+                                                                                accident.acdnt_dtype
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="md:text-sm text-xs text-gray-800 leading-snug">
+                                                                        <span className="font-medium text-gray-900">
+                                                                            📍{" "}
+                                                                            {
+                                                                                accident.area_nm
+                                                                            }
+                                                                        </span>
+                                                                        <br />
+                                                                        {
+                                                                            accident.acdnt_info
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* 시간 정보 */}
+                                                            <div className="md:text-xs text-xs text-gray-500 md:mt-1.5 mt-1 md:space-y-0.5 space-y-0.5">
+                                                                <div className="flex justify-between">
+                                                                    <span>
+                                                                        🕐
+                                                                        발생시간:
+                                                                    </span>
+                                                                    <span className="font-medium">
+                                                                        {
+                                                                            accident.acdnt_occr_dt
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span>
+                                                                        ⏰
+                                                                        예상해제:
+                                                                    </span>
+                                                                    <span className="font-medium">
+                                                                        {
+                                                                            accident.exp_clr_dt
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                {accident.acdnt_time !==
+                                                                    accident.acdnt_occr_dt && (
+                                                                    <div className="flex justify-between">
+                                                                        <span>
+                                                                            📡
+                                                                            업데이트:
+                                                                        </span>
+                                                                        <span className="font-medium">
+                                                                            {
+                                                                                accident.acdnt_time
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            </div>
         </div>
     );
 };

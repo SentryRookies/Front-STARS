@@ -503,7 +503,10 @@ export default function MapSectionComponent() {
                     onCategoryClick={handleSearchResultClick}
                 />
             )}
-            <AccidentAlertModal accidents={accidentData} />
+            <AccidentAlertModal
+                accidents={accidentData}
+                onViewArea={handleViewArea}
+            />
 
             <AlertModal
                 alerts={alerts}
