@@ -8,6 +8,7 @@ import AdminTour from "./AdminTour";
 import AdminUserFavorite from "./AdminUserFavorite";
 import AdminTraffic from "./AdminTraffic";
 import { initializeAppHeight } from "../../utils/setAppHeight";
+import AdminUserManagement from "./AdminUserManage";
 
 const AdminContainer: React.FC = () => {
     useEffect(() => {
@@ -22,8 +23,9 @@ const AdminContainer: React.FC = () => {
                 <Route path="/" element={<AdminComponent />} />
                 <Route path="/:spotCode" element={<AdminDetail />} />
                 <Route path="/tour" element={<AdminTour />} />
-                <Route path="/user" element={<AdminUserFavorite />} />
+                <Route path="favorite" element={<AdminUserFavorite />} />
                 <Route path="/traffic" element={<AdminTraffic />} />
+                <Route path="user" element={<AdminUserManagement />} />
                 {/* 기본 리다이렉션 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
