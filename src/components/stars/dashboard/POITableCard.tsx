@@ -28,7 +28,7 @@ export default function POITableCard({
             style={style}
             ref={cardRef}
         >
-            <h3 className="text-lg font-bold text-gray-800 mb-3">{title}</h3>
+            <h3 className="text-lg font-bold text-indigo-600 mb-3">{title}</h3>
             <ul className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-none rounded-xl">
                 {pois.map((poi, idx) => (
                     <li
