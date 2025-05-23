@@ -95,7 +95,6 @@ const AdminUserFavorite = () => {
             })
             .catch((e) => console.error(e))
             .finally(() => setLoading(false));
-        // eslint-disable-next-line
     }, [location.pathname]);
 
     // 즐겨찾기 로드
