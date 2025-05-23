@@ -18,13 +18,14 @@ export default function AdminHeader({ path }: Props) {
     const menuItems = [
         { label: "대시보드", path: "/manage" },
         { label: "축제 현황", path: "/manage/tour" },
-        { label: "사용자 즐겨찾기", path: "/manage/user" },
+        { label: "사용자 즐겨찾기", path: "/manage/favorite" },
         { label: "도로 혼잡도", path: "/manage/traffic" },
+        { label: "사용자 관리", path: "/manage/user" },
         { label: "로그아웃(메인으로)", path: "/login" },
     ];
 
     return (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-4 flex items-center justify-between relative">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 px-4 sm:px-6 py-4 flex items-center justify-between relative">
             <div className="flex items-center">
                 <button
                     className="bg-white/20 backdrop-blur-sm shadow-md px-2 sm:px-4 py-2 text-white font-semibold hover:bg-white/30 hover:text-white transition rounded-md border border-white/30"

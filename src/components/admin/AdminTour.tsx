@@ -26,6 +26,7 @@ const AdminTour = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [filterCategory, setFilterCategory] = useState<string>("");
+    const [filterFeeType, setFilterFeeType] = useState<string>("");
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [selectedEvent, setSelectedEvent] = useState<TourList | null>(null);
     const [isMobileView, setIsMobileView] = useState<boolean>(false);
@@ -88,18 +89,21 @@ const AdminTour = () => {
         const matchesCategory = filterCategory
             ? item.category === filterCategory
             : true;
+        const matchesFeeType = filterFeeType
+            ? filterFeeType === "free"
+                ? item.is_free
+                : !item.is_free
+            : true;
         const matchesSearch = searchTerm
             ? item.event_name.toLowerCase().includes(searchTerm.toLowerCase())
             : true;
 
-        return matchesCategory && matchesSearch;
+        return matchesCategory && matchesFeeType && matchesSearch;
     });
 
     // 이벤트 선택 핸들러
     const handleEventClick = (event: TourList) => {
-        if (!event.is_free) {
-            setSelectedEvent(event);
-        }
+        setSelectedEvent(event);
     };
 
     // 모달 닫기 핸들러
@@ -186,9 +190,7 @@ const AdminTour = () => {
             {filteredList.map((item, index) => (
                 <div
                     key={`${item.event_name}-${index}`}
-                    className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ${
-                        !item.is_free ? "cursor-pointer" : ""
-                    }`}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                     onClick={() => handleEventClick(item)}
                 >
                     <div className="flex justify-between items-start mb-4">
@@ -260,6 +262,13 @@ const AdminTour = () => {
                             </span>
                         </div>
                     )}
+                    {item.is_free && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                            <span className="text-xs text-emerald-600 font-medium">
+                                클릭하여 상세 정보 보기
+                            </span>
+                        </div>
+                    )}
                 </div>
             ))}
         </div>
@@ -293,9 +302,7 @@ const AdminTour = () => {
                         {filteredList.map((item, index) => (
                             <tr
                                 key={`${item.event_name}-${index}`}
-                                className={`hover:bg-gray-50 transition-colors ${
-                                    !item.is_free ? "cursor-pointer" : ""
-                                }`}
+                                className="hover:bg-gray-50 transition-colors cursor-pointer"
                                 onClick={() => handleEventClick(item)}
                             >
                                 <td className="px-1 py-2 whitespace-nowrap w-16">
@@ -336,7 +343,7 @@ const AdminTour = () => {
                                 </td>
                                 <td className="px-1 py-2 whitespace-nowrap w-14">
                                     <span
-                                        className={`px-1 py-0.5 rounded text-xs font-semibold border ${getStatusColor(item.is_free)} truncate block`}
+                                        className={`px-0.5 py-0.5 rounded text-xs font-semibold border ${getStatusColor(item.is_free)} truncate block text-center`}
                                     >
                                         {item.is_free ? "무료" : "유료"}
                                     </span>
@@ -488,7 +495,7 @@ const AdminTour = () => {
                     </div>
 
                     {/* 필터 및 검색 */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
                         {/* 카테고리 필터 */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -507,6 +514,24 @@ const AdminTour = () => {
                                         {category}
                                     </option>
                                 ))}
+                            </select>
+                        </div>
+
+                        {/* 요금 유형 필터 */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                요금 유형
+                            </label>
+                            <select
+                                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                value={filterFeeType}
+                                onChange={(e) =>
+                                    setFilterFeeType(e.target.value)
+                                }
+                            >
+                                <option value="">전체</option>
+                                <option value="free">무료</option>
+                                <option value="paid">유료</option>
                             </select>
                         </div>
 
@@ -547,11 +572,12 @@ const AdminTour = () => {
                                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
                                 onClick={() => {
                                     setFilterCategory("");
+                                    setFilterFeeType("");
                                     setSearchTerm("");
                                 }}
                             >
                                 <svg
-                                    className="w-4 h-4 mr-2"
+                                    className="w-4 h-4 mr-0 sm:mr-2"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -563,7 +589,7 @@ const AdminTour = () => {
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                                     />
                                 </svg>
-                                초기화
+                                <span className="text-xs">초기화</span>
                             </button>
                             <button
                                 className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -573,7 +599,7 @@ const AdminTour = () => {
                                 {loading ? (
                                     <>
                                         <svg
-                                            className="animate-spin w-4 h-4 mr-2"
+                                            className="animate-spin w-4 h-4 mr-0 sm:mr-2"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                         >
@@ -591,12 +617,14 @@ const AdminTour = () => {
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        새로고침
+                                        <span className="text-xs">
+                                            새로고침
+                                        </span>
                                     </>
                                 ) : (
                                     <>
                                         <svg
-                                            className="w-4 h-4 mr-2"
+                                            className="w-4 h-4 mr-0 sm:mr-2"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -608,7 +636,9 @@ const AdminTour = () => {
                                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                                             />
                                         </svg>
-                                        새로고침
+                                        <span className="text-xs">
+                                            새로고침
+                                        </span>
                                     </>
                                 )}
                             </button>
@@ -669,7 +699,9 @@ const AdminTour = () => {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-xl font-bold mb-1">
-                                        요금 정보
+                                        {selectedEvent.is_free
+                                            ? "행사 상세 정보"
+                                            : "요금 정보"}
                                     </h3>
                                     <span
                                         className={`px-3 py-1 rounded-full text-xs font-semibold bg-white/20 border border-white/30`}
@@ -770,12 +802,16 @@ const AdminTour = () => {
                                         </svg>
                                         <div className="flex-1">
                                             <p className="text-sm font-medium text-blue-900 mb-2">
-                                                요금 정보
+                                                {selectedEvent.is_free
+                                                    ? "참가비"
+                                                    : "요금 정보"}
                                             </p>
                                             <div className="bg-white/70 p-3 rounded-lg">
                                                 <p className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">
-                                                    {selectedEvent.event_fee ||
-                                                        "상세한 요금 정보가 제공되지 않았습니다."}
+                                                    {selectedEvent.is_free
+                                                        ? "무료 행사입니다"
+                                                        : selectedEvent.event_fee ||
+                                                          "상세한 요금 정보가 제공되지 않았습니다."}
                                                 </p>
                                             </div>
                                         </div>

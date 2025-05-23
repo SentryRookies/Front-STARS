@@ -205,7 +205,7 @@ export default function AdminComponent() {
                                 주요 인구 혼잡 현황
                             </span>
                             <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                                {touristSpotsData.length}곳
+                                {localTouristSpotsData.length}곳
                             </span>
                         </div>
                         {isLoading && (
