@@ -6,7 +6,7 @@ import VisitorCountCard from "./VisitorCountCard";
 import AreaInfoCard from "./AreaInfoCard";
 import WeatherCard from "./WeatherCard";
 import ChartCard from "./ChartCard";
-import POITableCard from "./POICardList";
+import POITableCard from "./POITableCard";
 import RatesCard from "./RatesCard";
 import TrafficInfoCard from "./TrafficInfoCard";
 // import ParkingInfoCard from "./ParkingInfoCard";
