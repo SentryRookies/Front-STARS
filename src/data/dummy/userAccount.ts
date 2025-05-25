@@ -1,0 +1,333 @@
+interface UserInfo {
+    member_id: number;
+    user_id: string;
+    nickname: string;
+    birth_year: number;
+    mbti: string;
+    gender: "male" | "female";
+    role: "ROLE_USER" | "ROLE_ADMIN";
+    created_at: string;
+}
+
+export const dummyUserInfoData: UserInfo[] = [
+    {
+        member_id: 4,
+        user_id: "cc",
+        nickname: "Abcd",
+        birth_year: 2002,
+        mbti: "ENTP",
+        gender: "female",
+        role: "ROLE_USER",
+        created_at: "2025-05-08T06:50:33.301193",
+    },
+    {
+        member_id: 15221,
+        user_id: "0521",
+        nickname: "0521",
+        birth_year: 2002,
+        mbti: "INFP",
+        gender: "male",
+        role: "ROLE_USER",
+        created_at: "2025-05-21T01:25:06.813576",
+    },
+    {
+        member_id: 3,
+        user_id: "testtt",
+        nickname: "Ab",
+        birth_year: 2002,
+        mbti: "INFP",
+        gender: "female",
+        role: "ROLE_USER",
+        created_at: "2025-05-08T06:11:30.48322",
+    },
+    {
+        member_id: 5,
+        user_id: "aaa",
+        nickname: "kk",
+        birth_year: 2020,
+        mbti: "ENFP",
+        gender: "female",
+        role: "ROLE_USER",
+        created_at: "2025-05-08T06:55:57.332307",
+    },
+    {
+        member_id: 7,
+        user_id: "ghehf512",
+        nickname: "이승호2",
+        birth_year: 2000,
+        mbti: "INTP",
+        gender: "male",
+        role: "ROLE_USER",
+        created_at: "2025-05-09T00:22:30.302051",
+    },
+    {
+        member_id: 9,
+        user_id: "yh",
+        nickname: "yunhwa",
+        birth_year: 2003,
+        mbti: "INFP",
+        gender: "female",
+        role: "ROLE_USER",
+        created_at: "2025-05-09T04:52:15.292988",
+    },
+    {
+        member_id: 1,
+        user_id: "aa",
+        nickname: "AA",
+        birth_year: 2002,
+        mbti: "ENTP",
+        gender: "male",
+        role: "ROLE_ADMIN",
+        created_at: "2025-05-07T04:41:44.55159",
+    },
+    {
+        member_id: 15224,
+        user_id: "sumin",
+        nickname: "쉰",
+        birth_year: 2003,
+        mbti: "ISTP",
+        gender: "female",
+        role: "ROLE_USER",
+        created_at: "2025-05-22T04:49:31.594859",
+    },
+    {
+        member_id: 11,
+        user_id: "user2",
+        nickname: "test",
+        birth_year: 2001,
+        mbti: "INTP",
+        gender: "male",
+        role: "ROLE_USER",
+        created_at: "2025-05-10T01:46:48.50599",
+    },
+    {
+        member_id: 13,
+        user_id: "user3",
+        nickname: "test2",
+        birth_year: 2001,
+        mbti: "INTP",
+        gender: "male",
+        role: "ROLE_USER",
+        created_at: "2025-05-10T01:59:05.507225",
+    },
+    {
+        member_id: 14,
+        user_id: "testdtt",
+        nickname: "Absz",
+        birth_year: 2002,
+        mbti: "INFP",
+        gender: "female",
+        role: "ROLE_USER",
+        created_at: "2025-05-10T06:59:00.085938",
+    },
+    {
+        member_id: 15,
+        user_id: "testtest",
+        nickname: "testtest",
+        birth_year: 2002,
+        mbti: "INFP",
+        gender: "female",
+        role: "ROLE_USER",
+        created_at: "2025-05-10T06:59:32.292121",
+    },
+    {
+        member_id: 16,
+        user_id: "123123",
+        nickname: "123123",
+        birth_year: 2000,
+        mbti: "INTP",
+        gender: "male",
+        role: "ROLE_USER",
+        created_at: "2025-05-10T07:00:36.39378",
+    },
+    /*    {
+            member_id: 17,
+            user_id: "1231232",
+            nickname: "1231232",
+            birth_year: 2000,
+            mbti: "INTJ",
+            gender: "male",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:04:43.577855"
+        },
+        {
+            member_id: 18,
+            user_id: "1231231",
+            nickname: "1231233",
+            birth_year: 1232,
+            mbti: "INTP",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:08:35.462993"
+        },
+        {
+            member_id: 19,
+            user_id: "hihi",
+            nickname: "hi",
+            birth_year: 2019,
+            mbti: "ENTP",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:54:53.103047"
+        },
+        {
+            member_id: 20,
+            user_id: "hi",
+            nickname: "hihi",
+            birth_year: 2011,
+            mbti: "ENFJ",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:55:56.158099"
+        },
+        {
+            member_id: 21,
+            user_id: "uwhaha",
+            nickname: "우하하",
+            birth_year: 2000,
+            mbti: "ISTJ",
+            gender: "male",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:56:05.199887"
+        },
+        {
+            member_id: 22,
+            user_id: "ddd",
+            nickname: "ddd",
+            birth_year: 2025,
+            mbti: "ISTP",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:56:38.571017"
+        },
+        {
+            member_id: 23,
+            user_id: "a1234",
+            nickname: "1234",
+            birth_year: 2020,
+            mbti: "ENTP",
+            gender: "male",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:56:44.637159"
+        },
+        {
+            member_id: 24,
+            user_id: "12",
+            nickname: "12",
+            birth_year: 1999,
+            mbti: "INTP",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:57:07.766742"
+        },
+        {
+            member_id: 25,
+            user_id: "G-Dragon",
+            nickname: "G-Dragon",
+            birth_year: 1998,
+            mbti: "ESTP",
+            gender: "male",
+            role: "ROLE_USER",
+            created_at: "2025-05-10T07:57:24.811324"
+        },
+        {
+            member_id: 8,
+            user_id: "user1",
+            nickname: "드디어된다2",
+            birth_year: 2091,
+            mbti: "INTJ",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-09T04:50:44.057149"
+        },
+        {
+            member_id: 26,
+            user_id: "testuser1232",
+            nickname: "테스트유저2",
+            birth_year: 1999,
+            mbti: "INFP",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-13T00:29:26.83494"
+        },
+        {
+            member_id: 6,
+            user_id: "ghehf51",
+            nickname: "이승호",
+            birth_year: 2000,
+            mbti: "ENTP",
+            gender: "male",
+            role: "ROLE_ADMIN",
+            created_at: "2025-05-09T00:18:45.328645"
+        },
+        {
+            member_id: 15222,
+            user_id: "gg",
+            nickname: "gg",
+            birth_year: 2002,
+            mbti: "ENFP",
+            gender: "male",
+            role: "ROLE_USER",
+            created_at: "2025-05-21T02:00:44.020143"
+        },
+        {
+            member_id: 15225,
+            user_id: "0000",
+            nickname: "0000",
+            birth_year: 2000,
+            mbti: "ENTP",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-22T04:58:28.506518"
+        },
+        {
+            member_id: 15223,
+            user_id: "0905",
+            nickname: "0905",
+            birth_year: 12,
+            mbti: "ESTP",
+            gender: "male",
+            role: "ROLE_USER",
+            created_at: "2025-05-21T06:03:07.396062"
+        },
+        {
+            member_id: 1628,
+            user_id: "ili",
+            nickname: "ili",
+            birth_year: 2002,
+            mbti: "INTP",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-16T15:39:31.602778"
+        },
+        {
+            member_id: 1629,
+            user_id: "test1",
+            nickname: "test11",
+            birth_year: 2001,
+            mbti: "INTP",
+            gender: "male",
+            role: "ROLE_USER",
+            created_at: "2025-05-16T07:02:35.495453"
+        },
+        {
+            member_id: 15220,
+            user_id: "yun",
+            nickname: "윤화",
+            birth_year: 2003,
+            mbti: "ISTJ",
+            gender: "female",
+            role: "ROLE_USER",
+            created_at: "2025-05-20T06:10:15.855794"
+        },
+        {
+            member_id: 28,
+            user_id: "minseok",
+            nickname: "멍멍아야옹해봐",
+            birth_year: 20000,
+            mbti: "ENFJ",
+            gender: "male",
+            role: "ROLE_ADMIN",
+            created_at: "2025-05-13T01:30:31.74753"
+        }*/
+];
