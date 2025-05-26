@@ -23,6 +23,7 @@ export default function FullPageLayout() {
 
     return (
         <ReactFullpage
+            licenseKey="YOUR_KEY_HERE"
             autoScrolling={true}
             scrollingSpeed={700}
             controlArrows={false}
