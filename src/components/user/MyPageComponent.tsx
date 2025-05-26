@@ -93,7 +93,7 @@ export default function MyPageComponent() {
             </div>
 
             {/* Main Container with Glass Effect */}
-            <div className="w-full h-full max-w-6xl mx-auto rounded-2xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-sm border border-white/50 flex flex-col">
+            <div className="w-full h-5/6 max-w-6xl mx-auto rounded-2xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-sm border border-white/50 flex flex-col">
                 <div className="flex flex-col md:flex-row h-full overflow-hidden">
                     {/* Mobile Header with Menu Toggle */}
                     {isMobile && (
