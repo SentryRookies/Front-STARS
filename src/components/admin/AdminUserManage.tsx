@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import AdminHeader from "./AdminHeader";
-import { dummyUserInfoData } from "../../data/dummy/userAccount";
 import { getUserList } from "../../api/adminApi";
 
 // 사용자 정보 타입 정의
@@ -393,7 +392,7 @@ const AdminUserManagement: React.FC = () => {
                         placeholder="사용자 ID나 닉네임으로 검색..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="block w-full pl-10 pr-3 py-2 border text-gray-600 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
 
@@ -493,7 +492,7 @@ const AdminUserManagement: React.FC = () => {
                                 검색: {searchTerm}
                                 <button
                                     onClick={() => setSearchTerm("")}
-                                    className="ml-1 text-blue-600 hover:text-blue-800"
+                                    className="ml-1 bg-blue-100 text-blue-600 hover:text-blue-800"
                                 >
                                     ×
                                 </button>
@@ -507,7 +506,7 @@ const AdminUserManagement: React.FC = () => {
                                     : "일반사용자"}
                                 <button
                                     onClick={() => setRoleFilter("all")}
-                                    className="ml-1 text-green-600 hover:text-green-800"
+                                    className="ml-1 bg-green-100 text-green-600 hover:text-green-800"
                                 >
                                     ×
                                 </button>
@@ -519,7 +518,7 @@ const AdminUserManagement: React.FC = () => {
                                 {genderFilter === "male" ? "남성" : "여성"}
                                 <button
                                     onClick={() => setGenderFilter("all")}
-                                    className="ml-1 text-purple-600 hover:text-purple-800"
+                                    className="ml-1 bg-purple-100 text-purple-600 hover:text-purple-800"
                                 >
                                     ×
                                 </button>
@@ -539,7 +538,7 @@ const AdminUserManagement: React.FC = () => {
                                           : "50대+"}
                                 <button
                                     onClick={() => setAgeRangeFilter("all")}
-                                    className="ml-1 text-orange-600 hover:text-orange-800"
+                                    className="ml-1 bg-orange-100 text-orange-600 hover:text-orange-800"
                                 >
                                     ×
                                 </button>
@@ -813,23 +812,6 @@ const AdminUserManagement: React.FC = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleRoleChange(
-                                                            user.user_id,
-                                                            user.role ===
-                                                                "ROLE_ADMIN"
-                                                                ? "ROLE_USER"
-                                                                : "ROLE_ADMIN"
-                                                        );
-                                                    }}
-                                                    className="flex-1 px-3 py-1.5 text-xs font-medium text-green-600 border border-green-300 rounded-md hover:bg-green-50 transition-colors"
-                                                >
-                                                    {user.role === "ROLE_ADMIN"
-                                                        ? "권한해제"
-                                                        : "관리자로"}
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
                                                         handleDeleteUser(
                                                             user.user_id
                                                         );
@@ -958,24 +940,6 @@ const AdminUserManagement: React.FC = () => {
                                                             className="bg-white border-gray-500 text-blue-600 hover:text-blue-900"
                                                         >
                                                             상세
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleRoleChange(
-                                                                    user.user_id,
-                                                                    user.role ===
-                                                                        "ROLE_ADMIN"
-                                                                        ? "ROLE_USER"
-                                                                        : "ROLE_ADMIN"
-                                                                );
-                                                            }}
-                                                            className="bg-white border-gray-500 text-green-600 hover:text-green-900"
-                                                        >
-                                                            {user.role ===
-                                                            "ROLE_ADMIN"
-                                                                ? "권한해제"
-                                                                : "관리자"}
                                                         </button>
                                                         <button
                                                             onClick={(e) => {
