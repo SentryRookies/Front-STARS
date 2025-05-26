@@ -440,7 +440,11 @@ export default function DashboardComponent() {
                     />
                 )}
 
-                <CulturalEventSlider events={events} />
+                <CulturalEventSlider
+                    events={events}
+                    style={cardStyles[400]} // 적절한 인덱스 사용
+                    cardRef={(el) => (cardRefs.current[400] = el)}
+                />
 
                 {/*/!* POI 카드들 *!/*/}
                 {/*<POICardList*/}
