@@ -46,7 +46,13 @@ export interface Area {
     name_eng: string;
 }
 
-export default function MapSectionComponent() {
+export default function MapSectionComponent({
+    searchKeyword,
+    onSearchComplete,
+}: {
+    searchKeyword?: string | null;
+    onSearchComplete?: () => void;
+}) {
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const searchMarkersRef = useRef<
@@ -517,7 +523,7 @@ export default function MapSectionComponent() {
                     isAnimatingRef.current = false;
                     found.marker.togglePopup();
                 }
-            }, 3000); // 3초 후 강제 완료
+            }, 1000); // 1초 후 강제 완료
         }
     }, []);
 
@@ -535,6 +541,8 @@ export default function MapSectionComponent() {
             )}
 
             <SearchBar
+                keyword={searchKeyword ?? undefined}
+                onKeywordSearched={onSearchComplete}
                 onResultClick={handleSearchResultClick}
                 onSingleResultClick={handleSingleResultClick}
             />

@@ -10,6 +10,8 @@ import {
 import type { Area } from "./MapSectionComponent";
 
 interface SearchBarProps {
+    keyword?: string; // 추가
+    onKeywordSearched?: () => void; // 추가
     onSearch?: (query: string) => void;
     onResultClick?: (items: SearchResult[]) => void;
     onSingleResultClick?: (item: SearchResult) => void;
@@ -34,6 +36,8 @@ const getDistance = (
 };
 
 export default function SearchBarWithMenu({
+    keyword,
+    onKeywordSearched,
     onSearch,
     onResultClick,
     onSingleResultClick,
@@ -89,6 +93,19 @@ export default function SearchBarWithMenu({
         if (onSearch) onSearch(query);
         if (onResultClick) onResultClick(withAreaId);
     };
+
+    useEffect(() => {
+        if (keyword && keyword !== query) {
+            setQuery(keyword);
+        }
+    }, [keyword]);
+
+    useEffect(() => {
+        if (keyword && keyword === query) {
+            handleSearch();
+            onKeywordSearched?.();
+        }
+    }, [query]);
 
     useEffect(() => {
         if (!isMenuOpen) return;
