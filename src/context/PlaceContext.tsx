@@ -70,19 +70,14 @@ export function PlaceProvider({ children }: { children: React.ReactNode }) {
             }
         });
 
-        const handelWeatherUpdate = (data: Record<string, unknown>) => {
-            console.log("들어온 weather-update 데이터(사용안함): ", data);
-        };
+        const handelWeatherUpdate = (data: Record<string, unknown>) => {};
         const handelTrafficUpdate = (data: Record<string, unknown>) => {
-            console.log("들어온 traffic-update 데이터: ", data);
             setTrafficData(data as unknown as TrafficData[]);
         };
         const handelParkUpdate = (data: Record<string, unknown>) => {
-            console.log("들어온 park-update 데이터: ", data);
             setParkData(data as unknown as ParkData[]);
         };
         const handelAccidentUpdate = (data: Record<string, unknown>) => {
-            console.log("들어온 accident-update 데이터: ", data);
             setAccidentData(data as unknown as AccidentData[]);
         };
         const event = subscribeExternal(
