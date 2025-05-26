@@ -17,6 +17,7 @@
     "countup.js": "^2.8.0",
     "framer-motion": "^12.7.4",
     "fullpage.js": "^4.0.5",
+    "lucide-react": "^0.511.0",
     "mapbox-gl": "^3.11.0",
     "prettier": "^3.5.3",
     "react": "^19.0.0",

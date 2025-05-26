@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import AdminHeader from "./AdminHeader";
 import { getUserList } from "../../api/adminApi";
+import UserInsightDashboard from "./AdminUserInsight";
 
 // 사용자 정보 타입 정의
 interface UserInfo {
@@ -27,14 +28,15 @@ interface UserStats {
 
 const AdminUserManagement: React.FC = () => {
     const [users, setUsers] = useState<UserInfo[]>([]);
-    const [filteredUsers, setFilteredUsers] = useState<UserInfo[]>([]);
+    // const [processedUsers, setprocessedUsers] = useState<UserInfo[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [stats, setStats] = useState<UserStats | null>(null);
 
     // 필터 상태
-    const [searchTerm, setSearchTerm] = useState<string>("");
+    // const [searchInput, setSearchInput] = useState<string>(""); // 실시간 입력값 (디바운싱 적용)
+    const [searchTerm, setSearchTerm] = useState<string>(""); // 실제 검색에 사용되는 값
     const [roleFilter, setRoleFilter] = useState<string>("all");
     const [genderFilter, setGenderFilter] = useState<string>("all");
     const [ageRangeFilter, setAgeRangeFilter] = useState<string>("all");
@@ -50,6 +52,10 @@ const AdminUserManagement: React.FC = () => {
     const [isMobileView, setIsMobileView] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
+    // 인사이트 정보 창
+    const [isInsightModalOpen, setIsInsightModalOpen] =
+        useState<boolean>(false);
+
     // 윈도우 크기 감지
     useEffect(() => {
         const handleResize = () => {
@@ -62,14 +68,13 @@ const AdminUserManagement: React.FC = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    // 샘플 데이터 로딩
     useEffect(() => {
         setLoading(true);
         try {
             getUserList().then((response) => {
                 const data = response as unknown as UserInfo[];
                 setUsers(data);
-                setFilteredUsers(data);
+                // setprocessedUsers(data);
                 calculateStats(data);
             });
         } catch (e) {
@@ -80,12 +85,12 @@ const AdminUserManagement: React.FC = () => {
     }, []);
 
     // 통계 계산
-    const calculateStats = (userList: UserInfo[]) => {
+    const calculateStats = useCallback((userList: UserInfo[]) => {
         const currentYear = new Date().getFullYear();
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-        const stats: UserStats = {
+        const newStats: UserStats = {
             totalUsers: userList.length,
             adminUsers: userList.filter((u) => u.role === "ROLE_ADMIN").length,
             regularUsers: userList.filter((u) => u.role === "ROLE_USER").length,
@@ -94,19 +99,22 @@ const AdminUserManagement: React.FC = () => {
             newUsersThisWeek: userList.filter(
                 (u) => new Date(u.created_at) >= oneWeekAgo
             ).length,
-            averageAge: Math.round(
-                userList.reduce(
-                    (sum, u) => sum + (currentYear - u.birth_year),
-                    0
-                ) / userList.length
-            ),
+            averageAge:
+                userList.length > 0
+                    ? Math.round(
+                          userList.reduce(
+                              (sum, u) => sum + (currentYear - u.birth_year),
+                              0
+                          ) / userList.length
+                      )
+                    : 0,
         };
 
-        setStats(stats);
-    };
+        setStats(newStats);
+    }, []);
 
     // 필터링 및 정렬
-    useEffect(() => {
+    const processedUsers = useMemo(() => {
         let filtered = [...users];
 
         // 검색 필터
@@ -183,9 +191,7 @@ const AdminUserManagement: React.FC = () => {
             }
         });
 
-        setFilteredUsers(filtered);
-        setCurrentPage(1);
-        calculateStats(filtered);
+        return filtered;
     }, [
         users,
         searchTerm,
@@ -209,39 +215,16 @@ const AdminUserManagement: React.FC = () => {
     // 페이지네이션 계산
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const currentUsers = processedUsers.slice(
+        indexOfFirstItem,
+        indexOfLastItem
+    );
+    const totalPages = Math.ceil(processedUsers.length / itemsPerPage);
 
     // 사용자 상세 보기
     const handleUserClick = (user: UserInfo) => {
         setSelectedUser(user);
         setIsModalOpen(true);
-    };
-
-    // 역할 변경
-    const handleRoleChange = (
-        userId: string,
-        newRole: "ROLE_USER" | "ROLE_ADMIN"
-    ) => {
-        setUsers((prev) =>
-            prev.map((user) =>
-                user.user_id === userId ? { ...user, role: newRole } : user
-            )
-        );
-        if (selectedUser && selectedUser.user_id === userId) {
-            setSelectedUser((prev) =>
-                prev ? { ...prev, role: newRole } : null
-            );
-        }
-    };
-
-    // 사용자 삭제
-    const handleDeleteUser = (userId: string) => {
-        if (window.confirm("정말로 이 사용자를 삭제하시겠습니까?")) {
-            setUsers((prev) => prev.filter((user) => user.user_id !== userId));
-            setIsModalOpen(false);
-            setSelectedUser(null);
-        }
     };
 
     // 날짜 포맷팅
@@ -254,6 +237,11 @@ const AdminUserManagement: React.FC = () => {
             minute: "2-digit",
         });
     };
+
+    useEffect(() => {
+        calculateStats(processedUsers);
+        setCurrentPage(1);
+    }, [processedUsers, calculateStats]);
 
     // 상대적 시간 계산
     const getRelativeTime = (dateString: string) => {
@@ -311,6 +299,7 @@ const AdminUserManagement: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900">
                     필터 및 검색
                 </h3>
+
                 <div className="flex items-center space-x-2">
                     <button
                         onClick={() => setShowFilters(!showFilters)}
@@ -390,8 +379,8 @@ const AdminUserManagement: React.FC = () => {
                     <input
                         type="text"
                         placeholder="사용자 ID나 닉네임으로 검색..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchTerm} // 또는 searchInput (디바운싱 사용 시)
+                        onChange={(e) => setSearchTerm(e.target.value)} // 또는 setSearchInput (디바운싱 사용 시)
                         className="block w-full pl-10 pr-3 py-2 border text-gray-600 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
@@ -491,7 +480,9 @@ const AdminUserManagement: React.FC = () => {
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 검색: {searchTerm}
                                 <button
-                                    onClick={() => setSearchTerm("")}
+                                    onClick={() => {
+                                        setSearchTerm("");
+                                    }}
                                     className="ml-1 bg-blue-100 text-blue-600 hover:text-blue-800"
                                 >
                                     ×
@@ -579,11 +570,11 @@ const AdminUserManagement: React.FC = () => {
                         </span>
                         {" - "}
                         <span className="font-medium">
-                            {Math.min(indexOfLastItem, filteredUsers.length)}
+                            {Math.min(indexOfLastItem, processedUsers.length)}
                         </span>
                         {" / "}
                         <span className="font-medium">
-                            {filteredUsers.length}
+                            {processedUsers.length}
                         </span>
                         개 항목
                     </p>
@@ -664,7 +655,7 @@ const AdminUserManagement: React.FC = () => {
             <div className="flex-1 p-4 space-y-6">
                 {/* 통계 카드 섹션 */}
                 {stats && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4">
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border">
                             <div className="text-lg md:text-2xl font-bold text-blue-600">
                                 {stats.totalUsers}
@@ -719,6 +710,17 @@ const AdminUserManagement: React.FC = () => {
                             </div>
                             <div className="text-xs md:text-sm text-gray-600">
                                 평균 연령
+                            </div>
+                        </div>
+                        <div
+                            className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 md:p-4 rounded-lg shadow-sm border border-blue-200 hover:shadow-md hover:from-blue-100 hover:to-purple-100 transition-all cursor-pointer"
+                            onClick={() => setIsInsightModalOpen(true)}
+                        >
+                            <div className="text-lg md:text-2xl font-bold text-blue-600">
+                                📊 사용자 분석
+                            </div>
+                            <div className="text-xs md:text-sm text-gray-600">
+                                상세 인사이트 보기
                             </div>
                         </div>
                     </div>
@@ -776,7 +778,7 @@ const AdminUserManagement: React.FC = () => {
                                                     <span className="text-gray-600">
                                                         나이
                                                     </span>
-                                                    <span className="font-medium">
+                                                    <span className="font-medium text-gray-600">
                                                         {getGenderIcon(
                                                             user.gender
                                                         )}{" "}
@@ -806,20 +808,6 @@ const AdminUserManagement: React.FC = () => {
                                                         )}
                                                     </span>
                                                 </div>
-                                            </div>
-
-                                            <div className="flex space-x-2">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteUser(
-                                                            user.user_id
-                                                        );
-                                                    }}
-                                                    className="flex-1 px-3 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
-                                                >
-                                                    삭제
-                                                </button>
                                             </div>
                                         </div>
                                     ))}
@@ -940,17 +928,6 @@ const AdminUserManagement: React.FC = () => {
                                                             className="bg-white border-gray-500 text-blue-600 hover:text-blue-900"
                                                         >
                                                             상세
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteUser(
-                                                                    user.user_id
-                                                                );
-                                                            }}
-                                                            className="bg-white border-gray-500 text-red-600 hover:text-red-900"
-                                                        >
-                                                            삭제
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -1100,41 +1077,16 @@ const AdminUserManagement: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* 액션 버튼 */}
-                                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
-                                        <button
-                                            onClick={() => {
-                                                handleRoleChange(
-                                                    selectedUser.user_id,
-                                                    selectedUser.role ===
-                                                        "ROLE_ADMIN"
-                                                        ? "ROLE_USER"
-                                                        : "ROLE_ADMIN"
-                                                );
-                                            }}
-                                            className="flex-1 px-4 py-2 text-sm font-medium text-green-600 border border-green-300 rounded-md hover:bg-green-50 transition-colors"
-                                        >
-                                            {selectedUser.role === "ROLE_ADMIN"
-                                                ? "관리자 권한 해제"
-                                                : "관리자로 승격"}
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                handleDeleteUser(
-                                                    selectedUser.user_id
-                                                )
-                                            }
-                                            className="flex-1 px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
-                                        >
-                                            사용자 삭제
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
+                <UserInsightDashboard
+                    users={processedUsers}
+                    isVisible={isInsightModalOpen}
+                    onClose={() => setIsInsightModalOpen(false)}
+                />
             </div>
         </div>
     );

@@ -17,6 +17,7 @@ import {
 } from "../../../api/mypageApi";
 import { Favorite } from "../../../data/adminData";
 import { AccidentAlertModal } from "../../alert/AccidentModal";
+import PlaceSuggestion from "./PlaceSuggestion";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const categoryMap: Record<string, string> = {
@@ -588,6 +589,8 @@ export default function MapSectionComponent({
                 onResultClick={handleSearchResultClick}
                 onSingleResultClick={handleSingleResultClick}
             />
+
+            <PlaceSuggestion />
 
             <div className="w-full h-full" ref={mapContainer} />
 
