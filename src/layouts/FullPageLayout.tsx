@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ReactFullpage from "@fullpage/react-fullpage";
 import MapSection from "../pages/stars/MapSectionPage";
 import Dashboard from "../pages/stars/DashboardPage";
@@ -8,10 +8,10 @@ import useCustomLogin from "../hooks/useCustomLogin";
 
 export default function FullPageLayout() {
     const { isLogin } = useCustomLogin();
+    const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
 
     useEffect(() => {
         initializeAppHeight();
-
         const disableScroll = () => {
             if (window.fullpage_api) {
                 window.fullpage_api.setAllowScrolling(false);
@@ -23,6 +23,7 @@ export default function FullPageLayout() {
 
     return (
         <ReactFullpage
+            licenseKey="YOUR_KEY_HERE"
             autoScrolling={true}
             scrollingSpeed={700}
             controlArrows={false}
@@ -32,10 +33,17 @@ export default function FullPageLayout() {
                 <ReactFullpage.Wrapper>
                     <div className="section">
                         <div className="slide">
-                            <MapSection />
+                            <MapSection
+                                searchKeyword={searchKeyword}
+                                onSearchComplete={() => setSearchKeyword(null)}
+                            />
                         </div>
                         <div className="slide">
-                            {isLogin ? <MyPage /> : <div />}
+                            {isLogin ? (
+                                <MyPage onMapView={setSearchKeyword} />
+                            ) : (
+                                <div />
+                            )}
                         </div>
                     </div>
                     <div className="section">

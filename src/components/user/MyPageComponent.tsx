@@ -8,9 +8,18 @@ interface MenuItem {
     title: string;
     icon: string;
 }
+interface UserFavoriteProps {
+    onMapView?: (name: string) => void;
+}
 
-export default function MyPageComponent() {
+export default function MyPageComponent({
+    onMapView,
+}: {
+    onMapView: (name: string) => void;
+}) {
     // Selected menu item state
+    const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
+
     const [selectedItem, setSelectedItem] = useState<MenuItem>({
         id: 1,
         title: "회원정보",
@@ -69,7 +78,7 @@ export default function MyPageComponent() {
             case 1:
                 return <UserInfo />;
             case 2:
-                return <UserFavorite />;
+                return <UserFavorite onMapView={onMapView} />;
             default:
                 return <div>선택된 항목이 없습니다.</div>;
         }
@@ -93,7 +102,7 @@ export default function MyPageComponent() {
             </div>
 
             {/* Main Container with Glass Effect */}
-            <div className="w-full h-full max-w-6xl mx-auto rounded-2xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-sm border border-white/50 flex flex-col">
+            <div className="w-full h-5/6 max-w-6xl mx-auto rounded-2xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-sm border border-white/50 flex flex-col">
                 <div className="flex flex-col md:flex-row h-full overflow-hidden">
                     {/* Mobile Header with Menu Toggle */}
                     {isMobile && (

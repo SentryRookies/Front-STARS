@@ -87,7 +87,6 @@ const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
                 return Promise.reject("REQUIRE_LOGIN");
             }
 
-            alert("리프레쉬 토큰 성공!");
             user.accessToken = result.accessToken;
             if (result.refreshToken) {
                 user.refreshToken = result.refreshToken;
@@ -112,7 +111,7 @@ const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
 
             return axios(originalRequest);
         } catch (refreshError) {
-            alert("로그인 정보가 만료되었습니다.");
+            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
             return Promise.reject(refreshError);
         }
     }
