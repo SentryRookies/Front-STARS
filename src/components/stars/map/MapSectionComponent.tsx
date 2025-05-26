@@ -46,7 +46,13 @@ export interface Area {
     name_eng: string;
 }
 
-export default function MapSectionComponent() {
+export default function MapSectionComponent({
+    searchKeyword,
+    onSearchComplete,
+}: {
+    searchKeyword?: string | null;
+    onSearchComplete?: () => void;
+}) {
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const searchMarkersRef = useRef<
@@ -535,6 +541,8 @@ export default function MapSectionComponent() {
             )}
 
             <SearchBar
+                keyword={searchKeyword ?? undefined}
+                onKeywordSearched={onSearchComplete}
                 onResultClick={handleSearchResultClick}
                 onSingleResultClick={handleSingleResultClick}
             />
