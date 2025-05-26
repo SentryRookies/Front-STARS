@@ -96,7 +96,7 @@ export const AccidentAlertModal: React.FC<AccidentAlertModalProps> = ({
     );
 
     return (
-        <div className="absolute md:top-20 top-36 right-4 z-10 flex flex-col items-end gap-2">
+        <div className="absolute md:top-16 top-36 right-4 z-10 flex flex-col items-end gap-2">
             {/* 토글 버튼 */}
             <motion.button
                 className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg font-semibold text-base transition-all duration-300 ${
@@ -168,17 +168,19 @@ export const AccidentAlertModal: React.FC<AccidentAlertModalProps> = ({
                     {/* 내용 */}
                     <div className="md:max-h-80 max-h-64 overflow-y-auto">
                         {activeAccidents.length === 0 ? (
-                            <div className="md:p-8 p-6 text-center">
-                                <div className="md:text-6xl text-4xl mb-4">
-                                    ✅
-                                </div>
-                                <h4 className="md:text-lg text-base font-semibold text-gray-800 mb-2">
-                                    모든 지역이 안전합니다
-                                </h4>
-                                <p className="text-gray-500 md:text-sm text-xs">
-                                    현재 발생한 사고가 없습니다.
-                                </p>
-                            </div>
+                            // <div className="md:p-8 p-6 text-center">
+                            //     <div className="md:text-6xl text-4xl mb-4">
+                            //         ✅
+                            //     </div>
+                            //     <h4 className="md:text-lg text-base font-semibold text-gray-800 mb-2">
+                            //         모든 지역이 안전합니다
+                            //     </h4>
+                            //     <p className="text-gray-500 md:text-sm text-xs">
+                            //         현재 발생한 사고가 없습니다.
+                            //     </p>
+                            // </div>
+                            // 사고정보가 없을 때 아무것도 안뜨게 변경
+                            <></>
                         ) : (
                             <div className="space-y-1.5">
                                 {Object.values(accidentsByArea).map(
