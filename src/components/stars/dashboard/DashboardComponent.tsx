@@ -15,6 +15,7 @@ import CongestionStatusCard from "./CongestionStatusCard";
 import AttractionCard from "./AttractionCard";
 import AttractionTableCard from "./AttractionCard";
 import CulturalEventCard from "./CulturalEventCard";
+import CulturalEventSlider from "./CulturalEventSlider";
 import { scrollToTop } from "../../../utils/scrollToTop";
 
 // API 호출
@@ -438,6 +439,8 @@ export default function DashboardComponent() {
                         cardRef={(el) => (cardRefs.current[100] = el)}
                     />
                 )}
+
+                <CulturalEventSlider events={events} />
 
                 {/*/!* POI 카드들 *!/*/}
                 {/*<POICardList*/}
