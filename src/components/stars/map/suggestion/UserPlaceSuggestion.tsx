@@ -293,7 +293,7 @@ export default function UserPlaceSuggestion({
             : handleEndDateClick;
 
         return (
-            <div className="absolute z-50 mt-2 bg-white rounded-lg shadow-lg p-3 border border-gray-200 w-full">
+            <div className="absolute z-50 mt-2 bg-white rounded-lg shadow-2xl p-3 border border-gray-200 w-full">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-medium text-gray-700">
                         {currentYear}년 {monthNames[currentMonth]}
@@ -301,7 +301,7 @@ export default function UserPlaceSuggestion({
                     <div className="flex gap-1">
                         <button
                             onClick={goToPreviousMonth}
-                            className="p-1 rounded-full hover:bg-gray-100"
+                            className="p-1 rounded-full bg-purple-50 hover:bg-purple-100"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -320,7 +320,7 @@ export default function UserPlaceSuggestion({
                         </button>
                         <button
                             onClick={goToNextMonth}
-                            className="p-1 rounded-full hover:bg-gray-100"
+                            className="p-1 rounded-full bg-purple-50 hover:bg-purple-100"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -372,11 +372,11 @@ export default function UserPlaceSuggestion({
                                 onClick={() => handleDateClick(day)}
                                 disabled={!isCurrentMonth}
                                 className={`
-                  w-8 h-8 text-xs rounded-md flex items-center justify-center
+                  w-8 h-8 text-xs rounded-md flex items-center justify-center bg-white border border-gray-200
                   ${!isCurrentMonth ? "text-gray-300 cursor-default" : "text-gray-700 hover:bg-gray-100"}
                   ${isRangeDay ? "bg-purple-100" : ""}
-                  ${isSelectedStartDate ? "bg-purple-500 text-white" : ""}
-                  ${isSelectedEndDate ? "bg-purple-500 text-white" : ""}
+                  ${isSelectedStartDate ? "bg-purple-500 border text-black" : ""}
+                  ${isSelectedEndDate ? "bg-purple-500 text-black" : ""}
                   ${isToday && !isSelectedStartDate && !isSelectedEndDate ? "border border-purple-500 font-medium" : ""}
                 `}
                             >
@@ -393,7 +393,7 @@ export default function UserPlaceSuggestion({
                                 ? setShowStartCalendar(false)
                                 : setShowEndCalendar(false)
                         }
-                        className="text-xs text-purple-500 hover:text-purple-500 font-medium px-2 py-1"
+                        className="text-xs text-purple-500 bg-white hover:text-purple-700 font-medium px-2 py-1"
                     >
                         닫기
                     </button>
@@ -494,7 +494,7 @@ export default function UserPlaceSuggestion({
     ];
 
     return (
-        <div>
+        <div className="p-4 overflow-y-auto max-h-[75vh]">
             <h2 className="text-xl font-bold mb-2 text-center text-purple-500">
                 나만의 여행 코스 추천
             </h2>
@@ -729,42 +729,47 @@ export default function UserPlaceSuggestion({
 
                                 {/* 시간 선택 (날짜가 선택된 경우에만 표시) */}
                                 {startDate && (
-                                    <div className="mt-2 bg-white rounded-lg border border-gray-200 p-2">
-                                        <div className="flex justify-between mb-2">
-                                            <div className="text-xs font-medium text-gray-600">
-                                                출발 시간
+                                    <div className="relative">
+                                        <div className="mt-2 bg-white rounded-lg border border-gray-200 p-2">
+                                            <div className="flex justify-between mb-2">
+                                                <div className="text-xs font-medium text-gray-600">
+                                                    출발 시간
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* 오전/오후 선택 */}
-                                        <div className="grid grid-cols-2 gap-2 mb-3">
-                                            {["오전", "오후"].map(
-                                                (period, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        onClick={() =>
-                                                            setTimePeriod(idx)
-                                                        }
-                                                        className={`text-center py-2 rounded-lg cursor-pointer text-sm transition-colors ${
-                                                            timePeriod === idx
-                                                                ? "bg-purple-500 text-white font-medium"
-                                                                : "bg-gray-50 text-gray-500 hover:bg-gray-100"
-                                                        }`}
-                                                    >
-                                                        {period}
-                                                    </div>
-                                                )
-                                            )}
-                                        </div>
-
-                                        {/* 시간 선택 - 시간 그리드 */}
-                                        <div className="mb-3">
-                                            <div className="text-xs text-gray-500 mb-1 px-1">
-                                                시간
+                                            {/* 오전/오후 선택 */}
+                                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                                {["오전", "오후"].map(
+                                                    (period, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            onClick={() =>
+                                                                setTimePeriod(
+                                                                    idx
+                                                                )
+                                                            }
+                                                            className={`text-center py-2 rounded-lg cursor-pointer text-sm transition-colors ${
+                                                                timePeriod ===
+                                                                idx
+                                                                    ? "bg-purple-500 text-white font-medium"
+                                                                    : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                                                            }`}
+                                                        >
+                                                            {period}
+                                                        </div>
+                                                    )
+                                                )}
                                             </div>
-                                            <div className="grid grid-cols-4 gap-2">
-                                                {timeOptions[timePeriod].map(
-                                                    (hour, idx) => (
+
+                                            {/* 시간 선택 - 시간 그리드 */}
+                                            <div className="mb-3">
+                                                <div className="text-xs text-gray-500 mb-1 px-1">
+                                                    시간
+                                                </div>
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    {timeOptions[
+                                                        timePeriod
+                                                    ].map((hour, idx) => (
                                                         <div
                                                             key={idx}
                                                             onClick={() => {
@@ -802,56 +807,56 @@ export default function UserPlaceSuggestion({
                                                         >
                                                             {hour}시
                                                         </div>
-                                                    )
-                                                )}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* 분 선택 */}
-                                        <div className="mb-3">
-                                            <div className="text-xs text-gray-500 mb-1 px-1">
-                                                분
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {minuteOptions.map(
-                                                    (minute, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            onClick={() => {
-                                                                const hour =
+                                            {/* 분 선택 */}
+                                            <div className="mb-3">
+                                                <div className="text-xs text-gray-500 mb-1 px-1">
+                                                    분
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {minuteOptions.map(
+                                                        (minute, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                onClick={() => {
+                                                                    const hour =
+                                                                        startTime
+                                                                            .split(
+                                                                                "T"
+                                                                            )[1]
+                                                                            ?.split(
+                                                                                ":"
+                                                                            )[0] ||
+                                                                        "00";
+                                                                    const dateStr =
+                                                                        formatDateToString(
+                                                                            startDate
+                                                                        );
+                                                                    setStartTime(
+                                                                        `${dateStr}T${hour}:${minute}`
+                                                                    );
+                                                                }}
+                                                                className={`text-center py-2 rounded-lg cursor-pointer text-sm transition-colors ${
                                                                     startTime
                                                                         .split(
                                                                             "T"
                                                                         )[1]
                                                                         ?.split(
                                                                             ":"
-                                                                        )[0] ||
-                                                                    "00";
-                                                                const dateStr =
-                                                                    formatDateToString(
-                                                                        startDate
-                                                                    );
-                                                                setStartTime(
-                                                                    `${dateStr}T${hour}:${minute}`
-                                                                );
-                                                            }}
-                                                            className={`text-center py-2 rounded-lg cursor-pointer text-sm transition-colors ${
-                                                                startTime
-                                                                    .split(
-                                                                        "T"
-                                                                    )[1]
-                                                                    ?.split(
-                                                                        ":"
-                                                                    )[1] ===
-                                                                minute
-                                                                    ? "bg-purple-500 text-white font-medium"
-                                                                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                                                            }`}
-                                                        >
-                                                            {minute}분
-                                                        </div>
-                                                    )
-                                                )}
+                                                                        )[1] ===
+                                                                    minute
+                                                                        ? "bg-purple-500 text-white font-medium"
+                                                                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                                                                }`}
+                                                            >
+                                                                {minute}분
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
