@@ -323,22 +323,64 @@ export default function MapSectionComponent({
             </button>
         `;
         const phoneHtml = item.phone
-            ? `<div class="text-sm text-gray-500">전화: ${item.phone}</div>`
+            ? `<div class="text-sm text-gray-500">
+                <span style="display:inline-flex;align-items:center;gap:4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:#6b7280;">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.86 19.86 0 0 1 3.09 4.18 2 2 0 0 1 5 2h3a2 2 0 0 1 2 1.72c.13.81.37 1.6.7 2.34a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45c.74.33 1.53.57 2.34.7A2 2 0 0 1 22 16.92z"/>
+                  </svg>
+                  <a href="tel:${item.phone.replace(/[^0-9]/g, "")}" class="text-gray-700 hover:text-blue-600 hover:underline" style="word-break:break-all;">${item.phone}</a>
+                </span>
+            </div>`
             : "";
         const kakaoHtml = item.kakaomap_url
-            ? `<button class="mt-1 text-xs px-2 py-1 bg-[#FEE500] text-[#3C1E1E] font-bold rounded shadow hover:bg-yellow-300 transition" onclick="window.open('${item.kakaomap_url}', '_blank')">카카오맵에서 보기</button>`
+            ? `<a
+                href="${item.kakaomap_url}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="카카오맵에서 보기"
+                style="display: inline-block;"
+            >
+                <img
+                    src="/kakaoMap.png"
+                    alt="카카오맵에서 보기"
+                    style="width:36px; height: auto; display: inline-block;"
+                />
+            </a>`
+            : "";
+
+        const naverHtml = item.name
+            ? `<a
+                href="https://map.naver.com/p/search/${encodeURIComponent(item.name)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="네이버지도에서 보기"
+                style="display: inline-block; margin-left: 8px;"
+            >
+                <img
+                    src="/naverMap.png"
+                    alt="네이버지도"
+                    style="width:36px; height: auto; display:inline-block;"
+                />
+            </a>`
             : "";
         return `
-            <div class="flex flex-col p-2 gap-2">
+            <div class="flex flex-col p-2 gap-1">
                 <div class="flex items-center gap-2">
                     <h3 class="font-bold text-xl text-gray-700">${item.name}</h3>
                     <span class="inline-flex w-auto px-2 py-1 rounded-full text-xs font-semibold ${badge}">${label}</span>
                     ${starBtnHtml}
                 </div>
                 <p class="text-gray-700">${item.address}</p>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    ${kakaoHtml}
+                    ${naverHtml}
+                </div>
                 ${phoneHtml}
-                ${kakaoHtml}
-                <button class="mt-2 px-3 py-1 bg-indigo-600 text-white rounded-full font-bold hover:bg-indigo-700 transition detail-btn" data-area-id="${item.area_id ?? ""}">가까운 지역구 보기</button>
+                <div class="flex justify-center">
+                    <button class="mt-2 px-3 py-1 max-w-[180px] w-full bg-indigo-600 text-white rounded-md font-bold hover:bg-indigo-700 transition detail-btn" data-area-id="${item.area_id ?? ""}">
+                        가까운 지역구 보기
+                    </button>
+                </div>            
             </div>
         `;
     }
