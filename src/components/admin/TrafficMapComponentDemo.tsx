@@ -246,7 +246,10 @@ const TrafficMapDemo: React.FC<TrafficMapProps> = ({
             label.style.lineHeight = "20px";
             el.appendChild(label);
 
-            const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+            const popup = new mapboxgl.Popup({
+                offset: 10,
+                closeButton: false,
+            }).setHTML(`
             <strong>${park.prk_nm}</strong><br/>
             ${park.address || park.road_addr}<br/>
             ${park.cur_prk_cnt}/${park.cpcty} 대
