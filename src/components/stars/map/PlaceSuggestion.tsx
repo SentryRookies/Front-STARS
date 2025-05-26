@@ -1,0 +1,40 @@
+import React, { useState } from "react";
+import PlaceSuggestionShow from "./suggestion/PlaceSuggestionShow";
+
+export default function PlaceSuggestion() {
+    const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);
+
+    const toggleSuggestion = () => {
+        setIsSuggestionOpen((prev) => !prev);
+    };
+
+    // 닫기 핸들러 추가
+    const handleClose = () => {
+        console.log("닫기 함수 호출됨");
+        setIsSuggestionOpen(false);
+    };
+
+    return (
+        <div>
+            <div
+                className={`absolute bottom-8 transform left-4 z-20 max-w-md bg-white shadow-md flex items-center rounded-full transition-all duration-300 ${
+                    isSuggestionOpen
+                        ? "bg-opacity-90"
+                        : "bg-opacity-60 hover:bg-opacity-90"
+                } md:bottom-8 md:left-6 md:transform-none md:w-88`}
+            >
+                <button
+                    className="flex-shrink-0 bg-transparent mr-3 focus:outline-none border-0
+font-bold text-center text-purple-500"
+                    onClick={toggleSuggestion}
+                >
+                    여행코스 추천 ❯
+                </button>
+                <PlaceSuggestionShow
+                    isOpen={isSuggestionOpen}
+                    onClose={handleClose}
+                />
+            </div>
+        </div>
+    );
+}
