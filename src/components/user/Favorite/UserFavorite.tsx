@@ -3,8 +3,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Favorite } from "../../../data/adminData";
 import { getUserFavoriteList, deleteFavorite } from "../../../api/mypageApi";
 import { categoryMap, getTypeStyle } from "./UserFavoriteUtils";
+interface UserFavoriteProps {
+    onMapView?: (name: string) => void;
+}
 
-const UserFavorite = () => {
+const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
     // 즐겨찾기 데이터 상태
     const [favorites, setFavorites] = useState<Favorite[]>([]);
     // 로딩 상태
@@ -287,10 +290,24 @@ const UserFavorite = () => {
                         <div className="flex justify-between gap-3">
                             <button
                                 onClick={() => {
-                                    // 지도에서 해당 위치로 이동 구현
+                                    console.log(
+                                        "[UserFavorite] 지도에서 보기 클릭",
+                                        fav.name
+                                    );
                                     if (window.fullpage_api) {
                                         window.fullpage_api.moveSlideLeft();
-                                        // 지도 컴포넌트로 위치 정보 전달 로직 추가
+                                    }
+                                    // 지도 컴포넌트로 위치 정보 전달 로직 추가
+                                    if (onMapView) {
+                                        console.log(
+                                            "[UserFavorite] onMapView 호출",
+                                            fav.name
+                                        );
+                                        onMapView(fav.name ?? "");
+                                    } else {
+                                        console.log(
+                                            "[UserFavorite] onMapView 없음"
+                                        );
                                     }
                                 }}
                                 className="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg text-sm flex items-center font-medium shadow-sm border border-indigo-200 transition-colors"
