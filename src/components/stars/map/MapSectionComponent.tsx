@@ -517,7 +517,7 @@ export default function MapSectionComponent() {
                     isAnimatingRef.current = false;
                     found.marker.togglePopup();
                 }
-            }, 3000); // 3초 후 강제 완료
+            }, 1000); // 1초 후 강제 완료
         }
     }, []);
 
