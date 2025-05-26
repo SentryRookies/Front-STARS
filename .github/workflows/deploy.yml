@@ -75,6 +75,4 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: frontend
-        run: |
-          kubectl set image deployment/frontend frontend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          kubectl rollout restart deployment/frontend -n frontend
+        run: kubectl rollout restart deployment/frontend -n frontend
