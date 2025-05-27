@@ -3,7 +3,6 @@ import { MapPin, Calendar, Coffee } from "lucide-react";
 import { getUserSuggestionList } from "../../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
 import UserPlaceSuggestion from "./UserPlaceSuggestion";
-import { FaBars } from "react-icons/fa";
 import { Undo2 } from "lucide-react";
 import { motion } from "framer-motion";
 
