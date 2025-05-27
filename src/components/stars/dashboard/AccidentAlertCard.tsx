@@ -27,7 +27,7 @@ export default function AccidentAlertCard({
 }: AccidentAlertCardProps) {
     return (
         <motion.div
-            className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-4 bg-blue-500 rounded-3xl shadow-sm p-5 my-2"
+            className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-4 bg-blue-500 rounded-3xl shadow-lg p-5 my-2"
             whileHover={{ y: -6 }}
             animate={
                 style
@@ -67,7 +67,7 @@ export default function AccidentAlertCard({
                     {accidents.map((acc, idx) => (
                         <div
                             key={idx}
-                            className="bg-blue-100 rounded-2xl shadow-lg p-3 text-sm"
+                            className="bg-blue-100 rounded-2xl shadow-sm p-3 text-sm"
                         >
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="text-xl">
