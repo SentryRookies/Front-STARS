@@ -300,7 +300,7 @@ const AdminUserFavorite = () => {
                 {!isMobileView ? (
                     <div className="w-full h-full flex flex-col flex-1">
                         {/* 상단 2분할 */}
-                        <div className="flex flex-row flex-none h-[55%] min-h-[350px]">
+                        <div className="flex flex-row flex-none h-[60%] min-h-[350px]">
                             {/* 좌측상단: 사용자 목록 */}
                             <div className="w-1/3 bg-white rounded-lg shadow-md flex flex-col h-full mr-4">
                                 <h2 className="text-lg md:text-xl p-4 font-bold text-black border-b flex justify-between items-center flex-shrink-0">

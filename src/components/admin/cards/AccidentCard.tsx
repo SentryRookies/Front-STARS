@@ -144,196 +144,186 @@ const AccidentCard: React.FC<AccidentSectionProps> = ({
 }) => {
     // 모바일 뷰와 데스크톱 뷰에 따른 조건부 렌더링
     return (
-        <div className="w-full h-full border rounded-lg shadow-md bg-white flex flex-col">
-            <h2 className="text-sm md:text-base p-2 font-bold text-black border-b flex justify-between items-center">
-                <div className="flex items-center">
-                    <span>사고 정보</span>
-                    <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                        {accidentData.length}건
-                    </span>
+        <div className="w-full h-full bg-white flex flex-col overflow-hidden">
+            {/* 카드 헤더 - 고정 */}
+            <div className="flex-shrink-0 p-3 border-b border-gray-200 bg-white">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                        <span className="font-semibold text-sm text-gray-800">
+                            사고 정보
+                        </span>
+                        <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                            {accidentData.length}건
+                        </span>
+                    </div>
+                    {isLoading && (
+                        <span className="text-xs text-red-500 font-normal flex items-center">
+                            <svg
+                                className="animate-spin -ml-1 mr-1 h-3 w-3 text-red-500"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                ></circle>
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            로딩 중
+                        </span>
+                    )}
                 </div>
-                {isLoading && (
-                    <span className="text-xs text-blue-500 font-normal flex items-center">
-                        <svg
-                            className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                            ></circle>
-                            <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                        로딩 중
-                    </span>
-                )}
-            </h2>
+            </div>
 
-            <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 flex-1">
+            {/* 콘텐츠 영역 - 스크롤 가능 */}
+            <div className="flex-1 overflow-hidden">
                 {isLoading && accidentData.length === 0 ? (
-                    <div className="p-3">
+                    <div className="p-3 h-full overflow-y-auto">
                         <AccidentTableSkeleton />
                     </div>
                 ) : accidentData.length > 0 ? (
                     isMobile ? (
                         // 모바일 컴팩트 카드 뷰
-                        <div className="space-y-1 p-2">
-                            {accidentData.map((data, idx) => {
-                                const style = getAccidentStyle(data.acdnt_type);
-                                return (
-                                    <div
-                                        key={idx}
-                                        className={`${style.bgColor} border ${style.borderColor} rounded-lg p-1.5 cursor-pointer shadow-sm`}
-                                        onClick={() => onSelectAccident(data)}
-                                    >
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="w-6 h-6 flex items-center justify-center bg-white rounded-full shadow-sm flex-shrink-0">
-                                                <span className="text-base">
-                                                    {style.icon}
-                                                </span>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between items-center">
-                                                    <span
-                                                        className={`font-medium ${style.textColor} text-xs truncate max-w-[120px]`}
-                                                    >
-                                                        {data.area_nm}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500 whitespace-nowrap">
-                                                        {formatDateTime(
-                                                            data.acdnt_occr_dt
-                                                        )}
+                        <div className="h-full overflow-y-auto">
+                            <div className="space-y-2 p-3">
+                                {accidentData.map((data, idx) => {
+                                    const style = getAccidentStyle(
+                                        data.acdnt_type
+                                    );
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`${style.bgColor} border ${style.borderColor} rounded-lg p-3 cursor-pointer shadow-sm hover:shadow-md transition-shadow`}
+                                            onClick={() =>
+                                                onSelectAccident(data)
+                                            }
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-sm flex-shrink-0">
+                                                    <span className="text-lg">
+                                                        {style.icon}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs truncate text-gray-700 mt-0.5">
-                                                    {simplifyRoadInfo(
-                                                        data.acdnt_info,
-                                                        30
-                                                    )}
-                                                </p>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span
+                                                            className={`font-medium ${style.textColor} text-sm truncate max-w-[150px]`}
+                                                        >
+                                                            {data.area_nm}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                                                            {formatDateTime(
+                                                                data.acdnt_occr_dt
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-700 line-clamp-2">
+                                                        {simplifyRoadInfo(
+                                                            data.acdnt_info,
+                                                            50
+                                                        )}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     ) : (
-                        // 데스크톱 테이블 뷰
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50 sticky top-0 z-10">
-                                    <tr>
-                                        <th
-                                            scope="col"
-                                            className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            유형
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            지역
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            위치
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            발생시간
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            예상해소
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                        // 데스크톱 테이블 뷰 - 고정 헤더
+                        <div className="h-full flex flex-col">
+                            {/* 테이블 헤더 - 고정 */}
+                            <div className="flex-shrink-0 bg-gray-50 border-b border-gray-200">
+                                <div className="grid grid-cols-5 gap-2 px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <div>유형</div>
+                                    <div>지역</div>
+                                    <div>위치</div>
+                                    <div>발생시간</div>
+                                    <div>예상해소</div>
+                                </div>
+                            </div>
+
+                            {/* 테이블 바디 - 스크롤 가능 */}
+                            <div className="flex-1 overflow-y-auto">
+                                <div className="divide-y divide-gray-200">
                                     {accidentData.map((data, idx) => {
                                         const style = getAccidentStyle(
                                             data.acdnt_type
                                         );
                                         return (
-                                            <tr
+                                            <div
                                                 key={idx}
-                                                className="hover:bg-gray-50 cursor-pointer"
+                                                className="grid grid-cols-5 gap-2 px-3 py-3 hover:bg-gray-50 cursor-pointer transition-colors group"
                                                 onClick={() =>
                                                     onSelectAccident(data)
                                                 }
                                             >
-                                                <td className="px-2 py-1.5 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div
-                                                            className={`w-5 h-5 flex items-center justify-center ${style.bgColor} rounded-full mr-1.5`}
-                                                        >
-                                                            <span className="text-xs">
-                                                                {style.icon}
-                                                            </span>
-                                                        </div>
-                                                        <span
-                                                            className={`text-xs font-medium ${style.textColor}`}
-                                                        >
-                                                            {data.acdnt_type}{" "}
-                                                            <span className="text-gray-500 font-normal text-xs">
-                                                                (
-                                                                {
-                                                                    data.acdnt_dtype
-                                                                }
-                                                                )
-                                                            </span>
+                                                <div className="flex items-center">
+                                                    <div
+                                                        className={`w-6 h-6 flex items-center justify-center ${style.bgColor} rounded-full mr-2 flex-shrink-0`}
+                                                    >
+                                                        <span className="text-sm">
+                                                            {style.icon}
                                                         </span>
                                                     </div>
-                                                </td>
-                                                <td className="px-2 py-1.5 whitespace-nowrap text-xs text-gray-900">
+                                                    <div className="min-w-0">
+                                                        <div
+                                                            className={`text-xs font-medium ${style.textColor} truncate`}
+                                                        >
+                                                            {data.acdnt_type}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 truncate">
+                                                            {data.acdnt_dtype}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-xs text-gray-900 font-medium truncate flex items-center">
                                                     {data.area_nm}
-                                                </td>
-                                                <td className="px-2 py-1.5 text-xs text-gray-500">
+                                                </div>
+
+                                                <div className="text-xs text-gray-600 flex items-center">
                                                     <div
-                                                        className="max-w-xs truncate"
+                                                        className="truncate"
                                                         title={data.acdnt_info}
                                                     >
                                                         {simplifyRoadInfo(
                                                             data.acdnt_info,
-                                                            35
+                                                            40
                                                         )}
                                                     </div>
-                                                </td>
-                                                <td className="px-2 py-1.5 whitespace-nowrap text-xs text-gray-500">
+                                                </div>
+
+                                                <div className="text-xs text-gray-500 flex items-center">
                                                     {formatDateTime(
                                                         data.acdnt_occr_dt
                                                     )}
-                                                </td>
-                                                <td className="px-2 py-1.5 whitespace-nowrap text-xs text-gray-500">
+                                                </div>
+
+                                                <div className="text-xs text-gray-500 flex items-center">
                                                     {formatDateTime(
                                                         data.exp_clr_dt
                                                     )}
-                                                </td>
-                                            </tr>
+                                                </div>
+                                            </div>
                                         );
                                     })}
-                                </tbody>
-                            </table>
+                                </div>
+                            </div>
                         </div>
                     )
                 ) : (
-                    <div className="p-3">
+                    <div className="h-full flex items-center justify-center">
                         <NoAccidentData />
                     </div>
                 )}

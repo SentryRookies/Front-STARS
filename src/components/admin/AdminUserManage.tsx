@@ -29,7 +29,6 @@ interface UserStats {
 
 const AdminUserManagement: React.FC = () => {
     const [users, setUsers] = useState<UserInfo[]>([]);
-    // const [processedUsers, setprocessedUsers] = useState<UserInfo[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -47,7 +46,7 @@ const AdminUserManagement: React.FC = () => {
 
     // 페이지네이션
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(10);
+    const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
     // 모바일 대응
     const [isMobileView, setIsMobileView] = useState<boolean>(false);
@@ -84,6 +83,10 @@ const AdminUserManagement: React.FC = () => {
             setLoading(false);
         }
     }, []);
+
+    const currentItemsPerPage = useMemo(() => {
+        return viewMode === "grid" || isMobileView ? 9 : 10;
+    }, [viewMode, isMobileView]);
 
     // 통계 계산
     const calculateStats = useCallback((userList: UserInfo[]) => {
@@ -214,13 +217,13 @@ const AdminUserManagement: React.FC = () => {
     };
 
     // 페이지네이션 계산
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const indexOfLastItem = currentPage * currentItemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - currentItemsPerPage;
     const currentUsers = processedUsers.slice(
         indexOfFirstItem,
         indexOfLastItem
     );
-    const totalPages = Math.ceil(processedUsers.length / itemsPerPage);
+    const totalPages = Math.ceil(processedUsers.length / currentItemsPerPage);
 
     // 사용자 상세 보기
     const handleUserClick = (user: UserInfo) => {
