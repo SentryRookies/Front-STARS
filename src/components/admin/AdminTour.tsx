@@ -22,6 +22,45 @@ interface GetTourList {
     event_fee: string;
 }
 
+const marqueeStyle = `
+@keyframes marquee {
+    0% { 
+        transform: translateX(100%); 
+    }
+    100% { 
+        transform: translateX(-100%); 
+    }
+}
+
+.animate-marquee {
+    animation: marquee 12s linear infinite;
+    display: inline-block;
+}
+
+.animate-marquee:hover {
+    animation-play-state: paused;
+}
+
+/* 짧은 제목은 애니메이션 안함 */
+.no-marquee {
+    animation: none !important;
+}
+`;
+
+if (
+    typeof document !== "undefined" &&
+    !document.getElementById("marquee-styles")
+) {
+    const style = document.createElement("style");
+    style.id = "marquee-styles";
+    style.textContent = marqueeStyle;
+    document.head.appendChild(style);
+}
+// 제목 길이 체크 함수
+const shouldUseMarquee = (text: string) => {
+    return text.length > 54; // 20자 이상일 때만 마퀴 효과
+};
+
 const AdminTour = () => {
     const [list, setList] = useState<TourList[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -34,7 +73,7 @@ const AdminTour = () => {
     const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [itemsPerPage] = useState<number>(10);
+    const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
     // 화면 크기 체크
     useEffect(() => {
@@ -87,6 +126,15 @@ const AdminTour = () => {
     useEffect(() => {
         fetchEvents();
     }, []);
+
+    useEffect(() => {
+        if (viewMode === "grid") {
+            setItemsPerPage(9);
+        } else {
+            setItemsPerPage(10);
+        }
+        setCurrentPage(1); // 페이지도 1로 리셋
+    }, [viewMode]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -206,47 +254,55 @@ const AdminTour = () => {
 
     // 그리드 뷰 컴포넌트
     const GridView = () => (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredList.map((item, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {paginatedList.map((item, index) => (
                 <div
                     key={`${item.event_name}-${index}`}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                    className="bg-white rounded-md shadow-sm border border-gray-200 p-3 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer group"
                     onClick={() => handleEventClick(item)}
                 >
-                    <div className="flex justify-between items-start mb-4">
+                    {/* 상단 배지들 */}
+                    <div className="flex justify-between items-center mb-2">
                         <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold border ${getCategoryColor(item.category)}`}
+                            className={`px-1.5 py-0.5 rounded text-xs font-medium border ${getCategoryColor(item.category)}`}
                         >
                             {item.category}
                         </span>
                         <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(item.is_free)}`}
+                            className={`px-1.5 py-0.5 rounded text-xs font-medium border ${getStatusColor(item.is_free)}`}
                         >
                             {item.is_free ? "무료" : "유료"}
-                            {!item.is_free && (
-                                <svg
-                                    className="inline-block w-3 h-3 ml-1"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            )}
                         </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
-                        {item.event_name}
-                    </h3>
+                    {/* 제목 */}
+                    <div className="mb-2 h-6 overflow-hidden flex items-center relative">
+                        {shouldUseMarquee(item.event_name) ? (
+                            <>
+                                {/* 마퀴 효과용 텍스트 (기본 상태) */}
+                                <h3
+                                    className="text-sm font-semibold text-gray-900 leading-tight whitespace-nowrap animate-marquee absolute group-hover:opacity-0 transition-opacity duration-300"
+                                    style={{ animationDelay: "3s" }}
+                                >
+                                    {item.event_name}
+                                </h3>
+                                {/* hover시 보여질 정적 텍스트 */}
+                                <h3 className="text-sm font-semibold text-gray-900 leading-tight w-full text-left truncate opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    {item.event_name}
+                                </h3>
+                            </>
+                        ) : (
+                            <h3 className="text-sm font-semibold text-gray-900 leading-tight w-full text-center">
+                                {item.event_name}
+                            </h3>
+                        )}
+                    </div>
 
-                    <div className="space-y-2 text-sm text-gray-600">
+                    {/* 정보 */}
+                    <div className="space-y-0.5 text-xs text-gray-600">
                         <div className="flex items-center">
                             <svg
-                                className="w-4 h-4 mr-2 text-gray-400"
+                                className="w-3 h-3 mr-1 text-gray-400"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -256,11 +312,11 @@ const AdminTour = () => {
                                     clipRule="evenodd"
                                 />
                             </svg>
-                            {item.gu}
+                            <span>{item.gu}</span>
                         </div>
                         <div className="flex items-center">
                             <svg
-                                className="w-4 h-4 mr-2 text-gray-400"
+                                className="w-3 h-3 mr-1 text-gray-400"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -270,25 +326,25 @@ const AdminTour = () => {
                                     clipRule="evenodd"
                                 />
                             </svg>
-                            {formatDate(item.start_date)} ~{" "}
-                            {formatDate(item.end_date)}
+                            <span>
+                                {formatDate(item.start_date)} ~{" "}
+                                {formatDate(item.end_date)}
+                            </span>
                         </div>
                     </div>
 
-                    {!item.is_free && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                            <span className="text-xs text-blue-600 font-medium">
-                                클릭하여 요금 정보 보기
-                            </span>
-                        </div>
-                    )}
-                    {item.is_free && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                            <span className="text-xs text-emerald-600 font-medium">
-                                클릭하여 상세 정보 보기
-                            </span>
-                        </div>
-                    )}
+                    {/* 하단 액션 텍스트 */}
+                    <div className="mt-2 pt-1 border-t border-gray-100">
+                        <span
+                            className={`text-xs font-medium ${
+                                item.is_free
+                                    ? "text-emerald-600"
+                                    : "text-blue-600"
+                            }`}
+                        >
+                            {item.is_free ? "상세 정보 보기" : "요금 정보 보기"}
+                        </span>
+                    </div>
                 </div>
             ))}
         </div>
@@ -537,7 +593,7 @@ const AdminTour = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         {/* 제목과 카운트 */}
-                        <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center justify-between gap-4 h-[4vh]">
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">
                                     문화 행사 관리
@@ -795,11 +851,13 @@ const AdminTour = () => {
                                     : "새로운 문화 행사를 등록해보세요."}
                             </p>
                         </div>
-                    ) : viewMode === "grid" || isMobileView ? (
-                        <GridView />
                     ) : (
                         <>
-                            <TableView />
+                            {viewMode === "grid" || isMobileView ? (
+                                <GridView />
+                            ) : (
+                                <TableView />
+                            )}
                             <Pagination />
                         </>
                     )}
