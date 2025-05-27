@@ -3,7 +3,6 @@ import { MapPin, Calendar, Coffee } from "lucide-react";
 import { getUserSuggestionList } from "../../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
 import UserPlaceSuggestion from "./UserPlaceSuggestion";
-import { FaBars } from "react-icons/fa";
 import { Undo2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -182,7 +181,6 @@ export default function PlaceSuggestionShow({
                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
             </svg>
-            <h3 className="text-lg font-bold mb-2">오류 발생</h3>
             <p className="mb-4">{error}</p>
         </motion.div>
     );

@@ -6,6 +6,27 @@ import { useAdminData } from "../../context/AdminContext";
 import { MapData, ParkNode, TrafficData } from "../../data/adminData";
 import MapboxLanguage from "@mapbox/mapbox-gl-language";
 
+const additionalStyles = `
+.congestion-popup {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 8px;
+    border-radius: 4px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.congestion-popup h3 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.congestion-popup p {
+    margin: 2px 0;
+    font-size: 12px;
+}
+`;
+
 const AdminTraffic = () => {
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const map = useRef<mapboxgl.Map | null>(null);
@@ -22,6 +43,9 @@ const AdminTraffic = () => {
 
     // 범례 표시 상태 추가
     const [showLegend, setShowLegend] = useState<boolean>(true);
+
+    const [showCongestionView, setShowCongestionView] =
+        useState<boolean>(false);
 
     const { mapData } = useAdminData();
 
@@ -99,6 +123,9 @@ const AdminTraffic = () => {
 
         // 선택된 지역 상태 초기화
         setSelectedArea(null);
+
+        // 혼잡도 뷰 상태 초기화
+        setShowCongestionView(false);
 
         // 검색어 초기화
         setSearchTerm("");
@@ -222,6 +249,9 @@ const AdminTraffic = () => {
 
         // 교통 레이어 제거
         clearAllTrafficLayers();
+
+        // 혼잡도 원형 제거
+        clearAllCongestionCircles();
 
         // 주차장 마커 제거
         parkingMarkerRefs.current.forEach((marker) => marker.remove());
@@ -440,6 +470,11 @@ const AdminTraffic = () => {
         if (selectedArea && mapData.length) {
             const area = mapData.find((area) => area.area_nm === selectedArea);
             if (area) {
+                // 혼잡도 뷰가 활성화되어 있으면 해제
+                if (showCongestionView) {
+                    setShowCongestionView(false);
+                    clearAllCongestionCircles();
+                }
                 moveToSelectedArea(area);
             }
         } else if (selectedArea === null) {
@@ -529,6 +564,349 @@ const AdminTraffic = () => {
         setShowLegend(!showLegend);
     };
 
+    // 전체 지역 혼잡도를 원형으로 표시하는 함수들
+
+    // 전체 지역의 혼잡도를 원형으로 표시
+    const showAllAreasCongestion = () => {
+        if (!map.current || !mapLoaded || !mapData.length) return;
+
+        // 모든 기존 레이어 제거 (도로, 주차장, 혼잡도 모두)
+        clearAllLayers();
+
+        // 각 지역의 중심점 계산 및 원형 표시
+        mapData.forEach((area, index) => {
+            const centerPoint = calculateAreaCenter(area);
+            if (centerPoint) {
+                drawCongestionCircle(area, centerPoint, index);
+            }
+        });
+
+        // 지도를 전체 지역이 보이도록 조정
+        fitMapToAllAreas();
+    };
+
+    // 지역의 중심점 계산
+    const calculateAreaCenter = (area: MapData): [number, number] | null => {
+        let centerLng: number | undefined, centerLat: number | undefined;
+
+        // 교통 데이터가 있으면 모든 도로 세그먼트의 중심점 계산
+        if (area.trafficData && area.trafficData.road_traffic_stts.length > 0) {
+            const allEndpoints: [number, number][] = [];
+
+            area.trafficData.road_traffic_stts.forEach((road) => {
+                // 시작점과 끝점 추가
+                const startCoords = road.start_nd_xy.split("_").map(Number);
+                const endCoords = road.end_nd_xy.split("_").map(Number);
+                allEndpoints.push([startCoords[0], startCoords[1]]);
+                allEndpoints.push([endCoords[0], endCoords[1]]);
+            });
+
+            if (allEndpoints.length > 0) {
+                const sumLng = allEndpoints.reduce(
+                    (sum, coord) => sum + coord[0],
+                    0
+                );
+                const sumLat = allEndpoints.reduce(
+                    (sum, coord) => sum + coord[1],
+                    0
+                );
+                centerLng = sumLng / allEndpoints.length;
+                centerLat = sumLat / allEndpoints.length;
+            }
+        }
+        // 주차장 데이터만 있는 경우
+        else if (area.parkData && area.parkData.prk_stts.length > 0) {
+            const validParkingSpots = area.parkData.prk_stts.filter(
+                (park) => park.lon && park.lat
+            );
+
+            if (validParkingSpots.length > 0) {
+                const sumLng = validParkingSpots.reduce(
+                    (sum, park) => sum + park.lon,
+                    0
+                );
+                const sumLat = validParkingSpots.reduce(
+                    (sum, park) => sum + park.lat,
+                    0
+                );
+                centerLng = sumLng / validParkingSpots.length;
+                centerLat = sumLat / validParkingSpots.length;
+            }
+        }
+
+        return centerLng && centerLat ? [centerLng, centerLat] : null;
+    };
+
+    // 혼잡도 원형 그리기
+    const drawCongestionCircle = (
+        area: MapData,
+        center: [number, number],
+        index: number
+    ) => {
+        if (!map.current) return;
+
+        const sourceId = `congestion-circle-source-${index}`;
+        const layerId = `congestion-circle-layer-${index}`;
+        const labelSourceId = `congestion-label-source-${index}`;
+        const labelLayerId = `congestion-label-layer-${index}`;
+
+        // 교통 상태에 따른 색상 결정
+        const trafficStatus = area.trafficData?.road_traffic_idx || "정보없음";
+        const circleColor = getCongestionCircleColor(trafficStatus);
+        const circleOpacity = getCongestionCircleOpacity(trafficStatus);
+
+        // 원형 반경 (미터 단위) - 지역 크기에 따라 조정 가능
+        const radius = 2000; // 2km 반경
+
+        try {
+            // 원형 영역 소스 추가
+            map.current.addSource(sourceId, {
+                type: "geojson",
+                data: {
+                    type: "Feature",
+                    properties: {
+                        areaName: area.area_nm,
+                        trafficStatus: trafficStatus,
+                        trafficSpeed:
+                            area.trafficData?.road_traffic_spd || "정보없음",
+                        parkingCount: getParkingCount(area),
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: center,
+                    },
+                },
+            });
+
+            // 원형 레이어 추가
+            map.current.addLayer({
+                id: layerId,
+                type: "circle",
+                source: sourceId,
+                paint: {
+                    "circle-radius": {
+                        stops: [
+                            [8, 15], // 낮은 줌 레벨에서 작은 원
+                            [10, 25], // 중간 줌 레벨
+                            [12, 40], // 높은 줌 레벨에서 큰 원
+                            [14, 60],
+                        ],
+                    },
+                    "circle-color": circleColor,
+                    "circle-opacity": circleOpacity,
+                    "circle-stroke-width": 2,
+                    "circle-stroke-color": "#ffffff",
+                    "circle-stroke-opacity": 0.8,
+                },
+            });
+
+            // 라벨 소스 추가
+            map.current.addSource(labelSourceId, {
+                type: "geojson",
+                data: {
+                    type: "Feature",
+                    properties: {
+                        areaName: area.area_nm,
+                        trafficStatus: trafficStatus,
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: center,
+                    },
+                },
+            });
+
+            // 라벨 레이어 추가
+            map.current.addLayer({
+                id: labelLayerId,
+                type: "symbol",
+                source: labelSourceId,
+                layout: {
+                    "text-field": ["get", "areaName"],
+                    "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+                    "text-size": {
+                        stops: [
+                            [8, 10],
+                            [10, 12],
+                            [12, 14],
+                            [14, 16],
+                        ],
+                    },
+                    "text-offset": [0, 0],
+                    "text-anchor": "center",
+                },
+                paint: {
+                    "text-color": "#000000",
+                    "text-halo-color": "#ffffff",
+                    "text-halo-width": 2,
+                    "text-halo-blur": 1,
+                },
+            });
+
+            // 클릭 이벤트 추가
+            map.current.on("click", layerId, (e) => {
+                if (e.features && e.features[0]) {
+                    const feature = e.features[0];
+                    const areaName = feature.properties?.areaName;
+
+                    // 해당 지역 선택 및 상세 정보 표시
+                    setSelectedArea(areaName);
+
+                    // 팝업 표시
+                    const coordinates = (
+                        feature.geometry as any
+                    ).coordinates.slice();
+                    const popup = new mapboxgl.Popup()
+                        .setLngLat(coordinates)
+                        .setHTML(
+                            `
+                        <div class="congestion-popup">
+                            <h3 class="font-bold text-sm text-black">${areaName}</h3>
+                            <p class="text-xs text-black">교통상태: <span class="${getTrafficSpeed(area)}">${feature.properties?.trafficStatus}</span></p>
+                            <p class="text-xs text-black">평균속도: ${feature.properties?.trafficSpeed}km/h</p>
+                            <p class="text-xs text-black">주차장: ${feature.properties?.parkingCount}개</p>
+                            <p class="text-xs text-gray-600 text-black mt-1">클릭하여 상세 정보 보기</p>
+                        </div>
+                    `
+                        )
+                        .addTo(map.current!);
+                }
+            });
+
+            // 마우스 커서 변경
+            map.current.on("mouseenter", layerId, () => {
+                if (map.current) {
+                    map.current.getCanvas().style.cursor = "pointer";
+                }
+            });
+
+            map.current.on("mouseleave", layerId, () => {
+                if (map.current) {
+                    map.current.getCanvas().style.cursor = "";
+                }
+            });
+        } catch (error) {
+            console.error("Error adding congestion circle:", error);
+        }
+    };
+
+    // 교통 상태에 따른 원형 색상 반환
+    const getCongestionCircleColor = (status: string): string => {
+        switch (status) {
+            case "원활":
+                return "#4CAF50"; // 녹색
+            case "서행":
+                return "#FFA500"; // 주황색
+            case "정체":
+                return "#F44336"; // 빨간색
+            case "보통":
+                return "#FFEB3B"; // 노란색
+            default:
+                return "#9E9E9E"; // 회색 (정보 없음)
+        }
+    };
+
+    // 교통 상태에 따른 투명도 반환
+    const getCongestionCircleOpacity = (status: string): number => {
+        switch (status) {
+            case "원활":
+                return 0.4;
+            case "서행":
+                return 0.6;
+            case "정체":
+                return 0.8;
+            case "보통":
+                return 0.5;
+            default:
+                return 0.3;
+        }
+    };
+
+    // 모든 혼잡도 원형 제거
+    const clearAllCongestionCircles = () => {
+        if (!map.current) return;
+
+        const existingLayers = map.current.getStyle().layers || [];
+        const sources = Object.keys(map.current.getStyle().sources || {});
+
+        // 혼잡도 레이어 제거
+        existingLayers.forEach((layer) => {
+            if (
+                layer.id.startsWith("congestion-circle-layer-") ||
+                layer.id.startsWith("congestion-label-layer-")
+            ) {
+                if (map.current?.getLayer(layer.id)) {
+                    map.current?.removeLayer(layer.id);
+                }
+            }
+        });
+
+        // 혼잡도 소스 제거
+        sources.forEach((source) => {
+            if (
+                source.startsWith("congestion-circle-source-") ||
+                source.startsWith("congestion-label-source-")
+            ) {
+                if (map.current?.getSource(source)) {
+                    map.current?.removeSource(source);
+                }
+            }
+        });
+    };
+
+    // 모든 지역이 보이도록 지도 범위 조정
+    const fitMapToAllAreas = () => {
+        if (!map.current || !mapData.length) return;
+
+        const bounds = new mapboxgl.LngLatBounds();
+        let hasValidBounds = false;
+
+        mapData.forEach((area) => {
+            const center = calculateAreaCenter(area);
+            if (center) {
+                bounds.extend(center);
+                hasValidBounds = true;
+            }
+        });
+
+        if (hasValidBounds) {
+            map.current.fitBounds(bounds, {
+                padding: { top: 50, bottom: 50, left: 50, right: 50 },
+                maxZoom: 12,
+            });
+        }
+    };
+
+    // 혼잡도 표시 토글 함수
+    const toggleCongestionView = () => {
+        if (!map.current) return;
+
+        // 현재 혼잡도 표시 상태 확인
+        const existingLayers = map.current.getStyle().layers || [];
+        const hasCongestionLayers = existingLayers.some((layer) =>
+            layer.id.startsWith("congestion-circle-layer-")
+        );
+
+        if (hasCongestionLayers) {
+            // 혼잡도 표시 해제 - 모든 레이어 제거
+            clearAllLayers(); // 모든 레이어(도로, 혼잡도, 주차장) 제거
+
+            // 선택된 지역이 있으면 해당 지역 표시
+            if (selectedArea) {
+                const area = mapData.find(
+                    (area) => area.area_nm === selectedArea
+                );
+                if (area) {
+                    highlightAreaData(area);
+                }
+            }
+        } else {
+            // 혼잡도 표시 - 기존 모든 레이어 제거 후 혼잡도 원형 표시
+            clearAllLayers(); // 기존 도로와 주차장 마커 모두 제거
+            showAllAreasCongestion(); // 혼잡도 원형 표시
+        }
+    };
+
     // Return statement with responsive JSX
     return (
         <div className="bg-gray-100 flex flex-col w-full h-screen">
@@ -552,6 +930,55 @@ const AdminTraffic = () => {
 
                             {/* 버튼 그룹 - 초기화와 전체 표시 버튼 */}
                             <div className="flex space-x-2">
+                                {/* 전체 혼잡도 표시 버튼 */}
+                                <button
+                                    onClick={() => {
+                                        setShowCongestionView(
+                                            !showCongestionView
+                                        );
+                                        toggleCongestionView();
+                                    }}
+                                    className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-xs md:text-sm flex items-center shadow-md transition-colors duration-200 ${
+                                        showCongestionView
+                                            ? "bg-orange-500 hover:bg-orange-600 text-white"
+                                            : "bg-green-500 hover:bg-green-600 text-white"
+                                    }`}
+                                    title={
+                                        showCongestionView
+                                            ? "혼잡도 보기 해제"
+                                            : "전체 혼잡도 보기"
+                                    }
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-3 w-3 md:h-4 md:w-4 mr-1"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        {showCongestionView ? (
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                            />
+                                        ) : (
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                                            />
+                                        )}
+                                    </svg>
+                                    <span className="hidden sm:inline">
+                                        {showCongestionView
+                                            ? "상세보기"
+                                            : "전체보기"}
+                                    </span>
+                                </button>
+
                                 {/* 초기화 버튼 */}
                                 <button
                                     onClick={resetMapView}
@@ -572,7 +999,7 @@ const AdminTraffic = () => {
                                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                                         />
                                     </svg>
-                                    <span className="hidden sm:inline ">
+                                    <span className="hidden sm:inline">
                                         초기화
                                     </span>
                                 </button>
