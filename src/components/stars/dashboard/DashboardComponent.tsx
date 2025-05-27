@@ -12,9 +12,8 @@ import TrafficInfoCard from "./TrafficInfoCard";
 // import ParkingInfoCard from "./ParkingInfoCard";
 import AccidentAlertCard from "./AccidentAlertCard";
 import CongestionStatusCard from "./CongestionStatusCard";
-import AttractionCard from "./AttractionCard";
 import AttractionTableCard from "./AttractionCard";
-import CulturalEventCard from "./CulturalEventCard";
+// import CulturalEventCard from "./CulturalEventCard";
 import CulturalEventSlider from "./CulturalEventSlider";
 import { scrollToTop } from "../../../utils/scrollToTop";
 
@@ -57,8 +56,10 @@ interface Attraction {
 }
 
 interface CulturalEvent {
-    title: string;
+    name: string;
     address: string;
+    category: string;
+    target: string;
     start_date: string;
     end_date: string;
     event_fee?: string;

@@ -2,8 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface CulturalEvent {
-    title: string;
+    name: string;
     address: string;
+    category: string;
+    target: string;
     start_date: string;
     end_date: string;
     event_fee?: string;
@@ -58,14 +60,17 @@ export default function CulturalEventSlider({
                             {event.event_img && (
                                 <img
                                     src={event.event_img}
-                                    alt={event.title}
+                                    alt={event.name}
                                     className="w-full md:w-36 h-full object-cover rounded-xl"
                                 />
                             )}
                             <div className="flex flex-col justify-between">
-                                <h5 className="text-xl font-bold text-gray-900 mb-1">
-                                    {event.title}
+                                <h5 className="text-lg font-bold text-gray-900 mb-1">
+                                    {event.name}
                                 </h5>
+                                <p className="text-sm text-gray-600">
+                                    {event.category} | {event.target}
+                                </p>
                                 <p className="text-sm text-gray-600">
                                     {event.address}
                                 </p>
