@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { usePlace } from "../../../context/PlaceContext";
+import { SearchResult } from "../../../api/searchApi";
 
 interface CulturalEvent {
     name: string;
@@ -10,6 +12,8 @@ interface CulturalEvent {
     end_date: string;
     event_fee?: string;
     event_img?: string;
+    lat: number;
+    lon: number;
 }
 
 interface CulturalEventSliderProps {
@@ -24,6 +28,7 @@ export default function CulturalEventSlider({
     cardRef,
 }: CulturalEventSliderProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const { setHighlightPOI, selectedAreaId } = usePlace();
 
     const handleNext = () => {
         if (currentIndex < events.length - 1) {
@@ -55,7 +60,27 @@ export default function CulturalEventSlider({
                     {events.map((event, idx) => (
                         <div
                             key={idx}
-                            className="min-w-full flex flex-col md:flex-row bg-gray-50 hover:bg-lime-50 rounded-2xl p-4 gap-4 min-h-[240px]"
+                            onClick={() => {
+                                const poiForMap: SearchResult = {
+                                    place_id: idx + 1,
+                                    name: event.name,
+                                    address: event.address,
+                                    phone: "", // 필요 시 추가
+                                    lon: event.lon,
+                                    lat: event.lat,
+                                    type: "cultural_event",
+                                    area_id: selectedAreaId ?? undefined,
+                                };
+                                setHighlightPOI(poiForMap);
+                                (
+                                    window as unknown as {
+                                        fullpage_api?: {
+                                            moveTo: (n: number) => void;
+                                        };
+                                    }
+                                ).fullpage_api?.moveTo(1);
+                            }}
+                            className="min-w-full flex flex-col md:flex-row bg-gray-50 hover:bg-lime-50 rounded-2xl p-4 gap-4 min-h-[240px] cursor-pointer"
                         >
                             {event.event_img && (
                                 <img
