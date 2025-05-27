@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CountUp } from "countup.js";
 import { getAreaList, getPlaceListByArea } from "../../../api/starsApi";
 import { SearchResult } from "../../../api/searchApi";
+import { usePlace } from "../../../context/PlaceContext";
 
 interface AreaFocusCardProps {
     areaId: number;
@@ -48,7 +49,24 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     const [placeSummary, setPlaceSummary] = useState<Record<string, number>>(
         {}
     );
+    const { congestionInfo } = usePlace();
+    console.log("AreaFocusCard congestionInfo:", congestionInfo);
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
+
+    useEffect(() => {
+        if (!visitorCountRef.current || !congestionInfo) return;
+        const min = congestionInfo.area_ppltn_min;
+        const max = congestionInfo.area_ppltn_max;
+        if (!min || !max) return;
+        const avg = Math.round((min + max) / 2);
+
+        const countUp = new CountUp(visitorCountRef.current, avg, {
+            duration: 1.5,
+            useEasing: true,
+            separator: ",",
+        });
+        countUp.start();
+    }, [congestionInfo]);
 
     const typeLabelMap: Record<string, string> = {
         cafe: "카페",
@@ -76,20 +94,19 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     }, [areaId, show]);
 
     useEffect(() => {
-        if (!show || !visitorCountRef.current) return;
+        if (!show || !visitorCountRef.current || !congestionInfo) return;
+        const min = congestionInfo.area_ppltn_min;
+        const max = congestionInfo.area_ppltn_max;
+        if (!min || !max) return;
+        const avg = Math.round((min + max) / 2);
 
-        const countUp = new CountUp(
-            visitorCountRef.current,
-            Math.floor(Math.random() * 50000 + 5000),
-            {
-                duration: 1.5,
-                useEasing: true,
-                separator: ",",
-            }
-        );
-
-        if (!countUp.error) countUp.start();
-    }, [area, show]);
+        const countUp = new CountUp(visitorCountRef.current, avg, {
+            duration: 1.5,
+            useEasing: true,
+            separator: ",",
+        });
+        countUp.start();
+    }, [congestionInfo, show]);
 
     const handleCategoryClick = async (type: string) => {
         const placeList = await getPlaceListByArea(areaId);
@@ -171,19 +188,46 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                     className="bg-white rounded-2xl shadow-lg p-4 md:w-auto max-w-96 w-4/5"
                     whileHover={{ y: -8 }}
                 >
-                    <div className="flex items-center justify-between">
-                        <h3 className="md:text-xl text-lg text-gray-700 mr-2">
-                            {area?.area_name} 방문자 수
-                        </h3>
-                        <span className="bg-indigo-100 text-indigo-700 inline-flex w-auto rounded-full m-1 md:text-base text-sm px-2 py-1 font-semibold whitespace-nowrap self-start">
-                            #{area?.category}
-                        </span>
+                    <div className="flex justify-between w-full">
+                        {/* 왼쪽 영역: 방문자 수 및 영어 제목 */}
+                        <div className="flex flex-col justify-start mt-1">
+                            <h3 className="md:text-2xl text-lg font-semibold text-gray-700">
+                                {area?.area_name}
+                            </h3>
+                            <p className="md:text-base text-sm text-gray-500">
+                                {area?.name_eng}
+                            </p>
+                        </div>
+
+                        {/* 오른쪽 영역: 카테고리 및 혼잡도 */}
+                        <div className="flex flex-col items-end md:ml-4 ml-2">
+                            <span className="bg-indigo-100 text-indigo-700 inline-flex w-auto rounded-full m-1 md:text-base text-sm px-2 py-1 font-semibold whitespace-nowrap self-end">
+                                #{area?.category}
+                            </span>
+                            {congestionInfo?.area_congest_lvl && (
+                                <span
+                                    className={[
+                                        "inline-flex w-auto rounded-full m-1 md:text-base text-sm px-2 py-1 font-semibold whitespace-nowrap self-end",
+                                        congestionInfo.area_congest_lvl ===
+                                        "여유"
+                                            ? "bg-green-100 text-green-700"
+                                            : congestionInfo.area_congest_lvl ===
+                                                "보통"
+                                              ? "bg-yellow-100 text-yellow-700"
+                                              : congestionInfo.area_congest_lvl ===
+                                                  "약간 붐빔"
+                                                ? "bg-orange-100 text-orange-700"
+                                                : "bg-red-100 text-red-700",
+                                    ].join(" ")}
+                                >
+                                    #혼잡도 {congestionInfo.area_congest_lvl}
+                                </span>
+                            )}
+                        </div>
                     </div>
-                    <p className="text-sm text-gray-500 mb-2">
-                        {area?.name_eng}
-                    </p>
-                    <p className="md:text-5xl text-3xl font-bold text-gray-900">
-                        <span ref={visitorCountRef}></span>명
+                    ;
+                    <p className="md:text-4xl text-2xl font-bold text-gray-900">
+                        약 <span ref={visitorCountRef}></span>명
                     </p>
                 </motion.div>
 
