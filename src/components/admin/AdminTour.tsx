@@ -56,10 +56,6 @@ if (
     style.textContent = marqueeStyle;
     document.head.appendChild(style);
 }
-// 제목 길이 체크 함수
-const shouldUseMarquee = (text: string) => {
-    return text.length > 54; // 20자 이상일 때만 마퀴 효과
-};
 
 const AdminTour = () => {
     const [list, setList] = useState<TourList[]>([]);
@@ -177,6 +173,14 @@ const AdminTour = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
+    };
+
+    // 제목 길이 체크 함수
+    const shouldUseMarquee = (text: string) => {
+        if (isMobileView) {
+            return text.length > 20;
+        }
+        return text.length > 54; // 20자 이상일 때만 마퀴 효과
     };
 
     // Esc 키로 모달 닫기 기능
@@ -436,7 +440,7 @@ const AdminTour = () => {
         if (totalPages <= 1) return null;
 
         const getVisiblePages = () => {
-            const delta = 2;
+            const delta = isMobileView ? 1 : 2; // 모바일에서는 더 적은 페이지 표시
             const range = [];
             const rangeWithDots = [];
 
@@ -468,43 +472,82 @@ const AdminTour = () => {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-4">
                 <div className="flex items-center justify-between">
-                    {/* 페이지 정보 - 왼쪽 */}
-                    <div className="text-sm text-gray-700">
-                        총{" "}
-                        <span className="font-medium">
-                            {filteredList.length}
-                        </span>
-                        개 중{" "}
-                        <span className="font-medium">{startIndex + 1}</span>-
-                        <span className="font-medium">
-                            {Math.min(
-                                startIndex + itemsPerPage,
-                                filteredList.length
-                            )}
-                        </span>
-                        개 표시
-                    </div>
+                    {/* 페이지 정보 - 왼쪽 (데스크톱만) */}
+                    {!isMobileView && (
+                        <div className="text-right">
+                            <div className="text-sm text-gray-700">
+                                총{" "}
+                                <span className="font-medium">
+                                    {filteredList.length}
+                                </span>
+                                개 중{" "}
+                                <span className="font-medium">
+                                    {startIndex + 1}
+                                </span>
+                                -
+                                <span className="font-medium">
+                                    {Math.min(
+                                        startIndex + itemsPerPage,
+                                        filteredList.length
+                                    )}
+                                </span>
+                                개 표시
+                                {loading && (
+                                    <span className="inline-flex items-center ml-2">
+                                        <svg
+                                            className="animate-spin h-4 w-4 text-blue-500 mr-1"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            />
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            />
+                                        </svg>
+                                        <span className="text-blue-500 text-sm">
+                                            로딩 중
+                                        </span>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
-                    {/* 페이지네이션 버튼들 - 가운데 */}
-                    <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
+                    {/* 페이지네이션 버튼들 */}
+                    <div
+                        className={`flex items-center gap-1 ${isMobileView ? "w-full justify-center" : "absolute left-1/2 transform -translate-x-1/2"}`}
+                    >
                         {/* 이전 페이지 버튼 */}
                         <button
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
-                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            className={`${isMobileView ? "w-8 h-8" : "px-3 py-2"} text-sm font-medium rounded-lg transition-colors flex items-center justify-center ${
                                 currentPage === 1
                                     ? "text-gray-400 bg-gray-100 cursor-not-allowed"
                                     : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                             }`}
                         >
-                            <ChevronLeft className="w-4 h-4" />
+                            <ChevronLeft
+                                className={`w-4 h-4 ${currentPage === 1 ? "text-gray-400" : "text-gray-700"}`}
+                            />
                         </button>
 
                         {/* 페이지 번호들 */}
                         {getVisiblePages().map((page, index) => (
                             <React.Fragment key={index}>
                                 {page === "..." ? (
-                                    <span className="px-3 py-2 text-sm text-gray-500">
+                                    <span
+                                        className={`${isMobileView ? "w-8 h-8" : "px-3 py-2"} text-sm text-gray-500 flex items-center justify-center`}
+                                    >
                                         ...
                                     </span>
                                 ) : (
@@ -512,7 +555,7 @@ const AdminTour = () => {
                                         onClick={() =>
                                             handlePageChange(page as number)
                                         }
-                                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                        className={`${isMobileView ? "w-8 h-8" : "px-3 py-2"} text-sm font-medium rounded-lg transition-colors flex items-center justify-center ${
                                             currentPage === page
                                                 ? "bg-blue-600 text-white"
                                                 : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
@@ -528,19 +571,71 @@ const AdminTour = () => {
                         <button
                             onClick={() => handlePageChange(currentPage + 1)}
                             disabled={currentPage === totalPages}
-                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            className={`${isMobileView ? "w-8 h-8" : "px-3 py-2"} text-sm font-medium rounded-lg transition-colors flex items-center justify-center ${
                                 currentPage === totalPages
                                     ? "text-gray-400 bg-gray-100 cursor-not-allowed"
                                     : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                             }`}
                         >
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight
+                                className={`w-4 h-4 ${currentPage === totalPages ? "text-gray-400" : "text-gray-700"}`}
+                            />
                         </button>
                     </div>
 
-                    {/* 오른쪽 빈 공간 (균형을 위해) */}
-                    <div></div>
+                    {/* 오른쪽 빈 공간 (데스크톱 균형용) */}
+                    {!isMobileView && <div></div>}
                 </div>
+
+                {/* 모바일용 페이지 정보 (하단) */}
+                {isMobileView && (
+                    <div className="text-center mt-3 pt-3 border-t border-gray-200">
+                        <div className="text-xs text-gray-600">
+                            총{" "}
+                            <span className="font-medium text-gray-800">
+                                {filteredList.length}
+                            </span>
+                            개 중{" "}
+                            <span className="font-medium text-gray-800">
+                                {startIndex + 1}
+                            </span>
+                            -
+                            <span className="font-medium text-gray-800">
+                                {Math.min(
+                                    startIndex + itemsPerPage,
+                                    filteredList.length
+                                )}
+                            </span>
+                            개 표시
+                            {loading && (
+                                <div className="inline-flex items-center ml-2">
+                                    <svg
+                                        className="animate-spin h-3 w-3 text-blue-500 mr-1"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        />
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        />
+                                    </svg>
+                                    <span className="text-blue-500 text-xs">
+                                        로딩 중
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };
