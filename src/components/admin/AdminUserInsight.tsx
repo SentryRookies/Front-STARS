@@ -563,7 +563,7 @@ const UserInsightDashboard: React.FC<Props> = ({
                                                             }}
                                                         ></div>
                                                     </div>
-                                                    <span className="text-xs sm:text-sm font-medium text-right flex-shrink-0">
+                                                    <span className="text-xs sm:text-sm text-black font-medium text-right flex-shrink-0">
                                                         {count}명 (
                                                         {(
                                                             (count /
@@ -602,7 +602,7 @@ const UserInsightDashboard: React.FC<Props> = ({
                                                             }}
                                                         ></div>
                                                     </div>
-                                                    <span className="text-xs sm:text-sm font-medium text-right flex-shrink-0">
+                                                    <span className="text-xs sm:text-sm text-black font-medium text-right flex-shrink-0">
                                                         {count}명 (
                                                         {(
                                                             (count /
