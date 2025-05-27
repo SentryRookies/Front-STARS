@@ -71,15 +71,14 @@ export default function CulturalEventSlider({
                                 <p className="text-sm text-gray-600">
                                     {event.category} | {event.target}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-xs text-gray-600">
                                     {event.address}
-                                </p>
-                                <p className="text-sm text-gray-500">
+                                    <br />
                                     {event.start_date.slice(0, 10)} ~{" "}
                                     {event.end_date.slice(0, 10)}
                                 </p>
                                 {event.event_fee && (
-                                    <p className="text-sm text-lime-600 mt-1">
+                                    <p className="text-xs text-lime-600 mt-1">
                                         {event.event_fee}
                                     </p>
                                 )}
