@@ -65,6 +65,8 @@ export default function MapSectionComponent({
         setSelectedAreaId,
         setTriggerCountUp, // triggerCountUp 미사용이므로 제거
         accidentData, // 사고정보
+        highlightPOI,
+        setHighlightPOI, // POI 하이라이트 설정
     } = usePlace();
     const [showFocusCard, setShowFocusCard] = useState(false);
     const { alerts, dismissAlert } = useCongestionAlert();
@@ -88,6 +90,50 @@ export default function MapSectionComponent({
         }
         getUserFavoriteList().then(setFavoriteList);
     }, [isLogin]);
+
+    // ✅ highlightPOI가 변경되었을 때 지도 이동 및 마커 렌더링
+    useEffect(() => {
+        if (!highlightPOI || !mapRef.current) return;
+
+        const map = mapRef.current;
+
+        searchMarkersRef.current.forEach(({ marker }) => marker.remove());
+        searchMarkersRef.current = [];
+
+        const el = document.createElement("div");
+        el.className = "custom-marker";
+        el.style.width = "24px";
+        el.style.height = "24px";
+        el.style.backgroundColor = "#8b5cf6"; // 예: 보라색
+        el.style.borderRadius = "50%";
+
+        const popup = new mapboxgl.Popup({
+            offset: 10,
+            closeButton: false,
+            maxWidth: "1000px",
+        }).setHTML(renderPopupHTML(highlightPOI)); // ✅ 핵심
+
+        const marker = new mapboxgl.Marker({ element: el })
+            .setLngLat([highlightPOI.lon, highlightPOI.lat])
+            .setPopup(popup)
+            .addTo(map);
+
+        searchMarkersRef.current.push({ marker, item: highlightPOI });
+
+        map.flyTo({
+            center: [highlightPOI.lon, highlightPOI.lat],
+            zoom: 17,
+            pitch: 45,
+            duration: 800,
+        });
+
+        popup.addTo(map);
+
+        // ⭐ Optional: 이벤트 바인딩
+        bindPopupEvents(popup, highlightPOI);
+
+        setHighlightPOI(null);
+    }, [highlightPOI]);
 
     // 즐겨찾기 여부 확인: toggledFavorites 우선, 없으면 favoriteList 검사
     const isItemFavorite = useCallback(

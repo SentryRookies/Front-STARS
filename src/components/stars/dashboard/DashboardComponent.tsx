@@ -38,6 +38,8 @@ interface POI {
     name: string;
     address: string;
     tel: string;
+    lon: number;
+    lat: number;
     type: "cafe" | "restaurant" | "accommodation";
 }
 
@@ -46,6 +48,8 @@ interface POIRawItem {
     cafe_name?: string;
     address: string;
     phone?: string;
+    lon: number;
+    lat: number;
 }
 
 interface Attraction {
@@ -212,6 +216,8 @@ export default function DashboardComponent() {
                             name: item.name || item.cafe_name || "이름 없음",
                             address: item.address,
                             tel: item.phone || "정보없음",
+                            lon: item.lon,
+                            lat: item.lat,
                             type: poiType,
                         }));
                     });

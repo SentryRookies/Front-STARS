@@ -1,10 +1,15 @@
 // ✅ POITableCard.tsx
 import { motion } from "framer-motion";
+import { usePlace } from "../../../context/PlaceContext";
+import { SearchResult } from "../../../api/searchApi";
 
 interface POI {
     name: string;
     address: string;
     tel: string;
+    lon: number;
+    lat: number;
+    type: "restaurant" | "cafe" | "accommodation";
 }
 
 interface POITableCardProps {
@@ -20,6 +25,8 @@ export default function POITableCard({
     style,
     cardRef,
 }: POITableCardProps) {
+    const { selectedAreaId, setHighlightPOI } = usePlace();
+
     return (
         <motion.div
             className="col-span-12 sm:col-span-6 md:col-span-4 bg-white rounded-3xl shadow-lg p-4 my-2"
@@ -33,6 +40,37 @@ export default function POITableCard({
                 {pois.map((poi, idx) => (
                     <li
                         key={idx}
+                        onClick={() => {
+                            // 좌표 유효성 체크
+                            if (
+                                !poi.lon ||
+                                !poi.lat ||
+                                isNaN(poi.lon) ||
+                                isNaN(poi.lat)
+                            ) {
+                                console.warn("Invalid POI location:", poi);
+                                return;
+                            }
+
+                            const poiForMap: SearchResult = {
+                                place_id: idx + 1, // ID가 없다면 유니크한 값 필요
+                                name: poi.name,
+                                address: poi.address,
+                                phone: poi.tel,
+                                lon: poi.lon,
+                                lat: poi.lat,
+                                type: poi.type,
+                                area_id: selectedAreaId ?? undefined, // 필요 시
+                            };
+                            setHighlightPOI(poiForMap);
+                            (
+                                window as unknown as {
+                                    fullpage_api?: {
+                                        moveTo: (n: number) => void;
+                                    };
+                                }
+                            ).fullpage_api?.moveTo(1);
+                        }}
                         className="bg-gray-50 hover:bg-indigo-50 transition rounded-xl px-4 py-3 shadow-sm"
                     >
                         <p className="text-sm font-semibold text-gray-800 truncate">
