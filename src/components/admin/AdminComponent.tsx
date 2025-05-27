@@ -16,55 +16,43 @@ import AccidentCard from "./cards/AccidentCard";
 
 export default function AdminComponent() {
     const navigate = useNavigate();
-    const [sortField, setSortField] = useState<string>("spotName"); // 기본값: 관광지명
-    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // 기본값: 오름차순
+    const [sortField, setSortField] = useState<string>("spotName");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-    // 모바일 화면 감지 (768px 미만일 때 모바일로 간주)
     const isMobile = useMediaQuery("(max-width: 768px)");
 
-    // AdminDataContext에서 데이터 가져오기
     const {
-        touristSpotsData, // 혼잡도 3~4단계
-        accidentData, // 사고정보
-        combinedAreaData, // 관광지 상세정보 + 날씨
-        isLoading, // 로딩중
+        touristSpotsData,
+        accidentData,
+        combinedAreaData,
+        isLoading,
         error,
-        refreshAllData, // 모든 SSE 재구독
-        // refreshing,
+        refreshAllData,
     } = useAdminData();
 
-    // 로컬 상태로 touristSpotsData 관리 추가
     const [localTouristSpotsData, setLocalTouristSpotsData] = useState<
         TouristSpot[]
     >([]);
 
-    // touristSpotsData가 변경될 때마다 로컬 상태 업데이트
     useEffect(() => {
         if (touristSpotsData && touristSpotsData.length > 0) {
             setLocalTouristSpotsData((prevData) => {
-                // 첫 로드 시 (이전 데이터가 없는 경우)
                 if (prevData.length === 0) {
                     return [...touristSpotsData];
                 }
 
-                // 기존 데이터 복사
                 const updatedData = [...prevData];
-
-                // 새로 들어온 데이터로 기존 데이터 업데이트
                 touristSpotsData.forEach((newSpot) => {
-                    // 동일한 지역 찾기 (area_nm으로 식별)
                     const existingIndex = updatedData.findIndex(
                         (spot) => spot.area_nm === newSpot.area_nm
                     );
 
                     if (existingIndex >= 0) {
-                        // 기존 데이터가 있으면 새 데이터로 업데이트 (병합)
                         updatedData[existingIndex] = {
-                            ...updatedData[existingIndex], // 기존 데이터 유지
-                            ...newSpot, // 새 데이터로 덮어쓰기
+                            ...updatedData[existingIndex],
+                            ...newSpot,
                         };
                     } else {
-                        // 기존 데이터에 없는 새 항목이면 추가
                         updatedData.push(newSpot);
                     }
                 });
@@ -74,7 +62,6 @@ export default function AdminComponent() {
         }
     }, [touristSpotsData]);
 
-    // 혼잡도 값에 대한 우선순위 매핑
     const congestionOrder = {
         여유: 1,
         보통: 2,
@@ -82,30 +69,24 @@ export default function AdminComponent() {
         붐빔: 4,
     };
 
-    // 정렬 함수
     const handleSort = (field: string) => {
         if (sortField === field) {
-            // 같은 필드를 클릭하면 방향 전환
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
         } else {
-            // 새 필드를 클릭하면 기본 오름차순으로 시작
             setSortField(field);
             setSortDirection("asc");
         }
     };
 
-    // 정렬 표시 아이콘 렌더링 (유니코드 문자 사용)
     const renderSortIcon = (field: string) => {
         if (sortField !== field) return null;
-
         return sortDirection === "asc" ? (
-            <span className="ml-1">▲</span>
+            <span className="ml-1 text-blue-500">↑</span>
         ) : (
-            <span className="ml-1">▼</span>
+            <span className="ml-1 text-blue-500">↓</span>
         );
     };
 
-    // combinedAreaData를 기반으로 정렬된 목록 생성
     const sortedTouristInfo: CombinedAreaData[] = [...combinedAreaData].sort(
         (a, b) => {
             if (sortField === "spotName") {
@@ -115,7 +96,6 @@ export default function AdminComponent() {
             }
 
             if (sortField === "congestion") {
-                // population이 null일 수 있으므로 체크 필요
                 const valueA = a?.population?.area_congest_lvl
                     ? congestionOrder[
                           a.population
@@ -139,13 +119,9 @@ export default function AdminComponent() {
         }
     );
 
-    // 관광지 클릭 핸들러 - 선택한 관광지 정보와 함께 디테일 페이지로 이동
     const handleSpotClick = (info: CombinedAreaData) => {
-        // 페이지 이동 전 스크롤 위치 초기화
         window.scrollTo(0, 0);
         console.log(info);
-
-        // 선택한 관광지 정보와 함께 상세 페이지로 이동
         navigate(`/manage/${info.area_id}`, {
             state: {
                 combinedAreaData: info,
@@ -153,21 +129,15 @@ export default function AdminComponent() {
         });
     };
 
-    // 사고정보 클릭 핸들러
     const handleAccidentClick = (accident: AccidentData) => {
-        // 사고 데이터에서 지역명 추출
         const accidentLocation = accident.area_nm;
-
-        // 지역명과 일치하는 combinedAreaData 찾기
         const matchedArea = combinedAreaData.find(
             (area) => area.area_nm === accidentLocation
         );
 
         if (matchedArea) {
-            // 일치하는 지역 데이터가 있으면 상세 페이지로 이동
             handleSpotClick(matchedArea);
         } else {
-            // 일치하는 지역이 없을 경우 사용자에게 알림
             console.log(
                 `관련 지역 정보를 찾을 수 없습니다: ${accidentLocation}`
             );
@@ -176,97 +146,123 @@ export default function AdminComponent() {
     };
 
     return (
-        <div className="bg-gray-100 flex flex-col w-full h-screen">
-            {/* Header */}
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+            {/* Modern Header */}
             <AdminHeader path={"/map"} />
-            {/* End of Header */}
 
-            {/* 오류 메시지 표시 */}
+            {/* Error Alert - Compact */}
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mx-4 mt-3 relative">
-                    <strong className="font-bold">오류 발생!</strong>
-                    <span className="block sm:inline"> {error}</span>
-                    <button
-                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded ml-2"
-                        onClick={() => refreshAllData()}
-                    >
-                        재시도
-                    </button>
+                <div className="mx-3 mt-2 p-2 bg-red-50 border-l-4 border-red-400 rounded-r-lg shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <svg
+                                className="h-4 w-4 text-red-400 mr-2"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                            <p className="text-xs text-red-800">
+                                <span className="font-medium">오류!</span>{" "}
+                                {error}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => refreshAllData()}
+                            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
+                        >
+                            재시도
+                        </button>
+                    </div>
                 </div>
             )}
 
-            {/* Main Container - 패딩 감소 */}
-            <div className="flex-1 flex flex-col lg:flex-row p-1 md:p-2 space-y-3 lg:space-y-0 lg:space-x-3 overflow-hidden">
-                {/* 주요 인구 혼잡 현황 섹션 - 헤더 패딩 감소 */}
-                <div className="w-full lg:w-1/3 bg-white rounded-lg shadow-md order-1 flex flex-col">
-                    <h2 className="text-sm md:text-base lg:text-lg p-2 font-bold text-black border-b flex justify-between items-center">
-                        <div className="flex items-center">
-                            <span className={isMobile ? "text-sm" : ""}>
-                                주요 인구 혼잡 현황
-                            </span>
-                            <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                                {localTouristSpotsData.length}곳
-                            </span>
-                        </div>
-                        {isLoading && (
-                            <span className="text-xs md:text-sm text-blue-500 font-normal flex items-center">
-                                <svg
-                                    className="animate-spin -ml-1 mr-1 h-3 w-3 md:h-3 md:w-3 text-blue-500"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
-                                로딩 중
-                            </span>
-                        )}
-                    </h2>
-                    <div className="p-1.5 flex-1 overflow-x-auto lg:overflow-y-auto">
-                        <div
-                            className="flex flex-nowrap lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 pb-1"
-                            style={{ minWidth: "max-content", width: "100%" }}
-                        >
-                            {/* SpotCard 컴포넌트 간격 감소 */}
-                            {isLoading && touristSpotsData.length === 0 ? (
-                                // 로딩 스켈레톤 - 더 납작하게
-                                [...Array(5)].map((_, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="w-56 lg:w-full flex-none"
-                                    >
-                                        <div className="p-2 bg-white border rounded-lg shadow-sm animate-pulse">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                                                <div className="h-5 bg-gray-200 rounded w-16"></div>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded h-2.5 mb-1"></div>
-                                            <div className="mt-1 h-4 bg-gray-200 rounded w-1/3"></div>
-                                        </div>
+            {/* Main Content Grid - Compact */}
+            <div className="p-3 space-y-3">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                    {/* Congestion Status Card - Compact */}
+                    <div className="lg:col-span-1 bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 overflow-hidden">
+                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <div className="p-1 bg-white/20 rounded">
+                                        <svg
+                                            className="w-4 h-4 text-white"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                                            />
+                                        </svg>
                                     </div>
-                                ))
-                            ) : localTouristSpotsData.length > 0 ? (
-                                // SpotCard 컴포넌트에 더 작은 간격과 크기 적용
-                                localTouristSpotsData.map((spot, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="w-56 lg:w-full flex-none"
-                                    >
-                                        <SpotCard
+                                    <div>
+                                        <h2 className="text-white font-semibold text-sm">
+                                            인구 혼잡 현황
+                                        </h2>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                    <span className="bg-white/20 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                                        {localTouristSpotsData.length}곳
+                                    </span>
+                                    {isLoading && (
+                                        <svg
+                                            className="animate-spin h-3 w-3 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-2 h-[84vh] overflow-y-auto">
+                            <div className="space-y-2">
+                                {isLoading && touristSpotsData.length === 0 ? (
+                                    [...Array(4)].map((_, idx) => (
+                                        <div
                                             key={idx}
-                                            {...spot}
+                                            className="animate-pulse"
+                                        >
+                                            <div className="p-2 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                                    <div className="h-4 bg-gray-200 rounded-full w-12"></div>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1"></div>
+                                                <div className="h-2 bg-gray-200 rounded w-1/3"></div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : localTouristSpotsData.length > 0 ? (
+                                    localTouristSpotsData.map((spot, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="transform transition-all duration-200 hover:scale-[1.01] cursor-pointer"
                                             onClick={() => {
                                                 const areaData =
                                                     combinedAreaData.find(
@@ -287,164 +283,230 @@ export default function AdminComponent() {
                                                     );
                                                 }
                                             }}
-                                        />
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="p-3 text-center text-gray-500">
-                                    현재 혼잡 현황 데이터가 없습니다.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* 오른쪽 컨텐츠 컨테이너 - 간격 감소 */}
-                <div className="flex-1 flex flex-col w-full lg:w-2/3 space-y-3 order-2 overflow-hidden">
-                    {/* 개선된 사고 정보 섹션 - 높이 감소 */}
-                    <div className="w-full h-[250px] flex flex-col">
-                        <AccidentCard
-                            accidentData={accidentData}
-                            isLoading={isLoading}
-                            isMobile={isMobile}
-                            onSelectAccident={handleAccidentClick}
-                        />
-                    </div>
-
-                    {/* 관광지 정보 테이블 - 제목 추가 */}
-                    <div className="flex-1 w-full bg-white rounded-lg shadow-md overflow-hidden border flex flex-col">
-                        {/* 테이블 제목 헤더 - 더 납작하게 */}
-                        <h2 className="text-sm md:text-base lg:text-lg p-1.5 font-bold text-black border-b flex justify-between items-center">
-                            <div className="flex items-center">
-                                <span className={isMobile ? "text-sm" : ""}>
-                                    전체 관광지 현황
-                                </span>
-                                <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                                    {combinedAreaData.length}곳
-                                </span>
-                            </div>
-                            {isLoading && (
-                                <span className="text-xs md:text-sm text-blue-500 font-normal flex items-center">
-                                    <svg
-                                        className="animate-spin -ml-1 mr-1 h-3 w-3 md:h-3 md:w-3 text-blue-500"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
+                                        >
+                                            <SpotCard {...spot} />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                                        <svg
+                                            className="w-8 h-8 mb-2 text-gray-300"
+                                            fill="none"
                                             stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                    </svg>
-                                    로딩 중
-                                </span>
-                            )}
-                        </h2>
-
-                        {/* 테이블 헤더 - 더 납작하게 */}
-                        <div
-                            className="flex bg-gray-100 py-1 border-b font-medium text-xs md:text-sm w-full"
-                            style={{ minWidth: isMobile ? "auto" : "650px" }}
-                        >
-                            <div
-                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black cursor-pointer`}
-                                onClick={() => handleSort("spotName")}
-                            >
-                                관광지명 {renderSortIcon("spotName")}
-                            </div>
-                            {!isMobile && (
-                                <>
-                                    <div className="w-1/4 text-center text-black">
-                                        코드
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                                            />
+                                        </svg>
+                                        <p className="text-xs">
+                                            혼잡 현황 없음
+                                        </p>
                                     </div>
-                                    <div className="w-1/4 text-center text-black">
-                                        시간
-                                    </div>
-                                </>
-                            )}
-                            <div
-                                className={`${isMobile ? "w-1/3" : "w-1/4"} text-center text-black cursor-pointer`}
-                                onClick={() => handleSort("congestion")}
-                            >
-                                혼잡도 {renderSortIcon("congestion")}
+                                )}
                             </div>
                         </div>
-                        {/* 테이블 데이터 부분 */}
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                    </div>
+
+                    {/* Right Column - Compact */}
+                    <div className="lg:col-span-2 space-y-3">
+                        {/* Accident Information Card - Compact */}
+                        <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 overflow-hidden">
+                            <div className="bg-gradient-to-r from-red-500 to-pink-500 px-3 py-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="p-1 bg-white/20 rounded">
+                                            <svg
+                                                className="w-4 h-4 text-white"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <h2 className="text-white font-semibold text-sm">
+                                            사고 정보
+                                        </h2>
+                                    </div>
+                                    {isLoading && (
+                                        <svg
+                                            className="animate-spin h-3 w-3 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="h-[25vh]">
+                                <AccidentCard
+                                    accidentData={accidentData}
+                                    isLoading={isLoading}
+                                    isMobile={isMobile}
+                                    onSelectAccident={handleAccidentClick}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Tourist Spots Table - Compact */}
+                        <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 overflow-hidden">
+                            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="p-1 bg-white/20 rounded">
+                                            <svg
+                                                className="w-4 h-4 text-white"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                                />
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <h2 className="text-white font-semibold text-sm">
+                                            전체 관광지 현황
+                                        </h2>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                        <span className="bg-white/20 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                                            {combinedAreaData.length}곳
+                                        </span>
+                                        {isLoading && (
+                                            <svg
+                                                className="animate-spin h-3 w-3 text-white"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
+                                            </svg>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Compact Table Header */}
                             <div
-                                style={{
-                                    minWidth: isMobile ? "auto" : "650px",
-                                }}
+                                className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-4"} gap-2 p-2 bg-gradient-to-r from-gray-50 to-gray-100 border-b font-medium text-xs text-gray-700`}
                             >
+                                <div
+                                    className="flex items-center justify-center cursor-pointer hover:text-blue-600 transition-colors"
+                                    onClick={() => handleSort("spotName")}
+                                >
+                                    관광지명 {renderSortIcon("spotName")}
+                                </div>
+                                {!isMobile && (
+                                    <>
+                                        <div className="text-center">코드</div>
+                                        <div className="text-center">시간</div>
+                                    </>
+                                )}
+                                <div
+                                    className="flex items-center justify-center cursor-pointer hover:text-blue-600 transition-colors"
+                                    onClick={() => handleSort("congestion")}
+                                >
+                                    혼잡도 {renderSortIcon("congestion")}
+                                </div>
+                            </div>
+
+                            {/* Compact Table Content */}
+                            <div className="h-[49.5vh] overflow-y-auto">
                                 {isLoading && combinedAreaData.length === 0 ? (
-                                    // 로딩 스켈레톤 - 더 납작하게
-                                    [...Array(15)].map((_, idx) => (
+                                    [...Array(6)].map((_, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex py-1 border-b animate-pulse"
+                                            className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-4"} gap-2 p-2 border-b animate-pulse`}
                                         >
-                                            <div
-                                                className={`${isMobile ? "w-2/3" : "w-1/4"} flex justify-center`}
-                                            >
+                                            <div className="flex justify-center">
                                                 <div className="h-3 bg-gray-200 rounded w-16"></div>
                                             </div>
                                             {!isMobile && (
                                                 <>
-                                                    <div className="w-1/4 flex justify-center">
+                                                    <div className="flex justify-center">
                                                         <div className="h-3 bg-gray-200 rounded w-12"></div>
                                                     </div>
-                                                    <div className="w-1/4 flex justify-center">
+                                                    <div className="flex justify-center">
                                                         <div className="h-3 bg-gray-200 rounded w-14"></div>
                                                     </div>
                                                 </>
                                             )}
-                                            <div
-                                                className={`${isMobile ? "w-1/3" : "w-1/4"} flex justify-center`}
-                                            >
-                                                <div className="h-3 bg-gray-200 rounded w-10"></div>
+                                            <div className="flex justify-center">
+                                                <div className="h-4 bg-gray-200 rounded-full w-12"></div>
                                             </div>
                                         </div>
                                     ))
                                 ) : sortedTouristInfo.length > 0 ? (
-                                    // 실제 데이터 행 - 훨씬 더 납작하게
                                     sortedTouristInfo.map((info, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex py-0.5 border-b hover:bg-gray-50 transition-colors text-xs md:text-sm cursor-pointer"
+                                            className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-4"} gap-2 p-2 border-b hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 cursor-pointer group`}
                                             onClick={() =>
                                                 handleSpotClick(info)
                                             }
                                         >
-                                            <div
-                                                className={`${isMobile ? "w-2/3" : "w-1/4"} text-center text-black overflow-hidden text-ellipsis px-1 ${isMobile ? "text-xs font-medium" : ""} flex items-center justify-center`}
-                                            >
+                                            <div className="text-center font-medium text-gray-800 text-xs group-hover:text-blue-600 transition-colors">
                                                 {info.area_nm}
                                             </div>
                                             {!isMobile && (
                                                 <>
-                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1 flex items-center justify-center">
+                                                    <div className="text-center text-gray-600 text-xs">
                                                         {info.population
                                                             ?.area_cd || "N/A"}
                                                     </div>
-                                                    <div className="w-1/4 text-center text-gray-600 overflow-hidden text-ellipsis px-1 flex items-center justify-center">
+                                                    <div className="text-center text-gray-600 text-xs">
                                                         {info.population
                                                             ?.ppltn_time ||
                                                             "N/A"}
                                                     </div>
                                                 </>
                                             )}
-                                            <div
-                                                className={`${isMobile ? "w-1/3" : "w-1/4"} text-center overflow-hidden flex justify-center items-center`}
-                                            >
+                                            <div className="flex justify-center">
                                                 <CongestionTag
                                                     level={
                                                         info.population
@@ -457,8 +519,23 @@ export default function AdminComponent() {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-3 text-center text-gray-500">
-                                        관광지 정보가 없습니다.
+                                    <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                                        <svg
+                                            className="w-8 h-8 mb-2 text-gray-300"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647zm0 0V21h4a2 2 0 002-2v-1.101z"
+                                            />
+                                        </svg>
+                                        <p className="text-xs">
+                                            관광지 정보 없음
+                                        </p>
                                     </div>
                                 )}
                             </div>
