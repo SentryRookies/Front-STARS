@@ -40,22 +40,11 @@ export default function POITableCard({
                 <div className="flex flex-col items-center justify-center text-center text-gray-500 py-8">
                     {/* SVG 아이콘 */}
                     <svg
-                        fill="#7c86ff"
-                        width="80px"
-                        height="80px"
-                        viewBox="-1 0 19 19"
+                        className="w-20 h-20 fill-indigo-400"
+                        viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="cf-icon-svg"
                     >
-                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                        <g
-                            id="SVGRepo_tracerCarrier"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        ></g>
-                        <g id="SVGRepo_iconCarrier">
-                            <path d="M16.417 9.583A7.917 7.917 0 1 1 8.5 1.666a7.917 7.917 0 0 1 7.917 7.917zm-5.267 6.274a6.766 6.766 0 0 0 1.756-1.084L3.31 5.177a6.81 6.81 0 0 0 7.84 10.68zm3.624-3.624a6.808 6.808 0 0 0-10.68-7.84l9.596 9.596a6.77 6.77 0 0 0 1.084-1.756z"></path>
-                        </g>
+                        <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 15h-2v-2h2v2Zm0-4h-2V7h2v6Z" />
                     </svg>
                     <p className="text-sm font-medium">
                         현재 이 관광특구에는

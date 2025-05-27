@@ -449,13 +449,11 @@ export default function DashboardComponent() {
                 {/*))}*/}
 
                 {/* 관광지 카드 - 리스트형 하나로 묶어서 출력 */}
-                {attractions.length > 0 && (
-                    <AttractionTableCard
-                        attractions={attractions}
-                        style={cardStyles[100]} // 인덱스는 하나만 사용
-                        cardRef={(el) => (cardRefs.current[100] = el)}
-                    />
-                )}
+                <AttractionTableCard
+                    attractions={attractions}
+                    style={cardStyles[100]}
+                    cardRef={(el) => (cardRefs.current[100] = el)}
+                />
 
                 <CulturalEventSlider
                     events={events}
