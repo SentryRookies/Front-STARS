@@ -125,12 +125,20 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
             >
                 {/* 방문자 수 */}
                 <motion.div
-                    className="bg-white rounded-2xl shadow-lg p-4 w-4/5 md:w-96"
+                    className="bg-white rounded-2xl shadow-lg p-4 md:w-auto max-w-96 w-4/5"
                     whileHover={{ y: -8 }}
                 >
-                    <h3 className="md:text-xl text-lg text-gray-500 mb-2">
-                        {area?.area_name} 방문자 수
-                    </h3>
+                    <div className="flex items-center justify-between">
+                        <h3 className="md:text-xl text-lg text-gray-700 mr-2">
+                            {area?.area_name} 방문자 수
+                        </h3>
+                        <span className="bg-indigo-100 text-indigo-700 inline-flex w-auto rounded-full m-1 md:text-base text-sm px-2 py-1 font-semibold whitespace-nowrap self-start">
+                            #{area?.category}
+                        </span>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-2">
+                        {area?.name_eng}
+                    </p>
                     <p className="md:text-5xl text-3xl font-bold text-gray-900">
                         <span ref={visitorCountRef}></span>명
                     </p>
