@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 
 import { UserInfo as UserInfoType } from "../../../../data/UserInfoData";
 import { getUserProfile } from "../../../../api/mypageApi";
+import useCustomLogin from "../../../../hooks/useCustomLogin";
 
 interface SuggestionProps {
     isOpen: boolean;
@@ -59,6 +60,8 @@ export default function PlaceSuggestionShow({
     const [suggestionResult, setSuggestionResult] = useState<Suggestion>(
         {} as Suggestion
     );
+
+    const { isLogin } = useCustomLogin();
 
     // 데이터 로딩 상태 관리 - 처음 한 번만 로딩하기 위한 ref
     const isInitialized = useRef<boolean>(false);
@@ -393,10 +396,26 @@ export default function PlaceSuggestionShow({
                         <div className="flex-shrink-0 p-3 md:p-4 bg-white border-t border-gray-100">
                             <div
                                 className="w-full h-12 md:h-14 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer bg-purple-500 hover:bg-purple-600 shadow-md"
-                                onClick={() => setIsCreate(!isCreate)}
+                                onClick={() => {
+                                    if (isLogin) {
+                                        setIsCreate(!isCreate);
+                                    } else {
+                                        // 로그인 페이지로 이동 (라우터에 따라 수정 필요)
+                                        // React Router를 사용하는 경우:
+                                        // navigate('/login');
+
+                                        // Next.js를 사용하는 경우:
+                                        // router.push('/login');
+
+                                        // 또는 window.location을 사용하는 경우:
+                                        window.location.href = "/login";
+                                    }
+                                }}
                             >
                                 <div className="text-white font-semibold text-sm md:text-base">
-                                    여행 코스 추천받기
+                                    {isLogin
+                                        ? "여행 코스 추천받기"
+                                        : "로그인하고 여행 코스 추천받기"}
                                 </div>
                             </div>
                         </div>
