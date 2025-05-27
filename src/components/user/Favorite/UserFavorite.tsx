@@ -1,8 +1,9 @@
-// Enhanced UserFavorite.tsx with improved design and fully working features
+// Enhanced UserFavorite.tsx with custom delete confirmation modal
 import React, { useState, useEffect, useMemo } from "react";
 import { Favorite } from "../../../data/adminData";
 import { getUserFavoriteList, deleteFavorite } from "../../../api/mypageApi";
 import { categoryMap, getTypeStyle } from "./UserFavoriteUtils";
+
 interface UserFavoriteProps {
     onMapView?: (name: string) => void;
 }
@@ -22,9 +23,11 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
     const [expandedId, setExpandedId] = useState<number | null>(null);
     // 검색어
     const [searchTerm, setSearchTerm] = useState<string>("");
-
-    // 모바일 여부를 저장하는 상태
-    // const [isMobile, setIsMobile] = useState(false);
+    // 삭제 확인 모달 상태
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [favoriteToDelete, setFavoriteToDelete] = useState<Favorite | null>(
+        null
+    );
 
     // 즐겨찾기 데이터 로드 함수
     const loadFavorites = async () => {
@@ -50,51 +53,46 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
         }
     };
 
-    // 화면 크기가 변경될 때 모바일 여부 감지
-    // useEffect(() => {
-    //     const checkIfMobile = () => {
-    //         setIsMobile(window.innerWidth < 768);
-    //     };
-    //
-    //     // 초기 체크
-    //     checkIfMobile();
-    //
-    //     // 리사이즈 이벤트 리스너 추가
-    //     window.addEventListener("resize", checkIfMobile);
-    //
-    //     // 컴포넌트 언마운트 시 이벤트 리스너 제거
-    //     return () => {
-    //         window.removeEventListener("resize", checkIfMobile);
-    //     };
-    // }, []);
-
     // 컴포넌트 마운트 시 즐겨찾기 데이터 로드
     useEffect(() => {
         loadFavorites();
     }, []);
 
+    // 삭제 확인 모달 열기
+    const openDeleteModal = (fav: Favorite) => {
+        setFavoriteToDelete(fav);
+        setShowDeleteModal(true);
+    };
+
+    // 삭제 확인 모달 닫기
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+        setFavoriteToDelete(null);
+    };
+
     // 삭제 핸들러
-    const handleDelete = async (fav: Favorite) => {
-        if (window.confirm("즐겨찾기를 삭제하시겠습니까?")) {
-            setDeletingId(fav.favorite_id || null); // 삭제 중 표시
+    const handleDelete = async () => {
+        if (!favoriteToDelete) return;
 
-            try {
-                const response = await deleteFavorite(fav);
-                console.log("삭제 결과: ", response);
+        setDeletingId(favoriteToDelete.favorite_id || null);
+        closeDeleteModal();
 
-                if (response.message === "즐겨찾기 삭제 완료") {
-                    // 성공적으로 삭제되면 상태에서도 삭제
-                    await loadFavorites();
-                } else {
-                    // 실패 시 알림
-                    alert(response.message || "삭제에 실패했습니다.");
-                }
-            } catch (err) {
-                alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-                console.log(err);
-            } finally {
-                setDeletingId(null); // 삭제 중 표시 제거
+        try {
+            const response = await deleteFavorite(favoriteToDelete);
+            console.log("삭제 결과: ", response);
+
+            if (response.message === "즐겨찾기 삭제 완료") {
+                // 성공적으로 삭제되면 상태에서도 삭제
+                await loadFavorites();
+            } else {
+                // 실패 시 알림
+                alert(response.message || "삭제에 실패했습니다.");
             }
+        } catch (err) {
+            alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+            console.log(err);
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -117,6 +115,76 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
     const toggleExpand = (id: number) => {
         setExpandedId(expandedId === id ? null : id);
     };
+
+    // 삭제 확인 모달 컴포넌트
+    const DeleteConfirmModal = React.memo(() => {
+        if (!showDeleteModal || !favoriteToDelete) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 transform transition-all">
+                    <div className="p-6">
+                        {/* 아이콘 */}
+                        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                            <svg
+                                className="w-6 h-6 text-red-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                        </div>
+
+                        {/* 제목 */}
+                        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                            즐겨찾기 삭제
+                        </h3>
+
+                        {/* 내용 */}
+                        <div className="text-center mb-6">
+                            <p className="text-gray-600 mb-2">
+                                다음 즐겨찾기를 삭제하시겠습니까?
+                            </p>
+                            <div className="bg-gray-50 rounded-lg p-3 border">
+                                <p className="font-medium text-gray-800 text-sm truncate">
+                                    {favoriteToDelete.name}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                    {favoriteToDelete.address}
+                                </p>
+                            </div>
+                            <p className="text-xs text-red-600 mt-2">
+                                삭제된 즐겨찾기는 복구할 수 없습니다.
+                            </p>
+                        </div>
+
+                        {/* 버튼 */}
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={closeDeleteModal}
+                                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                            >
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    });
 
     // 로딩 스켈레톤 컴포넌트
     const FavoriteCardSkeleton = React.memo(() => (
@@ -238,11 +306,6 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
                     onClick={() => toggleExpand(fav.favorite_id || 0)}
                 >
                     <div className="flex items-center flex-1 min-w-0">
-                        {/*<div*/}
-                        {/*    className={`w-10 h-10 rounded-xl ${style.bgColor} flex items-center justify-center mr-3 flex-shrink-0 shadow-sm`}*/}
-                        {/*>*/}
-                        {/*    <span className="text-lg">{style.icon}</span>*/}
-                        {/*</div>*/}
                         <div className="min-w-0 flex-1">
                             <h3 className="font-semibold text-gray-800 text-sm truncate mb-1">
                                 {fav.name}
@@ -297,7 +360,6 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
                                     if (window.fullpage_api) {
                                         window.fullpage_api.moveSlideLeft();
                                     }
-                                    // 지도 컴포넌트로 위치 정보 전달 로직 추가
                                     if (onMapView) {
                                         console.log(
                                             "[UserFavorite] onMapView 호출",
@@ -332,7 +394,7 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDelete(fav);
+                                    openDeleteModal(fav);
                                 }}
                                 className="text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg text-sm flex items-center font-medium shadow-sm border border-red-200 transition-colors"
                                 disabled={isDeleting}
@@ -436,27 +498,28 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
                     <div className="flex-1">
                         <CategoryFilter />
                     </div>
-                    {/* 에러가 발생하면 거기서 새로고침이 뜨는데 굳이 위에 추가로 만들 필요 없어보임 */}
-                    {/*<button*/}
-                    {/*    className="text-indigo-600 bg-white shadow-sm hover:text-indigo-800 flex items-center text-xs px-2 py-1.5 rounded ml-3 border border-gray-200"*/}
-                    {/*    onClick={loadFavorites}*/}
-                    {/*>*/}
-                    {/*    <svg*/}
-                    {/*        className="w-3 h-3 mr-1"*/}
-                    {/*        xmlns="http://www.w3.org/2000/svg"*/}
-                    {/*        fill="none"*/}
-                    {/*        viewBox="0 0 24 24"*/}
-                    {/*        stroke="currentColor"*/}
-                    {/*    >*/}
-                    {/*        <path*/}
-                    {/*            strokeLinecap="round"*/}
-                    {/*            strokeLinejoin="round"*/}
-                    {/*            strokeWidth={2}*/}
-                    {/*            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"*/}
-                    {/*        />*/}
-                    {/*    </svg>*/}
-                    {/*    새로고침*/}
-                    {/*</button>*/}
+                    <button
+                        onClick={loadFavorites}
+                        disabled={isLoading}
+                        className="ml-3 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:text-indigo-600 hover:border-indigo-300 rounded-lg text-xs font-medium transition-all duration-200 flex items-center shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="새로고침"
+                    >
+                        <svg
+                            className={`w-4 h-4 mr-1 ${isLoading ? "animate-spin" : ""}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                        </svg>
+                        새로고침
+                    </button>
                 </div>
             </div>
 
@@ -489,6 +552,9 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
                     </div>
                 )}
             </div>
+
+            {/* 삭제 확인 모달 */}
+            <DeleteConfirmModal />
         </div>
     );
 };

@@ -18,6 +18,7 @@ import {
 import { Favorite } from "../../../data/adminData";
 import { AccidentAlertModal } from "../../alert/AccidentModal";
 import PlaceSuggestion from "./PlaceSuggestion";
+import CustomControl, { LocationControl } from "./CustomControl";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const categoryMap: Record<string, string> = {
@@ -130,6 +131,8 @@ export default function MapSectionComponent({
             }),
             "right"
         );
+        map.addControl(new LocationControl(), "right");
+
         mapRef.current = map;
 
         getAreaList().then((areaList: Area[]) => {
