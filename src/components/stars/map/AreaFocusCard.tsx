@@ -50,6 +50,14 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     );
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
 
+    const typeLabelMap: Record<string, string> = {
+        cafe: "카페",
+        restaurant: "음식점",
+        attraction: "관광명소",
+        accommodation: "숙박",
+        cultural_event: "문화행사",
+    };
+
     useEffect(() => {
         if (!show || !areaId) return;
 
@@ -146,40 +154,50 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
 
                 {/* 장소 요약 */}
                 <motion.div
-                    className="bg-blue-500 text-white rounded-2xl shadow-lg p-4 w-4/5 md:w-96"
+                    className="bg-indigo-500 text-white rounded-2xl shadow-2xl p-6 md:w-auto max-w-72 w-auto"
                     whileHover={{ y: -8 }}
                 >
-                    <h3 className="text-lg font-bold mb-2">장소 요약</h3>
-                    <ul>
-                        {Object.entries(placeSummary).map(([type, count]) => (
-                            <li
-                                key={type}
-                                className="cursor-pointer hover:underline"
-                                onClick={() => handleCategoryClick(type)}
-                            >
-                                {type} : {count}곳
-                            </li>
-                        ))}
-                    </ul>
-                </motion.div>
+                    <h3 className="text-xl font-extrabold mb-4 tracking-tight">
+                        장소 요약
+                    </h3>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                        {Object.entries(placeSummary).map(([type, count]) => {
+                            const isDisabled = count === 0;
 
-                {/* 카테고리 정보 */}
-                <motion.div
-                    className="bg-indigo-600 text-white rounded-2xl shadow-lg p-4 w-4/5 md:w-96"
-                    whileHover={{ y: -8 }}
-                >
-                    <p className="text-sm">
-                        <strong>카테고리:</strong> {area?.category}
-                    </p>
-                    <p className="text-sm mt-1">
-                        <strong>영문명:</strong> {area?.name_eng}
-                    </p>
+                            return (
+                                <div
+                                    key={type}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-full shadow cursor-pointer transition
+                                        ${
+                                            isDisabled
+                                                ? "bg-white/10 text-gray-300 cursor-not-allowed"
+                                                : "bg-white/30 text-white hover:bg-white/30"
+                                        }
+                                    `}
+                                    onClick={() => {
+                                        if (!isDisabled)
+                                            handleCategoryClick(type);
+                                    }}
+                                    aria-disabled={isDisabled}
+                                >
+                                    <span className="capitalize font-medium">
+                                        {typeLabelMap[type] ?? type}
+                                    </span>
+                                    <span
+                                        className={`text-sm font-bold ${isDisabled ? "text-yellow-200" : "text-yellow-50"}`}
+                                    >
+                                        {count}곳
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </motion.div>
 
                 {/* 버튼 */}
                 <motion.div
                     onClick={onDetail}
-                    className="cursor-pointer bg-white rounded-2xl shadow-lg md:p-6 p-4 flex items-center justify-center md:text-4xl text-xl font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                    className="cursor-pointer bg-white rounded-2xl shadow-lg md:p-5 p-4 flex items-center justify-center md:text-4xl text-xl font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white"
                     whileHover={{ y: -8 }}
                 >
                     자세히 보기 ↓
