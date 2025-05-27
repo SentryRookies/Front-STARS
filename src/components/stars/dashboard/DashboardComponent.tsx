@@ -408,6 +408,19 @@ export default function DashboardComponent() {
                     accidentData={selectedAccidents}
                 />
 
+                {/* 위치 보기 안내 멘트 */}
+                <motion.div
+                    className="col-span-12 bg-white text-gray-800 rounded-3xl shadow-lg p-4 text-center font-extrabold text-base"
+                    whileHover={{ y: -6 }}
+                    animate={cardStyles[99]}
+                    style={cardStyles[99]}
+                    ref={(el) => {
+                        cardRefs.current[99] = el;
+                    }}
+                >
+                    아래 카드들을 클릭하시면 지도에서 위치를 확인할 수 있어요 🗺️
+                </motion.div>
+
                 <POITableCard
                     title="카페"
                     pois={cafePOIs}
