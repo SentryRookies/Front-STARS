@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import AdminHeader from "./AdminHeader";
 import { getUserList } from "../../api/adminApi";
 import UserInsightDashboard from "./AdminUserInsight";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // 사용자 정보 타입 정의
 interface UserInfo {
@@ -542,29 +543,44 @@ const AdminUserManagement: React.FC = () => {
     );
 
     // 페이지네이션 컴포넌트
-    const Pagination = () => (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
-            <div className="flex justify-between flex-1 sm:hidden">
-                <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-                >
-                    이전
-                </button>
-                <button
-                    onClick={() =>
-                        setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-                >
-                    다음
-                </button>
-            </div>
-            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div>
-                    <p className="text-sm text-gray-700">
+    const Pagination = () => {
+        if (totalPages <= 1) return null;
+
+        const getVisiblePages = () => {
+            const delta = 2;
+            const range = [];
+            const rangeWithDots = [];
+
+            for (
+                let i = Math.max(2, currentPage - delta);
+                i <= Math.min(totalPages - 1, currentPage + delta);
+                i++
+            ) {
+                range.push(i);
+            }
+
+            if (currentPage - delta > 2) {
+                rangeWithDots.push(1, "...");
+            } else {
+                rangeWithDots.push(1);
+            }
+
+            rangeWithDots.push(...range);
+
+            if (currentPage + delta < totalPages - 1) {
+                rangeWithDots.push("...", totalPages);
+            } else {
+                rangeWithDots.push(totalPages);
+            }
+
+            return rangeWithDots;
+        };
+
+        return (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-4">
+                <div className="flex items-center justify-between">
+                    {/* 페이지 정보 - 왼쪽 */}
+                    <div className="text-sm text-gray-700">
                         <span className="font-medium">
                             {indexOfFirstItem + 1}
                         </span>
@@ -577,38 +593,50 @@ const AdminUserManagement: React.FC = () => {
                             {processedUsers.length}
                         </span>
                         개 항목
-                    </p>
-                </div>
-                <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    </div>
+
+                    {/* 페이지네이션 버튼들 - 가운데 */}
+                    <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
+                        {/* 이전 페이지 버튼 */}
                         <button
                             onClick={() =>
                                 setCurrentPage(Math.max(1, currentPage - 1))
                             }
                             disabled={currentPage === 1}
-                            className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50"
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                currentPage === 1
+                                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                                    : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                            }`}
                         >
-                            이전
+                            <ChevronLeft className="w-4 h-4" />
                         </button>
-                        {Array.from(
-                            { length: Math.min(5, totalPages) },
-                            (_, i) => {
-                                const pageNum = i + 1;
-                                return (
+
+                        {/* 페이지 번호들 */}
+                        {getVisiblePages().map((page, index) => (
+                            <React.Fragment key={index}>
+                                {page === "..." ? (
+                                    <span className="px-3 py-2 text-sm text-gray-500">
+                                        ...
+                                    </span>
+                                ) : (
                                     <button
-                                        key={i}
-                                        onClick={() => setCurrentPage(pageNum)}
-                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border ${
-                                            currentPage === pageNum
-                                                ? "bg-blue-50 border-blue-500 text-blue-600"
-                                                : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                                        onClick={() =>
+                                            setCurrentPage(page as number)
+                                        }
+                                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                            currentPage === page
+                                                ? "bg-blue-600 text-white"
+                                                : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                                         }`}
                                     >
-                                        {pageNum}
+                                        {page}
                                     </button>
-                                );
-                            }
-                        )}
+                                )}
+                            </React.Fragment>
+                        ))}
+
+                        {/* 다음 페이지 버튼 */}
                         <button
                             onClick={() =>
                                 setCurrentPage(
@@ -616,15 +644,63 @@ const AdminUserManagement: React.FC = () => {
                                 )
                             }
                             disabled={currentPage === totalPages}
-                            className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50"
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                currentPage === totalPages
+                                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                                    : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                            }`}
                         >
-                            다음
+                            <ChevronRight className="w-4 h-4" />
                         </button>
-                    </nav>
+                    </div>
+
+                    {/* 오른쪽 빈 공간 (균형을 위해) */}
+                    <div></div>
+                </div>
+
+                {/* 모바일용 페이징 (sm 이하에서만 표시) */}
+                <div className="flex justify-between sm:hidden mt-4 pt-4 border-t border-gray-200">
+                    <button
+                        onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                        }
+                        disabled={currentPage === 1}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            currentPage === 1
+                                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                                : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                        }`}
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                        이전
+                    </button>
+
+                    <div className="flex items-center text-sm text-gray-700">
+                        <span className="font-medium">{currentPage}</span>
+                        <span className="mx-2">/</span>
+                        <span className="font-medium">{totalPages}</span>
+                    </div>
+
+                    <button
+                        onClick={() =>
+                            setCurrentPage(
+                                Math.min(totalPages, currentPage + 1)
+                            )
+                        }
+                        disabled={currentPage === totalPages}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            currentPage === totalPages
+                                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                                : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                        }`}
+                    >
+                        다음
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     // 로딩 스켈레톤
     const LoadingSkeleton = () => (

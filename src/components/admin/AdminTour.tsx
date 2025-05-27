@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AdminHeader from "./AdminHeader";
 import { getEventList } from "../../api/starsApi";
+import { Menu, Grid, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TourList {
     category: string;
@@ -31,6 +32,9 @@ const AdminTour = () => {
     const [selectedEvent, setSelectedEvent] = useState<TourList | null>(null);
     const [isMobileView, setIsMobileView] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [itemsPerPage] = useState<number>(10);
 
     // 화면 크기 체크
     useEffect(() => {
@@ -84,6 +88,10 @@ const AdminTour = () => {
         fetchEvents();
     }, []);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterCategory, filterFeeType, searchTerm]);
+
     // 필터링 로직
     const filteredList = list.filter((item) => {
         const matchesCategory = filterCategory
@@ -101,6 +109,14 @@ const AdminTour = () => {
         return matchesCategory && matchesFeeType && matchesSearch;
     });
 
+    // 필터 계산 후 페이징
+    const totalPages = Math.ceil(filteredList.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedList = filteredList.slice(
+        startIndex,
+        startIndex + itemsPerPage
+    );
+
     // 이벤트 선택 핸들러
     const handleEventClick = (event: TourList) => {
         setSelectedEvent(event);
@@ -109,6 +125,10 @@ const AdminTour = () => {
     // 모달 닫기 핸들러
     const closeModal = () => {
         setSelectedEvent(null);
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
     };
 
     // Esc 키로 모달 닫기 기능
@@ -299,7 +319,7 @@ const AdminTour = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredList.map((item, index) => (
+                        {paginatedList.map((item, index) => (
                             <tr
                                 key={`${item.event_name}-${index}`}
                                 className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -356,6 +376,119 @@ const AdminTour = () => {
         </div>
     );
 
+    const Pagination = () => {
+        if (totalPages <= 1) return null;
+
+        const getVisiblePages = () => {
+            const delta = 2;
+            const range = [];
+            const rangeWithDots = [];
+
+            for (
+                let i = Math.max(2, currentPage - delta);
+                i <= Math.min(totalPages - 1, currentPage + delta);
+                i++
+            ) {
+                range.push(i);
+            }
+
+            if (currentPage - delta > 2) {
+                rangeWithDots.push(1, "...");
+            } else {
+                rangeWithDots.push(1);
+            }
+
+            rangeWithDots.push(...range);
+
+            if (currentPage + delta < totalPages - 1) {
+                rangeWithDots.push("...", totalPages);
+            } else {
+                rangeWithDots.push(totalPages);
+            }
+
+            return rangeWithDots;
+        };
+
+        return (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-4">
+                <div className="flex items-center justify-between">
+                    {/* 페이지 정보 - 왼쪽 */}
+                    <div className="text-sm text-gray-700">
+                        총{" "}
+                        <span className="font-medium">
+                            {filteredList.length}
+                        </span>
+                        개 중{" "}
+                        <span className="font-medium">{startIndex + 1}</span>-
+                        <span className="font-medium">
+                            {Math.min(
+                                startIndex + itemsPerPage,
+                                filteredList.length
+                            )}
+                        </span>
+                        개 표시
+                    </div>
+
+                    {/* 페이지네이션 버튼들 - 가운데 */}
+                    <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
+                        {/* 이전 페이지 버튼 */}
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                currentPage === 1
+                                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                                    : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                            }`}
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+
+                        {/* 페이지 번호들 */}
+                        {getVisiblePages().map((page, index) => (
+                            <React.Fragment key={index}>
+                                {page === "..." ? (
+                                    <span className="px-3 py-2 text-sm text-gray-500">
+                                        ...
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={() =>
+                                            handlePageChange(page as number)
+                                        }
+                                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                            currentPage === page
+                                                ? "bg-blue-600 text-white"
+                                                : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {page}
+                                    </button>
+                                )}
+                            </React.Fragment>
+                        ))}
+
+                        {/* 다음 페이지 버튼 */}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                currentPage === totalPages
+                                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                                    : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                            }`}
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    {/* 오른쪽 빈 공간 (균형을 위해) */}
+                    <div></div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="bg-gray-50 min-h-screen flex flex-col w-full">
             {/* Header */}
@@ -401,15 +534,17 @@ const AdminTour = () => {
                 )}
 
                 {/* 컨트롤 섹션 */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         {/* 제목과 카운트 */}
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between gap-4">
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">
                                     문화 행사 관리
                                 </h1>
-                                <p className="text-sm text-gray-600 mt-1">
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm text-gray-600">
                                     총{" "}
                                     <span className="font-semibold text-blue-600">
                                         {list.length}
@@ -454,40 +589,24 @@ const AdminTour = () => {
                             <div className="flex items-center gap-2 bg-white rounded-lg p-1">
                                 <button
                                     onClick={() => setViewMode("grid")}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${
                                         viewMode === "grid"
                                             ? "bg-indigo-600 text-white shadow-md"
                                             : "bg-white text-gray-900 hover:text-indigo-600 shadow-sm border border-gray-200"
                                     }`}
                                 >
-                                    <svg
-                                        className="w-4 h-4 inline-block mr-1"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                                    </svg>
+                                    <Grid className="w-4 h-4" />
                                     그리드
                                 </button>
                                 <button
                                     onClick={() => setViewMode("table")}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${
                                         viewMode === "table"
                                             ? "bg-indigo-600 text-white shadow-md"
                                             : "bg-white text-gray-900 hover:text-indigo-600 shadow-sm border border-gray-200"
                                     }`}
                                 >
-                                    <svg
-                                        className="w-4 h-4 inline-block mr-1"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"
-                                            clipRule="evenodd"
-                                        />
-                                    </svg>
+                                    <Menu className="w-4 h-4" />
                                     테이블
                                 </button>
                             </div>
@@ -679,7 +798,10 @@ const AdminTour = () => {
                     ) : viewMode === "grid" || isMobileView ? (
                         <GridView />
                     ) : (
-                        <TableView />
+                        <>
+                            <TableView />
+                            <Pagination />
+                        </>
                     )}
                 </div>
             </div>
