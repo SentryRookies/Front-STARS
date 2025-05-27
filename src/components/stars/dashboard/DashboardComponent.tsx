@@ -57,6 +57,8 @@ interface Attraction {
     address: string;
     phone?: string;
     homepage_url?: string;
+    lat: number;
+    lon: number;
 }
 
 interface CulturalEvent {
@@ -68,6 +70,8 @@ interface CulturalEvent {
     end_date: string;
     event_fee?: string;
     event_img?: string;
+    lat: number;
+    lon: number;
 }
 
 interface WeatherForecast {
