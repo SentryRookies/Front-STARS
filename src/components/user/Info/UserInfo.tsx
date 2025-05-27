@@ -22,12 +22,220 @@ const initialUserData: UserInfoType = {
     created_at: "",
 };
 
+interface DeleteConfirmModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    isSubmitting: boolean;
+}
+
+// 계정 삭제 확인 모달 컴포넌트
+const DeleteConfirmModal = ({
+    isOpen,
+    onClose,
+    onConfirm,
+    isSubmitting,
+}: DeleteConfirmModalProps) => {
+    const [inputValue, setInputValue] = useState("");
+    const [currentStep, setCurrentStep] = useState(1);
+    const confirmText = "계정삭제";
+
+    const handleFirstConfirm = () => {
+        setCurrentStep(2);
+        setInputValue("");
+    };
+
+    const handleSecondConfirm = () => {
+        if (inputValue === confirmText) {
+            onConfirm();
+        }
+    };
+
+    const handleClose = () => {
+        setCurrentStep(1);
+        setInputValue("");
+        onClose();
+    };
+
+    const isValidInput = inputValue === confirmText;
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl"
+            >
+                <AnimatePresence mode="wait">
+                    {currentStep === 1 ? (
+                        <motion.div
+                            key="step1"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="text-center"
+                        >
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                                <svg
+                                    className="h-6 w-6 text-red-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                계정 삭제 확인
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-6">
+                                정말로 계정을 삭제하시겠습니까?
+                                <br />
+                                <span className="font-semibold text-red-600">
+                                    이 작업은 되돌릴 수 없습니다.
+                                </span>
+                            </p>
+                            <div className="flex space-x-3">
+                                <button
+                                    type="button"
+                                    className="flex-1 bg-gray-100 text-gray-900 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+                                    onClick={handleClose}
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    type="button"
+                                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                                    onClick={handleFirstConfirm}
+                                >
+                                    계속 진행
+                                </button>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="step2"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="text-center"
+                        >
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                                <svg
+                                    className="h-6 w-6 text-red-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                최종 확인
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-4">
+                                계정 삭제를 확정하려면 아래에
+                                <span className="font-bold text-red-600">
+                                    {" "}
+                                    {confirmText}{" "}
+                                </span>
+                                를 정확히 입력해주세요.
+                            </p>
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                className={`w-full p-3 border rounded-lg mb-4 text-center font-medium text-black ${
+                                    inputValue && !isValidInput
+                                        ? "border-red-500 bg-red-50"
+                                        : isValidInput
+                                          ? "border-green-500 bg-green-50"
+                                          : "border-gray-300 bg-white"
+                                }`}
+                                placeholder={confirmText}
+                                disabled={isSubmitting}
+                            />
+                            {inputValue && !isValidInput && (
+                                <p className="text-red-500 text-sm mb-4">
+                                    정확히 "{confirmText}"를 입력해주세요.
+                                </p>
+                            )}
+                            <div className="flex space-x-3">
+                                <button
+                                    type="button"
+                                    className="flex-1 bg-gray-100 text-gray-900 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+                                    onClick={handleClose}
+                                    disabled={isSubmitting}
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                                        isValidInput && !isSubmitting
+                                            ? "bg-red-600 text-white hover:bg-red-700"
+                                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    }`}
+                                    onClick={handleSecondConfirm}
+                                    disabled={!isValidInput || isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg
+                                                className="animate-spin -ml-1 mr-2 h-4 w-4"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
+                                            </svg>
+                                            삭제 중...
+                                        </span>
+                                    ) : (
+                                        "계정 삭제"
+                                    )}
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        </div>
+    );
+};
+
 const UserInfo = () => {
     const [editMode, setEditMode] = useState<boolean>(false);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [userData, setUserData] = useState<UserInfoType | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false); // 모달 상태 추가
 
     const { doLogout, moveToPath } = useCustomLogin();
     const adminCheck = isAdmin();
@@ -70,31 +278,31 @@ const UserInfo = () => {
         loadUserInfo();
     };
 
-    // Account deletion handler
-    const handleDeleteAccount = async () => {
-        if (
-            window.confirm(
-                "정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-            )
-        ) {
-            setIsSubmitting(true);
+    // Account deletion handler - 모달 열기로 변경
+    const handleDeleteAccount = () => {
+        setShowDeleteModal(true);
+    };
 
-            try {
-                const response = await signoutUser(userData?.member_id);
+    // 실제 계정 삭제 처리 함수
+    const handleConfirmDelete = async () => {
+        setIsSubmitting(true);
 
-                if (response === "회원 탈퇴가 완료되었습니다.") {
-                    alert("계정이 성공적으로 삭제되었습니다.");
-                    doLogout();
-                    moveToPath("/");
-                } else {
-                    alert(response.message || "계정 삭제에 실패했습니다.");
-                }
-            } catch (error) {
-                alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-                console.error("API 오류:", error);
-            } finally {
-                setIsSubmitting(false);
+        try {
+            const response = await signoutUser(userData?.member_id);
+
+            if (response === "회원 탈퇴가 완료되었습니다.") {
+                alert("계정이 성공적으로 삭제되었습니다.");
+                setShowDeleteModal(false);
+                doLogout();
+                moveToPath("/");
+            } else {
+                alert(response.message || "계정 삭제에 실패했습니다.");
             }
+        } catch (error) {
+            alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+            console.error("API 오류:", error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -219,47 +427,19 @@ const UserInfo = () => {
                                 onClick={handleDeleteAccount}
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? (
-                                    <span className="flex items-center">
-                                        <svg
-                                            className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                            ></circle>
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            ></path>
-                                        </svg>
-                                        처리 중...
-                                    </span>
-                                ) : (
-                                    <>
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-5 w-5 mr-2"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                        계정 삭제
-                                    </>
-                                )}
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 mr-2"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                                계정 삭제
                             </button>
                         </div>
                     </motion.div>
@@ -280,6 +460,14 @@ const UserInfo = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* 계정 삭제 확인 모달 */}
+            <DeleteConfirmModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleConfirmDelete}
+                isSubmitting={isSubmitting}
+            />
         </div>
     );
 };
