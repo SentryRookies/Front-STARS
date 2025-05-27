@@ -1,6 +1,7 @@
 // src/context/PlaceContext.tsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { subscribeCongestionUpdate, subscribeExternal } from "../api/starsApi";
+import { SearchResult } from "../api/searchApi";
 import {
     MapData,
     ParkData,
@@ -44,6 +45,9 @@ interface PlaceContextType {
     mapData: MapData[] | null;
 
     accidentData: AccidentData[];
+
+    highlightPOI: SearchResult | null;
+    setHighlightPOI: (poi: SearchResult | null) => void;
 }
 
 const PlaceContext = createContext<PlaceContextType | undefined>(undefined);
@@ -61,6 +65,7 @@ export function PlaceProvider({ children }: { children: React.ReactNode }) {
     const [congestionInfo, setCongestionInfo] = useState<CongestionData | null>(
         null
     );
+    const [highlightPOI, setHighlightPOI] = useState<SearchResult | null>(null);
 
     // ✅ SSE 연결
     useEffect(() => {
@@ -152,6 +157,8 @@ export function PlaceProvider({ children }: { children: React.ReactNode }) {
                 congestionInfo,
                 mapData,
                 accidentData,
+                highlightPOI,
+                setHighlightPOI,
             }}
         >
             {children}

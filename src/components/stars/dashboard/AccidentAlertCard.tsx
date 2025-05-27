@@ -46,34 +46,16 @@ export default function AccidentAlertCard({
                     {/* SVG 아이콘 */}
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        x="0px"
-                        y="0px"
                         width="60"
                         height="60"
                         viewBox="0,0,255.99609,255.99609"
                     >
-                        <g
-                            fill="#ffffff"
-                            fillRule="nonzero"
-                            stroke="none"
-                            strokeWidth="1"
-                            strokeLinecap="butt"
-                            strokeLinejoin="miter"
-                            strokeMiterlimit="10"
-                            strokeDasharray=""
-                            strokeDashoffset="0"
-                            fontFamily="none"
-                            fontWeight="none"
-                            fontSize="none"
-                            textAnchor="none"
-                        >
+                        <g fill="#ffffff">
                             <g transform="scale(5.12,5.12)">
                                 <path d="M25,2c-12.683,0 -23,10.317 -23,23c0,12.683 10.317,23 23,23c12.683,0 23,-10.317 23,-23c0,-4.56 -1.33972,-8.81067 -3.63672,-12.38867l-1.36914,1.61719c1.895,3.154 3.00586,6.83148 3.00586,10.77148c0,11.579 -9.421,21 -21,21c-11.579,0 -21,-9.421 -21,-21c0,-11.579 9.421,-21 21,-21c5.443,0 10.39391,2.09977 14.12891,5.50977l1.30859,-1.54492c-4.085,-3.705 -9.5025,-5.96484 -15.4375,-5.96484zM43.23633,7.75391l-19.32227,22.80078l-8.13281,-7.58594l-1.36328,1.46289l9.66602,9.01563l20.67969,-24.40039z"></path>
                             </g>
                         </g>
                     </svg>
-
-                    {/* 안내 텍스트 */}
                     <p className="text-sm font-medium mt-2">
                         현재 이 관광특구에는
                         <br />
@@ -81,14 +63,13 @@ export default function AccidentAlertCard({
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto rounded-2xl scrollbar-none">
                     {accidents.map((acc, idx) => (
                         <div
                             key={idx}
-                            className="bg-blue-100 rounded-2xl shadow-lg p-3 text-sm"
+                            className="bg-blue-100 rounded-2xl shadow-sm p-3 text-sm"
                         >
                             <div className="flex items-center gap-2 mb-1">
-                                {/* 아이콘과 유형 뱃지 */}
                                 <span className="text-xl">
                                     {getAccidentIcon(acc.acdnt_type)}
                                 </span>
