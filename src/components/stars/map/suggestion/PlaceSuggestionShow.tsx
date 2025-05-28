@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapPin, Calendar, Coffee, RefreshCw } from "lucide-react";
+import { MapPin, Calendar, Coffee, RefreshCw, LogIn } from "lucide-react";
 import { getUserSuggestionList } from "../../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
 import UserPlaceSuggestion from "./UserPlaceSuggestion";
@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 
 import { UserInfo as UserInfoType } from "../../../../data/UserInfoData";
 import { getUserProfile } from "../../../../api/mypageApi";
+import useCustomLogin from "../../../../hooks/useCustomLogin";
 
 interface SuggestionProps {
     isOpen: boolean;
@@ -66,8 +67,23 @@ export default function PlaceSuggestionShow({
     const isInitialized = useRef<boolean>(false);
     const hasLoadedData = useRef<boolean>(false);
 
+    // 로그인 여부 확인
+    const { isLogin, moveToLogin } = useCustomLogin();
+
+    // 로그인 페이지로 이동하는 함수
+    const handleLoginRedirect = () => {
+        moveToLogin();
+    };
+
     // 사용자 정보 불러오는 함수
     const loadUserInfo = async (isRefresh: boolean = false) => {
+        // 로그인하지 않은 경우 로딩을 중단
+        if (!isLogin) {
+            setIsLoading(false);
+            setIsRefreshing(false);
+            return;
+        }
+
         if (!isRefresh && hasLoadedData.current) {
             console.log("이미 데이터가 로드되어 있습니다. 재로딩 생략.");
             return;
@@ -143,6 +159,7 @@ export default function PlaceSuggestionShow({
 
     // 새로고침 핸들러
     const handleRefresh = async () => {
+        if (!isLogin) return;
         console.log("수동 새로고침 시작");
         await loadUserInfo(true);
     };
@@ -164,7 +181,7 @@ export default function PlaceSuggestionShow({
             isInitialized.current = true;
             loadUserInfo();
         }
-    }, [isOpen]);
+    }, [isOpen, isLogin]);
 
     const formatDateTime = (isoString: string) => {
         const date = new Date(isoString);
@@ -208,16 +225,18 @@ export default function PlaceSuggestionShow({
                 />
             </svg>
             <p className="mb-4">{error}</p>
-            <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
-            >
-                <RefreshCw
-                    className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-                다시 시도
-            </button>
+            {isLogin && (
+                <button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
+                >
+                    <RefreshCw
+                        className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                    />
+                    다시 시도
+                </button>
+            )}
         </motion.div>
     );
 
@@ -238,6 +257,30 @@ export default function PlaceSuggestionShow({
         </div>
     );
 
+    // 비로그인 상태일 때 보여줄 컴포넌트
+    const LoginPrompt = () => (
+        <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="bg-purple-50 rounded-full p-6 mb-6">
+                <LogIn className="w-12 h-12 text-purple-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center">
+                로그인이 필요합니다
+            </h3>
+            <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
+                나만의 여행 코스 추천을 받으려면
+                <br />
+                로그인해 주세요
+            </p>
+            <button
+                onClick={handleLoginRedirect}
+                className="w-full max-w-xs bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+                <LogIn className="w-5 h-5" />
+                로그인하러 가기
+            </button>
+        </div>
+    );
+
     return (
         <div
             id="place_suggestion_wrap"
@@ -252,7 +295,7 @@ export default function PlaceSuggestionShow({
                 {!showResult && (
                     <div className="absolute top-3 right-3 md:top-4 md:right-4 z-10 bg-white rounded-full shadow-sm">
                         <div className="flex items-center">
-                            {isCreate && (
+                            {isCreate && isLogin && (
                                 <div
                                     className="p-2 cursor-pointer bg-white rounded-full hover:bg-gray-50 transition-colors"
                                     onClick={() => setIsCreate(false)}
@@ -291,7 +334,24 @@ export default function PlaceSuggestionShow({
                     </div>
                 )}
 
-                {isCreate ? (
+                {/* 비로그인 상태 처리 */}
+                {!isLogin ? (
+                    <>
+                        {/* 헤더 */}
+                        <div className="flex-shrink-0 pt-4 pb-4 px-4 md:px-6 bg-white">
+                            <h2 className="text-lg md:text-xl font-bold mb-2 text-center text-purple-500">
+                                나만의 여행 코스
+                            </h2>
+                            <p className="text-xs md:text-sm text-gray-500 text-center">
+                                당신의 여행 스타일에 맞는 코스를 추천해 드립니다
+                            </p>
+                        </div>
+                        {/* 로그인 프롬프트 */}
+                        <div className="flex-1 flex items-center justify-center">
+                            <LoginPrompt />
+                        </div>
+                    </>
+                ) : isCreate ? (
                     <UserPlaceSuggestion
                         setIsCreate={setIsCreate}
                         setShowResult={setShowResult}
@@ -443,7 +503,7 @@ export default function PlaceSuggestionShow({
                                     <button
                                         onClick={handleRefresh}
                                         disabled={isRefreshing}
-                                        className="text-white bg-purple-500 hover:bg-purple-600 disabled:text-gray-400 text-sm flex items-center gap-2"
+                                        className="text-white bg-purple-500 hover:bg-purple-600 disabled:text-gray-400 text-sm flex items-center gap-2 px-4 py-2 rounded-lg"
                                     >
                                         <RefreshCw
                                             className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
