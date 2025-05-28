@@ -62,7 +62,7 @@ const DeleteConfirmModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -158,7 +158,7 @@ const DeleteConfirmModal = ({
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
-                                className={`w-full p-3 border rounded-lg mb-4 text-center font-medium text-black ${
+                                className={`w-full p-3 border rounded-lg mb-4 focus:outline-none text-center font-medium text-black ${
                                     inputValue && !isValidInput
                                         ? "border-red-500 bg-red-50"
                                         : isValidInput

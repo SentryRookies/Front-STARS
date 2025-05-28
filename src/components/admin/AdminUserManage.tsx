@@ -28,31 +28,28 @@ interface UserStats {
 }
 
 const AdminUserManagement: React.FC = () => {
-    const [users, setUsers] = useState<UserInfo[]>([]);
+    const [userList, setUserList] = useState<UserInfo[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [stats, setStats] = useState<UserStats | null>(null);
 
     // 필터 상태
-    // const [searchInput, setSearchInput] = useState<string>(""); // 실시간 입력값 (디바운싱 적용)
-    const [searchTerm, setSearchTerm] = useState<string>(""); // 실제 검색에 사용되는 값
-    const [roleFilter, setRoleFilter] = useState<string>("all");
-    const [genderFilter, setGenderFilter] = useState<string>("all");
-    const [ageRangeFilter, setAgeRangeFilter] = useState<string>("all");
-    const [sortBy, setSortBy] = useState<string>("created_at");
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [roleFilterValue, setRoleFilterValue] = useState<string>("all");
+    const [genderFilterValue, setGenderFilterValue] = useState<string>("all");
+    const [ageRangeFilterValue, setAgeRangeFilterValue] =
+        useState<string>("all");
+    const [sortByValue, setSortByValue] = useState<string>("created_at");
+    const [sortOrderValue, setSortOrderValue] = useState<"asc" | "desc">(
+        "desc"
+    );
     const [showFilters, setShowFilters] = useState(false);
 
     // 페이지네이션
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState<number>(10);
-
-    // 모바일 대응
-    const [isMobileView, setIsMobileView] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-
-    // 인사이트 정보 창
+    const [isMobileView, setIsMobileView] = useState<boolean>(false);
     const [isInsightModalOpen, setIsInsightModalOpen] =
         useState<boolean>(false);
 
@@ -68,48 +65,68 @@ const AdminUserManagement: React.FC = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    useEffect(() => {
-        setLoading(true);
-        try {
-            getUserList().then((response) => {
-                const data = response as unknown as UserInfo[];
-                setUsers(data);
-                // setprocessedUsers(data);
-                calculateStats(data);
-            });
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
+    // 검색어 변경 핸들러
+    const handleSearchChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setSearchQuery(e.target.value);
+        },
+        []
+    );
+
+    // 검색 초기화
+    const clearSearch = useCallback(() => {
+        setSearchQuery("");
     }, []);
 
-    const currentItemsPerPage = useMemo(() => {
-        return viewMode === "grid" || isMobileView ? 9 : 10;
-    }, [viewMode, isMobileView]);
+    // 필터 초기화
+    const resetFilters = useCallback(() => {
+        setSearchQuery("");
+        setRoleFilterValue("all");
+        setGenderFilterValue("all");
+        setAgeRangeFilterValue("all");
+        setSortByValue("created_at");
+        setSortOrderValue("desc");
+    }, []);
+
+    // 데이터 로딩
+    useEffect(() => {
+        setLoading(true);
+        getUserList()
+            .then((response) => {
+                const data = response as unknown as UserInfo[];
+                setUserList(data);
+                calculateStats(data);
+            })
+            .catch((e) => {
+                console.error(e);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
 
     // 통계 계산
-    const calculateStats = useCallback((userList: UserInfo[]) => {
+    const calculateStats = useCallback((users: UserInfo[]) => {
         const currentYear = new Date().getFullYear();
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         const newStats: UserStats = {
-            totalUsers: userList.length,
-            adminUsers: userList.filter((u) => u.role === "ROLE_ADMIN").length,
-            regularUsers: userList.filter((u) => u.role === "ROLE_USER").length,
-            maleUsers: userList.filter((u) => u.gender === "male").length,
-            femaleUsers: userList.filter((u) => u.gender === "female").length,
-            newUsersThisWeek: userList.filter(
+            totalUsers: users.length,
+            adminUsers: users.filter((u) => u.role === "ROLE_ADMIN").length,
+            regularUsers: users.filter((u) => u.role === "ROLE_USER").length,
+            maleUsers: users.filter((u) => u.gender === "male").length,
+            femaleUsers: users.filter((u) => u.gender === "female").length,
+            newUsersThisWeek: users.filter(
                 (u) => new Date(u.created_at) >= oneWeekAgo
             ).length,
             averageAge:
-                userList.length > 0
+                users.length > 0
                     ? Math.round(
-                          userList.reduce(
+                          users.reduce(
                               (sum, u) => sum + (currentYear - u.birth_year),
                               0
-                          ) / userList.length
+                          ) / users.length
                       )
                     : 0,
         };
@@ -117,39 +134,38 @@ const AdminUserManagement: React.FC = () => {
         setStats(newStats);
     }, []);
 
-    // 필터링 및 정렬
+    // 필터링 및 정렬된 사용자 목록
     const processedUsers = useMemo(() => {
-        let filtered = [...users];
+        let filtered = [...userList];
 
         // 검색 필터
-        if (searchTerm.trim()) {
+        if (searchQuery.trim()) {
+            const lowerSearchTerm = searchQuery.toLowerCase();
             filtered = filtered.filter(
                 (user) =>
-                    user.user_id
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                    user.nickname
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase())
+                    user.user_id.toLowerCase().includes(lowerSearchTerm) ||
+                    user.nickname.toLowerCase().includes(lowerSearchTerm)
             );
         }
 
         // 역할 필터
-        if (roleFilter !== "all") {
-            filtered = filtered.filter((user) => user.role === roleFilter);
+        if (roleFilterValue !== "all") {
+            filtered = filtered.filter((user) => user.role === roleFilterValue);
         }
 
         // 성별 필터
-        if (genderFilter !== "all") {
-            filtered = filtered.filter((user) => user.gender === genderFilter);
+        if (genderFilterValue !== "all") {
+            filtered = filtered.filter(
+                (user) => user.gender === genderFilterValue
+            );
         }
 
         // 연령대 필터
-        if (ageRangeFilter !== "all") {
+        if (ageRangeFilterValue !== "all") {
             const currentYear = new Date().getFullYear();
             filtered = filtered.filter((user) => {
                 const age = currentYear - user.birth_year;
-                switch (ageRangeFilter) {
+                switch (ageRangeFilterValue) {
                     case "teens":
                         return age >= 10 && age < 20;
                     case "twenties":
@@ -170,7 +186,7 @@ const AdminUserManagement: React.FC = () => {
         filtered.sort((a, b) => {
             let aValue: any, bValue: any;
 
-            switch (sortBy) {
+            switch (sortByValue) {
                 case "created_at":
                     aValue = new Date(a.created_at);
                     bValue = new Date(b.created_at);
@@ -184,11 +200,11 @@ const AdminUserManagement: React.FC = () => {
                     bValue = new Date().getFullYear() - b.birth_year;
                     break;
                 default:
-                    aValue = a[sortBy as keyof UserInfo];
-                    bValue = b[sortBy as keyof UserInfo];
+                    aValue = a[sortByValue as keyof UserInfo];
+                    bValue = b[sortByValue as keyof UserInfo];
             }
 
-            if (sortOrder === "asc") {
+            if (sortOrderValue === "asc") {
                 return aValue > bValue ? 1 : -1;
             } else {
                 return aValue < bValue ? 1 : -1;
@@ -197,26 +213,20 @@ const AdminUserManagement: React.FC = () => {
 
         return filtered;
     }, [
-        users,
-        searchTerm,
-        roleFilter,
-        genderFilter,
-        ageRangeFilter,
-        sortBy,
-        sortOrder,
+        userList,
+        searchQuery,
+        roleFilterValue,
+        genderFilterValue,
+        ageRangeFilterValue,
+        sortByValue,
+        sortOrderValue,
     ]);
 
-    // 필터 초기화
-    const resetFilters = () => {
-        setSearchTerm("");
-        setRoleFilter("all");
-        setGenderFilter("all");
-        setAgeRangeFilter("all");
-        setSortBy("created_at");
-        setSortOrder("desc");
-    };
-
     // 페이지네이션 계산
+    const currentItemsPerPage = useMemo(() => {
+        return viewMode === "grid" || isMobileView ? 9 : 10;
+    }, [viewMode, isMobileView]);
+
     const indexOfLastItem = currentPage * currentItemsPerPage;
     const indexOfFirstItem = indexOfLastItem - currentItemsPerPage;
     const currentUsers = processedUsers.slice(
@@ -224,6 +234,18 @@ const AdminUserManagement: React.FC = () => {
         indexOfLastItem
     );
     const totalPages = Math.ceil(processedUsers.length / currentItemsPerPage);
+
+    // 필터가 변경될 때마다 페이지를 1로 리셋
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [
+        searchQuery,
+        roleFilterValue,
+        genderFilterValue,
+        ageRangeFilterValue,
+        sortByValue,
+        sortOrderValue,
+    ]);
 
     // 사용자 상세 보기
     const handleUserClick = (user: UserInfo) => {
@@ -241,11 +263,6 @@ const AdminUserManagement: React.FC = () => {
             minute: "2-digit",
         });
     };
-
-    useEffect(() => {
-        calculateStats(processedUsers);
-        setCurrentPage(1);
-    }, [processedUsers, calculateStats]);
 
     // 상대적 시간 계산
     const getRelativeTime = (dateString: string) => {
@@ -296,78 +313,40 @@ const AdminUserManagement: React.FC = () => {
         );
     };
 
-    // 필터 섹션 컴포넌트
-    const FilterSection = () => (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                    필터 및 검색
-                </h3>
-
-                <div className="flex items-center space-x-2">
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="md:hidden px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
-                    >
-                        {showFilters ? "필터 숨기기" : "필터 보기"}
-                    </button>
-                    <button
-                        onClick={resetFilters}
-                        className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
-                    >
-                        초기화
-                    </button>
-                    {!isMobileView && (
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => setViewMode("list")}
-                                className={`p-2 rounded-md ${viewMode === "list" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
-                            >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                </svg>
-                            </button>
-                            <button
-                                onClick={() => setViewMode("grid")}
-                                className={`p-2 rounded-md ${viewMode === "grid" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
-                            >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    )}
-                </div>
+    // 검색 입력 컴포넌트를 완전히 분리 - key prop으로 강제 안정화
+    const SearchInputComponent = (
+        <div key="search-input-stable" className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                </svg>
             </div>
-
-            <div
-                className={`space-y-4 ${!showFilters && isMobileView ? "hidden" : ""}`}
-            >
-                {/* 검색바 */}
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <input
+                type="text"
+                placeholder="사용자 ID나 닉네임으로 실시간 검색..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="block w-full pl-10 pr-10 py-2 border text-gray-600 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+            {searchQuery && (
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <button
+                        onClick={clearSearch}
+                        className="p-1 text-gray-500 hover:text-red-500 bg-white hover:bg-red-50 rounded-full focus:outline-none transition-colors"
+                        title="검색 초기화"
+                    >
                         <svg
-                            className="h-5 w-5 text-gray-400"
+                            className="h-4 w-4"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -376,177 +355,16 @@ const AdminUserManagement: React.FC = () => {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                d="M6 18L18 6M6 6l12 12"
                             />
                         </svg>
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="사용자 ID나 닉네임으로 검색..."
-                        value={searchTerm} // 또는 searchInput (디바운싱 사용 시)
-                        onChange={(e) => setSearchTerm(e.target.value)} // 또는 setSearchInput (디바운싱 사용 시)
-                        className="block w-full pl-10 pr-3 py-2 border text-gray-600 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    </button>
                 </div>
-
-                {/* 필터 옵션들 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* 역할 필터 */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            역할
-                        </label>
-                        <select
-                            value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value)}
-                            className="block w-full px-3 py-2 border bg-white text-gray-800 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="all">모든 역할</option>
-                            <option value="ROLE_USER">일반 사용자</option>
-                            <option value="ROLE_ADMIN">관리자</option>
-                        </select>
-                    </div>
-
-                    {/* 성별 필터 */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            성별
-                        </label>
-                        <select
-                            value={genderFilter}
-                            onChange={(e) => setGenderFilter(e.target.value)}
-                            className="block w-full px-3 py-2 border bg-white text-gray-800 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="all">모든 성별</option>
-                            <option value="male">남성</option>
-                            <option value="female">여성</option>
-                        </select>
-                    </div>
-
-                    {/* 연령대 필터 */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            연령대
-                        </label>
-                        <select
-                            value={ageRangeFilter}
-                            onChange={(e) => setAgeRangeFilter(e.target.value)}
-                            className="block w-full px-3 py-2 border bg-white text-gray-800 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="all">모든 연령</option>
-                            <option value="teens">10대</option>
-                            <option value="twenties">20대</option>
-                            <option value="thirties">30대</option>
-                            <option value="forties">40대</option>
-                            <option value="fifties">50대 이상</option>
-                        </select>
-                    </div>
-
-                    {/* 정렬 옵션 */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            정렬
-                        </label>
-                        <div className="flex space-x-2">
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className="flex-1 px-3 py-2 border bg-white text-gray-800 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="created_at">가입일</option>
-                                <option value="nickname">닉네임</option>
-                                <option value="age">나이</option>
-                            </select>
-                            <button
-                                onClick={() =>
-                                    setSortOrder(
-                                        sortOrder === "asc" ? "desc" : "asc"
-                                    )
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {sortOrder === "asc" ? "↑" : "↓"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 활성 필터 표시 */}
-                {(searchTerm ||
-                    roleFilter !== "all" ||
-                    genderFilter !== "all" ||
-                    ageRangeFilter !== "all") && (
-                    <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
-                        <span className="text-sm text-gray-600">
-                            활성 필터:
-                        </span>
-                        {searchTerm && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                검색: {searchTerm}
-                                <button
-                                    onClick={() => {
-                                        setSearchTerm("");
-                                    }}
-                                    className="ml-1 bg-blue-100 text-blue-600 hover:text-blue-800"
-                                >
-                                    ×
-                                </button>
-                            </span>
-                        )}
-                        {roleFilter !== "all" && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                역할:{" "}
-                                {roleFilter === "ROLE_ADMIN"
-                                    ? "관리자"
-                                    : "일반사용자"}
-                                <button
-                                    onClick={() => setRoleFilter("all")}
-                                    className="ml-1 bg-green-100 text-green-600 hover:text-green-800"
-                                >
-                                    ×
-                                </button>
-                            </span>
-                        )}
-                        {genderFilter !== "all" && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                성별:{" "}
-                                {genderFilter === "male" ? "남성" : "여성"}
-                                <button
-                                    onClick={() => setGenderFilter("all")}
-                                    className="ml-1 bg-purple-100 text-purple-600 hover:text-purple-800"
-                                >
-                                    ×
-                                </button>
-                            </span>
-                        )}
-                        {ageRangeFilter !== "all" && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                연령:{" "}
-                                {ageRangeFilter === "teens"
-                                    ? "10대"
-                                    : ageRangeFilter === "twenties"
-                                      ? "20대"
-                                      : ageRangeFilter === "thirties"
-                                        ? "30대"
-                                        : ageRangeFilter === "forties"
-                                          ? "40대"
-                                          : "50대+"}
-                                <button
-                                    onClick={() => setAgeRangeFilter("all")}
-                                    className="ml-1 bg-orange-100 text-orange-600 hover:text-orange-800"
-                                >
-                                    ×
-                                </button>
-                            </span>
-                        )}
-                    </div>
-                )}
-            </div>
+            )}
         </div>
     );
 
     // 페이지네이션 컴포넌트
-    // 페이지네이션 컴포넌트 수정
     const Pagination = () => {
         if (totalPages <= 1) return null;
 
@@ -582,9 +400,8 @@ const AdminUserManagement: React.FC = () => {
 
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-4">
-                {/* 데스크톱용 페이징 (sm 이상에서만 표시) */}
+                {/* 데스크톱용 페이징 */}
                 <div className="hidden sm:flex items-center justify-between">
-                    {/* 페이지 정보 - 왼쪽 */}
                     <div className="text-sm text-gray-700">
                         <span className="font-medium">
                             {indexOfFirstItem + 1}
@@ -600,9 +417,7 @@ const AdminUserManagement: React.FC = () => {
                         개 항목
                     </div>
 
-                    {/* 페이지네이션 버튼들 - 가운데 */}
                     <div className="flex items-center space-x-2">
-                        {/* 이전 페이지 버튼 */}
                         <button
                             onClick={() =>
                                 setCurrentPage(Math.max(1, currentPage - 1))
@@ -617,7 +432,6 @@ const AdminUserManagement: React.FC = () => {
                             <ChevronLeft className="w-4 h-4" />
                         </button>
 
-                        {/* 페이지 번호들 */}
                         {getVisiblePages().map((page, index) => (
                             <React.Fragment key={index}>
                                 {page === "..." ? (
@@ -641,7 +455,6 @@ const AdminUserManagement: React.FC = () => {
                             </React.Fragment>
                         ))}
 
-                        {/* 다음 페이지 버튼 */}
                         <button
                             onClick={() =>
                                 setCurrentPage(
@@ -659,13 +472,11 @@ const AdminUserManagement: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* 오른쪽 빈 공간 (균형을 위해) */}
                     <div></div>
                 </div>
 
-                {/* 모바일용 페이징 (sm 이하에서만 표시) */}
+                {/* 모바일용 페이징 */}
                 <div className="sm:hidden">
-                    {/* 페이지 정보 */}
                     <div className="text-center text-sm text-gray-700 mb-4">
                         <span className="font-medium">
                             {indexOfFirstItem + 1}
@@ -681,7 +492,6 @@ const AdminUserManagement: React.FC = () => {
                         개 항목
                     </div>
 
-                    {/* 페이징 버튼들 */}
                     <div className="flex justify-between items-center">
                         <button
                             onClick={() =>
@@ -827,7 +637,283 @@ const AdminUserManagement: React.FC = () => {
                 )}
 
                 {/* 필터 섹션 */}
-                <FilterSection />
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">
+                            필터 및 검색
+                        </h3>
+
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="md:hidden px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                            >
+                                {showFilters ? "필터 숨기기" : "필터 보기"}
+                            </button>
+                            <button
+                                onClick={resetFilters}
+                                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                            >
+                                초기화
+                            </button>
+                            {!isMobileView && (
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={() => setViewMode("list")}
+                                        className={`p-2 rounded-md ${viewMode === "list" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+                                    >
+                                        <svg
+                                            className="w-4 h-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 6h16M4 12h16M4 18h16"
+                                            />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode("grid")}
+                                        className={`p-2 rounded-md ${viewMode === "grid" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+                                    >
+                                        <svg
+                                            className="w-4 h-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div
+                        className={`space-y-4 ${!showFilters && isMobileView ? "hidden" : ""}`}
+                    >
+                        {/* 실시간 검색바 */}
+                        {SearchInputComponent}
+
+                        {/* 나머지 필터 옵션들 - 컴팩트하게 */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {/* 역할 필터 */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    역할
+                                </label>
+                                <select
+                                    value={roleFilterValue}
+                                    onChange={(e) =>
+                                        setRoleFilterValue(e.target.value)
+                                    }
+                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="all">전체</option>
+                                    <option value="ROLE_USER">일반</option>
+                                    <option value="ROLE_ADMIN">관리자</option>
+                                </select>
+                            </div>
+
+                            {/* 성별 필터 */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    성별
+                                </label>
+                                <select
+                                    value={genderFilterValue}
+                                    onChange={(e) =>
+                                        setGenderFilterValue(e.target.value)
+                                    }
+                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="all">전체</option>
+                                    <option value="male">남성</option>
+                                    <option value="female">여성</option>
+                                </select>
+                            </div>
+
+                            {/* 연령대 필터 */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    연령대
+                                </label>
+                                <select
+                                    value={ageRangeFilterValue}
+                                    onChange={(e) =>
+                                        setAgeRangeFilterValue(e.target.value)
+                                    }
+                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="all">전체</option>
+                                    <option value="teens">10대</option>
+                                    <option value="twenties">20대</option>
+                                    <option value="thirties">30대</option>
+                                    <option value="forties">40대</option>
+                                    <option value="fifties">50대+</option>
+                                </select>
+                            </div>
+
+                            {/* 정렬 옵션 */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    정렬
+                                </label>
+                                <div className="flex space-x-1">
+                                    <select
+                                        value={sortByValue}
+                                        onChange={(e) =>
+                                            setSortByValue(e.target.value)
+                                        }
+                                        className="flex-1 px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="created_at">
+                                            가입일
+                                        </option>
+                                        <option value="nickname">닉네임</option>
+                                        <option value="age">나이</option>
+                                    </select>
+                                    <button
+                                        onClick={() =>
+                                            setSortOrderValue(
+                                                sortOrderValue === "asc"
+                                                    ? "desc"
+                                                    : "asc"
+                                            )
+                                        }
+                                        className="px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        title={
+                                            sortOrderValue === "asc"
+                                                ? "내림차순으로 변경"
+                                                : "오름차순으로 변경"
+                                        }
+                                    >
+                                        {sortOrderValue === "asc" ? "↑" : "↓"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 활성 필터 표시 */}
+                        {(searchQuery ||
+                            roleFilterValue !== "all" ||
+                            genderFilterValue !== "all" ||
+                            ageRangeFilterValue !== "all") && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
+                                <span className="text-sm text-gray-600">
+                                    활성 필터:
+                                </span>
+                                {searchQuery && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        검색: {searchQuery}
+                                        <button
+                                            onClick={clearSearch}
+                                            className="ml-1 bg-blue-100 text-blue-600 hover:text-blue-800"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                )}
+                                {roleFilterValue !== "all" && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        역할:{" "}
+                                        {roleFilterValue === "ROLE_ADMIN"
+                                            ? "관리자"
+                                            : "일반사용자"}
+                                        <button
+                                            onClick={() =>
+                                                setRoleFilterValue("all")
+                                            }
+                                            className="ml-1 bg-green-100 text-green-600 hover:text-green-800"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                )}
+                                {genderFilterValue !== "all" && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        성별:{" "}
+                                        {genderFilterValue === "male"
+                                            ? "남성"
+                                            : "여성"}
+                                        <button
+                                            onClick={() =>
+                                                setGenderFilterValue("all")
+                                            }
+                                            className="ml-1 bg-purple-100 text-purple-600 hover:text-purple-800"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                )}
+                                {ageRangeFilterValue !== "all" && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                        연령:{" "}
+                                        {ageRangeFilterValue === "teens"
+                                            ? "10대"
+                                            : ageRangeFilterValue === "twenties"
+                                              ? "20대"
+                                              : ageRangeFilterValue ===
+                                                  "thirties"
+                                                ? "30대"
+                                                : ageRangeFilterValue ===
+                                                    "forties"
+                                                  ? "40대"
+                                                  : "50대+"}
+                                        <button
+                                            onClick={() =>
+                                                setAgeRangeFilterValue("all")
+                                            }
+                                            className="ml-1 bg-orange-100 text-orange-600 hover:text-orange-800"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {/* 검색 결과 요약 */}
+                        {processedUsers.length !== userList.length && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg
+                                            className="h-5 w-5 text-blue-400"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-blue-700">
+                                            전체 {userList.length}명 중{" "}
+                                            <strong>
+                                                {processedUsers.length}명
+                                            </strong>
+                                            이 필터 조건과 일치합니다.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 {loading ? (
                     <LoadingSkeleton />
@@ -872,43 +958,6 @@ const AdminUserManagement: React.FC = () => {
                                                     </span>
                                                 </div>
                                             </div>
-
-                                            {/*<div className="space-y-2 mb-3">*/}
-                                            {/*    <div className="flex items-center justify-between text-sm">*/}
-                                            {/*        <span className="text-gray-600">*/}
-                                            {/*            나이*/}
-                                            {/*        </span>*/}
-                                            {/*        <span className="font-medium text-gray-600">*/}
-                                            {/*            {getGenderIcon(*/}
-                                            {/*                user.gender*/}
-                                            {/*            )}{" "}*/}
-                                            {/*            {calculateAge(*/}
-                                            {/*                user.birth_year*/}
-                                            {/*            )}*/}
-                                            {/*            세*/}
-                                            {/*        </span>*/}
-                                            {/*    </div>*/}
-                                            {/*    <div className="flex items-center justify-between text-sm">*/}
-                                            {/*        <span className="text-gray-600">*/}
-                                            {/*            MBTI*/}
-                                            {/*        </span>*/}
-                                            {/*        <span*/}
-                                            {/*            className={`px-2 py-1 rounded-full text-xs font-medium ${getMBTIColor(user.mbti)}`}*/}
-                                            {/*        >*/}
-                                            {/*            {user.mbti}*/}
-                                            {/*        </span>*/}
-                                            {/*    </div>*/}
-                                            {/*    <div className="flex items-center justify-between text-sm">*/}
-                                            {/*        <span className="text-gray-600">*/}
-                                            {/*            가입일*/}
-                                            {/*        </span>*/}
-                                            {/*        <span className="text-gray-500">*/}
-                                            {/*            {getRelativeTime(*/}
-                                            {/*                user.created_at*/}
-                                            {/*            )}*/}
-                                            {/*        </span>*/}
-                                            {/*    </div>*/}
-                                            {/*</div>*/}
                                         </div>
                                     ))}
                                 </div>
@@ -1085,7 +1134,7 @@ const AdminUserManagement: React.FC = () => {
                                     </h3>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
-                                        className="text-white bg-indigo-500 hover:text-gray-600"
+                                        className="text-gray-400 hover:text-gray-600"
                                     >
                                         <svg
                                             className="w-6 h-6"
@@ -1182,6 +1231,7 @@ const AdminUserManagement: React.FC = () => {
                         </div>
                     </div>
                 )}
+
                 <UserInsightDashboard
                     users={processedUsers}
                     isVisible={isInsightModalOpen}

@@ -1013,11 +1013,11 @@ const AdminTraffic = () => {
                             {searchTerm && (
                                 <button
                                     onClick={clearSearch}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black bg-gray-50 hover:bg-red-500 hover:text-white"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black bg-gray-50 hover:bg-red-500 hover:text-white p-1 rounded"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5"
+                                        className="h-3 w-3"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
