@@ -225,7 +225,6 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                             )}
                         </div>
                     </div>
-                    ;
                     <p className="md:text-4xl text-2xl font-bold text-gray-900">
                         약 <span ref={visitorCountRef}></span>명
                     </p>
@@ -233,7 +232,7 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
 
                 {/* 장소 요약 */}
                 <motion.div
-                    className="bg-indigo-500 text-white rounded-2xl shadow-2xl p-6 md:w-auto max-w-72 w-auto"
+                    className="bg-indigo-500 text-white rounded-2xl shadow-2xl p-4 md:w-auto max-w-72 w-auto"
                     whileHover={{ y: -8 }}
                 >
                     <h3 className="text-xl font-extrabold mb-4 tracking-tight">
@@ -259,11 +258,11 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                                     }}
                                     aria-disabled={isDisabled}
                                 >
-                                    <span className="capitalize font-medium">
+                                    <span className="capitalize font-medium md:text-base text-sm">
                                         {typeLabelMap[type] ?? type}
                                     </span>
                                     <span
-                                        className={`text-sm font-bold ${isDisabled ? "text-yellow-200" : "text-yellow-50"}`}
+                                        className={`text-sm font-bold ${isDisabled ? "text-gray-300" : "text-white"}`}
                                     >
                                         {count}곳
                                     </span>
