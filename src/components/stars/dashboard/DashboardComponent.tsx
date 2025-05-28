@@ -361,6 +361,7 @@ export default function DashboardComponent() {
                             ? congestionInfo.area_congest_lvl
                             : "보통"
                     }
+                    congestionInfo={congestionInfo}
                 />
 
                 <CongestionStatusCard

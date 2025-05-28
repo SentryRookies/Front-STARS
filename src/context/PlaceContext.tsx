@@ -17,7 +17,7 @@ interface ForecastPopulation {
     fcst_ppltn_max: number;
 }
 
-interface CongestionData {
+export interface CongestionData {
     area_id: number;
     area_nm: string;
     area_congest_lvl: string;
@@ -25,6 +25,7 @@ interface CongestionData {
     area_ppltn_min: number;
     area_ppltn_max: number;
     ppltn_time: string;
+    get_time: string;
     fcst_ppltn?: ForecastPopulation[];
     male_ppltn_rate?: number;
     female_ppltn_rate?: number;
