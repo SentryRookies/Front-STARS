@@ -70,6 +70,8 @@ const TrafficMapDemo: React.FC<TrafficMapProps> = ({
                 map.current.boxZoom.disable();
                 map.current.keyboard.disable();
                 setIsMapActive(false); // ✅ blur 추가
+
+                moveToSelectedArea();
             }
         };
 
