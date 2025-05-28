@@ -240,7 +240,7 @@ export default function AdminComponent() {
                             </div>
                         </div>
 
-                        <div className="p-2 h-[84vh] overflow-y-auto">
+                        <div className="p-2 md:h-[84vh] h-[40vh] overflow-y-auto">
                             <div className="space-y-2">
                                 {isLoading && touristSpotsData.length === 0 ? (
                                     [...Array(4)].map((_, idx) => (
@@ -361,7 +361,7 @@ export default function AdminComponent() {
                                     )}
                                 </div>
                             </div>
-                            <div className="h-[25vh]">
+                            <div className="md:h-[25vh] h-[40vh]">
                                 <AccidentCard
                                     accidentData={accidentData}
                                     isLoading={isLoading}
