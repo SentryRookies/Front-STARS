@@ -12,9 +12,9 @@ import TrafficInfoCard from "./TrafficInfoCard";
 // import ParkingInfoCard from "./ParkingInfoCard";
 import AccidentAlertCard from "./AccidentAlertCard";
 import CongestionStatusCard from "./CongestionStatusCard";
-import AttractionCard from "./AttractionCard";
+import ClickInfoCard from "./ClickInfoCard";
 import AttractionTableCard from "./AttractionCard";
-import CulturalEventCard from "./CulturalEventCard";
+// import CulturalEventCard from "./CulturalEventCard";
 import CulturalEventSlider from "./CulturalEventSlider";
 import { scrollToTop } from "../../../utils/scrollToTop";
 
@@ -39,6 +39,8 @@ interface POI {
     name: string;
     address: string;
     tel: string;
+    lon: number;
+    lat: number;
     type: "cafe" | "restaurant" | "accommodation";
 }
 
@@ -47,6 +49,8 @@ interface POIRawItem {
     cafe_name?: string;
     address: string;
     phone?: string;
+    lon: number;
+    lat: number;
 }
 
 interface Attraction {
@@ -54,15 +58,21 @@ interface Attraction {
     address: string;
     phone?: string;
     homepage_url?: string;
+    lat: number;
+    lon: number;
 }
 
 interface CulturalEvent {
-    title: string;
+    name: string;
     address: string;
+    category: string;
+    target: string;
     start_date: string;
     end_date: string;
     event_fee?: string;
     event_img?: string;
+    lat: number;
+    lon: number;
 }
 
 interface WeatherForecast {
@@ -211,6 +221,8 @@ export default function DashboardComponent() {
                             name: item.name || item.cafe_name || "이름 없음",
                             address: item.address,
                             tel: item.phone || "정보없음",
+                            lon: item.lon,
+                            lat: item.lat,
                             type: poiType,
                         }));
                     });
@@ -397,6 +409,11 @@ export default function DashboardComponent() {
                     accidentData={selectedAccidents}
                 />
 
+                <ClickInfoCard
+                    style={cardStyles[99]}
+                    cardRef={(el) => (cardRefs.current[99] = el)}
+                />
+
                 <POITableCard
                     title="카페"
                     pois={cafePOIs}
@@ -432,13 +449,11 @@ export default function DashboardComponent() {
                 {/*))}*/}
 
                 {/* 관광지 카드 - 리스트형 하나로 묶어서 출력 */}
-                {attractions.length > 0 && (
-                    <AttractionTableCard
-                        attractions={attractions}
-                        style={cardStyles[100]} // 인덱스는 하나만 사용
-                        cardRef={(el) => (cardRefs.current[100] = el)}
-                    />
-                )}
+                <AttractionTableCard
+                    attractions={attractions}
+                    style={cardStyles[100]}
+                    cardRef={(el) => (cardRefs.current[100] = el)}
+                />
 
                 <CulturalEventSlider
                     events={events}
