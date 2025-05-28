@@ -50,7 +50,7 @@ const beforeReq = async (
 
     if (!userInfo) {
         console.error("토큰 정보를 찾을 수 없습니다. 로그인 필요");
-        handleLogout("로그인이 필요합니다.");
+        // handleLogout("로그인이 필요합니다.");
         return Promise.reject({
             response: {
                 data: {
