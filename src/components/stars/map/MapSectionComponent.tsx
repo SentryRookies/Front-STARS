@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl, { LngLatLike, NavigationControl } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { usePlace } from "../../../context/PlaceContext";
-import SearchBar from "./SearchBar";
+import SearchBar from "../search/SearchBar";
 import useCustomLogin from "../../../hooks/useCustomLogin";
 import AlertModal from "../../alert/AlertModal";
 import useCongestionAlert from "../../../hooks/useCongestionAlert";
@@ -17,7 +17,7 @@ import {
 } from "../../../api/mypageApi";
 import { Favorite } from "../../../data/adminData";
 import { AccidentAlertModal } from "../../alert/AccidentModal";
-import PlaceSuggestion from "./PlaceSuggestion";
+import PlaceSuggestion from "../suggestion/PlaceSuggestion";
 import CustomControl, { LocationControl } from "./CustomControl";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;

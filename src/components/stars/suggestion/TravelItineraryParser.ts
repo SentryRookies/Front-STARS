@@ -4,7 +4,7 @@ import {
     ParsedItinerary,
     DaySchedule,
     TimeItem,
-} from "../../../../data/TravelItineraryTypes";
+} from "../../../data/TravelItineraryTypes";
 
 // 이모지 처리 함수
 function improveEmojiHandling(text: string): string {
@@ -165,7 +165,7 @@ export function parseItineraryFromMarkdown(
         const subItemMatch = line.match(subItemPattern);
         if (subItemMatch && currentTimeItem) {
             // 이모지는 유지하고 세부 내용 추가
-            let detail = removeDollarSign(
+            const detail = removeDollarSign(
                 improveEmojiHandling(subItemMatch[1].trim())
             ); // 이모지 처리 및 $ 기호 제거
 

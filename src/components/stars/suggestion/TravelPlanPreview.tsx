@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { Calendar, Clock, Coffee, Heart, Home, MapPin } from "lucide-react";
 import { Suggestion } from "./PlaceSuggestionShow";
 import { parseItineraryFromMarkdown } from "./TravelItineraryParser";
-import { DaySchedule, TimeItem } from "../../../../data/TravelItineraryTypes";
+import { DaySchedule, TimeItem } from "../../../data/TravelItineraryTypes";
 
 interface ImprovedTravelItineraryProps {
     suggestion: Suggestion;

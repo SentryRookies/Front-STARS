@@ -7,7 +7,7 @@ import {
     searchByAddress,
     SearchResult,
 } from "../../../api/searchApi";
-import type { Area } from "./MapSectionComponent";
+import type { Area } from "../map/MapSectionComponent";
 
 interface SearchBarProps {
     keyword?: string; // 추가

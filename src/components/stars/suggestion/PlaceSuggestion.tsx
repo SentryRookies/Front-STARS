@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import PlaceSuggestionShow from "./suggestion/PlaceSuggestionShow";
+import PlaceSuggestionShow from "./PlaceSuggestionShow";
 
 export default function PlaceSuggestion() {
     const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);

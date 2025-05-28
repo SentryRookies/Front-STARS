@@ -8,7 +8,6 @@ import AdminTour from "../components/admin/AdminTour";
 import AdminUserFavorite from "../components/admin/AdminUserFavorite";
 import LoginPage from "../pages/login/LoginPage";
 import AdminTraffic from "../components/admin/AdminTraffic";
-import Test from "../components/test/test";
 import AdminUserManagement from "../components/admin/AdminUserManage";
 
 export default function AppRoutes() {
@@ -28,8 +27,6 @@ export default function AppRoutes() {
                 <Route path="traffic" element={<AdminTraffic />} />
                 <Route path="user" element={<AdminUserManagement />} />
             </Route>
-
-            <Route path="test" element={<Test />} />
         </Routes>
     );
 }

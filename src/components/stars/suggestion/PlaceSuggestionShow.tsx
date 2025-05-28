@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Calendar, Coffee, RefreshCw, LogIn } from "lucide-react";
-import { getUserSuggestionList } from "../../../../api/suggestionApi";
+import { getUserSuggestionList } from "../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
 import UserPlaceSuggestion from "./UserPlaceSuggestion";
 import { Undo2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { UserInfo as UserInfoType } from "../../../../data/UserInfoData";
-import { getUserProfile } from "../../../../api/mypageApi";
-import useCustomLogin from "../../../../hooks/useCustomLogin";
+import { UserInfo as UserInfoType } from "../../../data/UserInfoData";
+import { getUserProfile } from "../../../api/mypageApi";
+import useCustomLogin from "../../../hooks/useCustomLogin";
 
 interface SuggestionProps {
     isOpen: boolean;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { createUserSuggestion } from "../../../../api/suggestionApi";
-import { UserInfo as UserInfoType } from "../../../../data/UserInfoData";
+import { createUserSuggestion } from "../../../api/suggestionApi";
+import { UserInfo as UserInfoType } from "../../../data/UserInfoData";
 import { Suggestion } from "./PlaceSuggestionShow";
 
 type UserPlaceSuggestionProps = {
