@@ -72,11 +72,6 @@ export default function Menu({
                 {/* 헤더 */}
                 <div className="flex p-2 justify-between items-center sticky top-0 z-10">
                     <div className="flex items-center">
-                        <img
-                            src="/aiImage.png"
-                            alt="추천 명소 아이콘"
-                            className="w-6 h-6 mr-2"
-                        />
                         <h2 className="text-lg font-bold text-gray-800">
                             추천 명소
                         </h2>
