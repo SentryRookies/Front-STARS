@@ -877,27 +877,22 @@ const AdminTraffic = () => {
         }
     };
 
-    // 혼잡도 표시 토글 함수
+    // 혼잡도 표시 토글 함수 - 수정된 부분
     const toggleCongestionView = () => {
         if (!map.current) return;
 
-        // 현재 혼잡도 표시 상태 확인
-        const existingLayers = map.current.getStyle().layers || [];
-        const hasCongestionLayers = existingLayers.some((layer) =>
-            layer.id.startsWith("congestion-circle-layer-")
-        );
-
-        if (hasCongestionLayers) {
+        if (showCongestionView) {
             // 혼잡도 표시 해제 - 모든 레이어 제거
             clearAllLayers(); // 모든 레이어(도로, 혼잡도, 주차장) 제거
 
-            // 선택된 지역이 있으면 해당 지역 표시
+            // 선택된 지역이 있으면 해당 지역으로 이동하고 표시
             if (selectedArea) {
                 const area = mapData.find(
                     (area) => area.area_nm === selectedArea
                 );
                 if (area) {
-                    highlightAreaData(area);
+                    // 지역으로 이동하고 상세 정보 표시
+                    moveToSelectedArea(area);
                 }
             }
         } else {

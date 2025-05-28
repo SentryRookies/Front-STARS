@@ -4,7 +4,7 @@ import axios, {
     AxiosError,
     AxiosHeaders,
 } from "axios";
-import { getCookie, setCookie } from "./cookieUtil";
+import { getCookie, setCookie, removeCookie } from "./cookieUtil";
 import { refreshToken as refreshTokenApi } from "../api/authApi";
 
 // axios 인스턴스 생성
@@ -21,13 +21,36 @@ interface ErrorResponse {
     [key: string]: unknown;
 }
 
+// 로그아웃 처리 함수
+const handleLogout = (
+    message: string = "로그인 세션이 만료되었습니다. 다시 로그인해주세요."
+) => {
+    // 쿠키에서 사용자 정보 삭제
+    removeCookie("user");
+
+    // 로컬 스토리지나 세션 스토리지도 필요시 정리
+    localStorage.removeItem("user");
+    sessionStorage.clear();
+
+    // 사용자에게 알림
+    alert(message);
+
+    // 로그인 페이지로 리다이렉트
+    window.location.href = "/map";
+
+    // 또는 React Router를 사용하는 경우:
+    // navigate("/login", { replace: true });
+};
+
 const beforeReq = async (
     config: InternalAxiosRequestConfig
 ): Promise<InternalAxiosRequestConfig> => {
     const userInfo = getCookie<UserCookie>("user");
     console.log("요청 직전 accessToken:", userInfo?.accessToken);
+
     if (!userInfo) {
         console.error("토큰 정보를 찾을 수 없습니다. 로그인 필요");
+        handleLogout("로그인이 필요합니다.");
         return Promise.reject({
             response: {
                 data: {
@@ -68,13 +91,14 @@ const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
                 }
             )?._retry
         ) {
-            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+            // 토큰 갱신도 실패했으므로 완전한 로그아웃 처리
+            handleLogout("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
             return Promise.reject("REQUIRE_LOGIN");
         }
 
         const user = getCookie<UserCookie>("user");
         if (!user) {
-            alert("로그인 정보가 만료되었습니다.");
+            handleLogout("로그인 정보가 만료되었습니다.");
             return Promise.reject("REQUIRE_LOGIN");
         }
 
@@ -83,7 +107,7 @@ const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
             const result = await refreshTokenApi();
 
             if (!result.accessToken) {
-                alert("로그인 정보가 만료되었습니다.");
+                handleLogout("로그인 정보가 만료되었습니다.");
                 return Promise.reject("REQUIRE_LOGIN");
             }
 
@@ -111,7 +135,9 @@ const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
 
             return axios(originalRequest);
         } catch (refreshError) {
-            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+            console.error("토큰 갱신 실패:", refreshError);
+            // 토큰 갱신 실패 시 완전한 로그아웃 처리
+            handleLogout("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
             return Promise.reject(refreshError);
         }
     }

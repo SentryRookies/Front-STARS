@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapPin, Calendar, Coffee } from "lucide-react";
+import { MapPin, Calendar, Coffee, RefreshCw } from "lucide-react";
 import { getUserSuggestionList } from "../../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
 import UserPlaceSuggestion from "./UserPlaceSuggestion";
@@ -8,7 +8,6 @@ import { motion } from "framer-motion";
 
 import { UserInfo as UserInfoType } from "../../../../data/UserInfoData";
 import { getUserProfile } from "../../../../api/mypageApi";
-import useCustomLogin from "../../../../hooks/useCustomLogin";
 
 interface SuggestionProps {
     isOpen: boolean;
@@ -52,6 +51,8 @@ export default function PlaceSuggestionShow({
     const [isCreate, setIsCreate] = useState<boolean>(false);
     // 로딩 상태
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    // 새로고침 로딩 상태 (별도 관리)
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     // 에러 상태
     const [error, setError] = useState<string | null>(null);
 
@@ -61,20 +62,22 @@ export default function PlaceSuggestionShow({
         {} as Suggestion
     );
 
-    const { isLogin } = useCustomLogin();
-
     // 데이터 로딩 상태 관리 - 처음 한 번만 로딩하기 위한 ref
     const isInitialized = useRef<boolean>(false);
     const hasLoadedData = useRef<boolean>(false);
 
     // 사용자 정보 불러오는 함수
-    const loadUserInfo = async () => {
-        if (hasLoadedData.current) {
+    const loadUserInfo = async (isRefresh: boolean = false) => {
+        if (!isRefresh && hasLoadedData.current) {
             console.log("이미 데이터가 로드되어 있습니다. 재로딩 생략.");
             return;
         }
 
-        setIsLoading(true);
+        if (isRefresh) {
+            setIsRefreshing(true);
+        } else {
+            setIsLoading(true);
+        }
         setError(null);
 
         try {
@@ -84,8 +87,10 @@ export default function PlaceSuggestionShow({
                 setUserData(response);
                 console.log("회원정보 로드:", response);
 
-                await loadSuggestion(response.user_id);
-                hasLoadedData.current = true; // 데이터 로딩 완료 플래그 설정
+                await loadSuggestion(response.user_id, isRefresh);
+                if (!isRefresh) {
+                    hasLoadedData.current = true; // 데이터 로딩 완료 플래그 설정
+                }
             } else {
                 setError("사용자 정보를 불러오는데 실패했습니다.");
                 setUserData(initialUserData);
@@ -95,12 +100,19 @@ export default function PlaceSuggestionShow({
             setError("로그인 후 이용 가능합니다.");
             setUserData(initialUserData);
         } finally {
-            setIsLoading(false);
+            if (isRefresh) {
+                setIsRefreshing(false);
+            } else {
+                setIsLoading(false);
+            }
         }
     };
 
     // suggestion 과거 데이터 로드 함수
-    const loadSuggestion = async (userId: string | undefined) => {
+    const loadSuggestion = async (
+        userId: string | undefined,
+        isRefresh: boolean = false
+    ) => {
         if (!userId) return;
 
         try {
@@ -110,6 +122,11 @@ export default function PlaceSuggestionShow({
             if (response) {
                 setSuggestionList(response);
                 console.log("추천 목록:", response);
+
+                // 새로고침 성공 시 성공 메시지 (선택사항)
+                if (isRefresh) {
+                    console.log("새로고침 완료");
+                }
             } else {
                 setError(
                     response.message ||
@@ -124,15 +141,21 @@ export default function PlaceSuggestionShow({
         }
     };
 
+    // 새로고침 핸들러
+    const handleRefresh = async () => {
+        console.log("수동 새로고침 시작");
+        await loadUserInfo(true);
+    };
+
     // 새 데이터 추가 후 목록 새로고침 - 필요할 때만 호출
-    // const refreshSuggestionList = async () => {
-    //     if (!userData?.user_id) return;
-    //
-    //     console.log("새 추천 생성 후 목록 새로고침");
-    //     setIsLoading(true);
-    //     await loadSuggestion(userData.user_id);
-    //     setIsLoading(false);
-    // };
+    const refreshSuggestionList = async () => {
+        if (!userData?.user_id) return;
+
+        console.log("새 추천 생성 후 목록 새로고침");
+        setIsLoading(true);
+        await loadSuggestion(userData.user_id);
+        setIsLoading(false);
+    };
 
     // 컴포넌트 마운트 시 한 번만 데이터 로딩
     useEffect(() => {
@@ -185,6 +208,16 @@ export default function PlaceSuggestionShow({
                 />
             </svg>
             <p className="mb-4">{error}</p>
+            <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
+            >
+                <RefreshCw
+                    className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+                다시 시도
+            </button>
         </motion.div>
     );
 
@@ -286,11 +319,23 @@ export default function PlaceSuggestionShow({
                             <p className="text-xs md:text-sm text-gray-500 text-center">
                                 당신의 여행 스타일에 맞는 코스를 추천해 드립니다
                             </p>
-                            <div className="mt-4">
+                            <div className="mt-4 flex items-center justify-between">
                                 <h3 className="text-sm md:text-base font-semibold text-gray-700 flex items-center">
                                     <Calendar className="w-4 h-4 mr-1.5 text-purple-500" />
                                     이전 여행 코스
                                 </h3>
+                                {/* 새로고침 버튼 */}
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing || isLoading}
+                                    className="p-2 text-white bg-purple-500 hover:bg-purple-600 disabled:text-gray-400 disabled:hover:bg-transparent rounded-full transition-colors"
+                                    aria-label="목록 새로고침"
+                                    title="목록 새로고침"
+                                >
+                                    <RefreshCw
+                                        className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                                    />
+                                </button>
                             </div>
                         </div>
 
@@ -310,84 +355,101 @@ export default function PlaceSuggestionShow({
                                 <ErrorMessage />
                             ) : suggestionList.length != 0 ? (
                                 <div className="space-y-3 pb-4">
-                                    {suggestionList.map((item, index) => (
-                                        <div
-                                            key={index}
-                                            className="p-3 md:p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-gray-100 shadow-sm"
-                                            onClick={() => {
-                                                setSuggestionResult(item);
-                                                setShowResult(true);
-                                            }}
-                                        >
-                                            {/* 날짜/시간 정보 */}
-                                            <div className="flex justify-between items-center mb-2">
-                                                <div className="text-xs md:text-sm font-medium text-gray-900">
+                                    {/* 새로고침 중일 때 반투명 오버레이 */}
+                                    <div
+                                        className={`${isRefreshing ? "opacity-50 pointer-events-none" : ""} transition-opacity duration-200`}
+                                    >
+                                        {suggestionList.map((item, index) => (
+                                            <div
+                                                key={index}
+                                                className="p-3 md:p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-gray-100 shadow-sm"
+                                                onClick={() => {
+                                                    setSuggestionResult(item);
+                                                    setShowResult(true);
+                                                }}
+                                            >
+                                                {/* 날짜/시간 정보 */}
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <div className="text-xs md:text-sm font-medium text-gray-900">
+                                                        {formatDateTime(
+                                                            item.start_time
+                                                        )
+                                                            .split(" ")
+                                                            .slice(0, 3)
+                                                            .join(" ")}
+                                                    </div>
+                                                    <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                                        {new Date(
+                                                            item.finish_time
+                                                        ).getDate() -
+                                                            new Date(
+                                                                item.start_time
+                                                            ).getDate() >
+                                                        0
+                                                            ? "숙박 여행"
+                                                            : "당일 여행"}
+                                                    </div>
+                                                </div>
+
+                                                {/* 출발지 */}
+                                                <div className="flex items-start gap-2 mb-1">
+                                                    <MapPin className="w-3 h-3 md:w-4 md:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                                                    <div>
+                                                        <div className="text-xs text-gray-500">
+                                                            출발지
+                                                        </div>
+                                                        <div className="text-xs md:text-sm">
+                                                            {item.start_place}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* 요청사항 (있는 경우만) */}
+                                                {item.optional_request && (
+                                                    <div className="flex items-start gap-2 mt-2">
+                                                        <Coffee className="w-3 h-3 md:w-4 md:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                                                        <div>
+                                                            <div className="text-xs text-gray-500">
+                                                                요청사항
+                                                            </div>
+                                                            <div className="text-xs md:text-sm">
+                                                                {
+                                                                    item.optional_request
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* 생성일 */}
+                                                <div className="text-xs text-gray-400 text-right mt-2">
+                                                    생성일:{" "}
                                                     {formatDateTime(
-                                                        item.start_time
+                                                        item.created_at
                                                     )
                                                         .split(" ")
                                                         .slice(0, 3)
                                                         .join(" ")}
                                                 </div>
-                                                <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                                                    {new Date(
-                                                        item.finish_time
-                                                    ).getDate() -
-                                                        new Date(
-                                                            item.start_time
-                                                        ).getDate() >
-                                                    0
-                                                        ? "숙박 여행"
-                                                        : "당일 여행"}
-                                                </div>
                                             </div>
-
-                                            {/* 출발지 */}
-                                            <div className="flex items-start gap-2 mb-1">
-                                                <MapPin className="w-3 h-3 md:w-4 md:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                    <div className="text-xs text-gray-500">
-                                                        출발지
-                                                    </div>
-                                                    <div className="text-xs md:text-sm">
-                                                        {item.start_place}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* 요청사항 (있는 경우만) */}
-                                            {item.optional_request && (
-                                                <div className="flex items-start gap-2 mt-2">
-                                                    <Coffee className="w-3 h-3 md:w-4 md:h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                                                    <div>
-                                                        <div className="text-xs text-gray-500">
-                                                            요청사항
-                                                        </div>
-                                                        <div className="text-xs md:text-sm">
-                                                            {
-                                                                item.optional_request
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* 생성일 */}
-                                            <div className="text-xs text-gray-400 text-right mt-2">
-                                                생성일:{" "}
-                                                {formatDateTime(item.created_at)
-                                                    .split(" ")
-                                                    .slice(0, 3)
-                                                    .join(" ")}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="flex items-center justify-center py-8">
-                                    <p className="text-xs md:text-sm text-gray-500 text-center bg-gray-50 p-4 rounded-lg">
+                                <div className="flex flex-col items-center justify-center py-8">
+                                    <p className="text-xs md:text-sm text-gray-700 text-center bg-gray-50 p-4 rounded-lg mb-4">
                                         추천 기록이 없습니다.
                                     </p>
+                                    <button
+                                        onClick={handleRefresh}
+                                        disabled={isRefreshing}
+                                        className="text-white bg-purple-500 hover:bg-purple-600 disabled:text-gray-400 text-sm flex items-center gap-2"
+                                    >
+                                        <RefreshCw
+                                            className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                                        />
+                                        새로고침
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -396,26 +458,10 @@ export default function PlaceSuggestionShow({
                         <div className="flex-shrink-0 p-3 md:p-4 bg-white border-t border-gray-100">
                             <div
                                 className="w-full h-12 md:h-14 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer bg-purple-500 hover:bg-purple-600 shadow-md"
-                                onClick={() => {
-                                    if (isLogin) {
-                                        setIsCreate(!isCreate);
-                                    } else {
-                                        // 로그인 페이지로 이동 (라우터에 따라 수정 필요)
-                                        // React Router를 사용하는 경우:
-                                        // navigate('/login');
-
-                                        // Next.js를 사용하는 경우:
-                                        // router.push('/login');
-
-                                        // 또는 window.location을 사용하는 경우:
-                                        window.location.href = "/login";
-                                    }
-                                }}
+                                onClick={() => setIsCreate(!isCreate)}
                             >
                                 <div className="text-white font-semibold text-sm md:text-base">
-                                    {isLogin
-                                        ? "여행 코스 추천받기"
-                                        : "로그인하고 여행 코스 추천받기"}
+                                    여행 코스 추천받기
                                 </div>
                             </div>
                         </div>
