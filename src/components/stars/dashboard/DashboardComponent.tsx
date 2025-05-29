@@ -132,6 +132,7 @@ export default function DashboardComponent() {
     const [weatherList, setWeatherList] = useState<WeatherData[]>([]);
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
     const [currentEventIndex, setCurrentEventIndex] = useState(0);
+    const attractionScrollRef = useRef<HTMLUListElement | null>(null);
 
     // 카드 스타일 및 ref
     const [cardStyles, setCardStyles] = useState<
@@ -390,6 +391,7 @@ export default function DashboardComponent() {
                     attractions={attractions}
                     style={cardStyles[100]}
                     cardRef={(el) => (cardRefs.current[100] = el)}
+                    scrollRef={attractionScrollRef}
                 />
 
                 <CulturalEventSlider
@@ -406,6 +408,10 @@ export default function DashboardComponent() {
                     onClick={() => {
                         scrollToTop(containerRef.current);
                         setCurrentEventIndex(0);
+                        attractionScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
                         setTimeout(() => {
                             window.fullpage_api?.moveSectionUp();
                         }, 500);
