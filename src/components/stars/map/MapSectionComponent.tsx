@@ -18,7 +18,8 @@ import {
 import { Favorite } from "../../../data/adminData";
 import { AccidentAlertModal } from "../../alert/AccidentModal";
 import PlaceSuggestion from "../suggestion/PlaceSuggestion";
-import CustomControl, { LocationControl } from "./CustomControl";
+import { LocationControl } from "./CustomControl";
+import FavoriteAlertModal from "../../alert/FavoriteAlertModal";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const categoryMap: Record<string, string> = {
@@ -83,6 +84,9 @@ export default function MapSectionComponent({
     const getItemKey = (type: string, place_id: string | number) =>
         `${type}:${String(place_id)}`;
 
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
+    const [AlertType, setAlertType] = useState<"success" | "remove">("success");
     useEffect(() => {
         if (!isLogin) {
             setToggledFavorites({});
@@ -484,11 +488,17 @@ export default function MapSectionComponent({
                         type: item.type,
                         place_id: item.place_id,
                     });
+                    setAlertMessage("즐겨찾기에 추가되었습니다.");
+                    setAlertType("success");
+                    setAlertOpen(true);
                 } else {
                     await deleteFavorite({
                         type: item.type,
                         place_id: item.place_id,
                     });
+                    setAlertMessage("즐겨찾기에서 제거되었습니다.");
+                    setAlertType("remove");
+                    setAlertOpen(true);
                 }
 
                 // 토글 상태 전역 상태도 업데이트
@@ -668,6 +678,12 @@ export default function MapSectionComponent({
                 alerts={alerts}
                 onDismiss={dismissAlert}
                 onViewArea={handleViewArea}
+            />
+            <FavoriteAlertModal
+                open={alertOpen}
+                message={alertMessage}
+                type={AlertType}
+                onClose={() => setAlertOpen(false)}
             />
         </div>
     );
