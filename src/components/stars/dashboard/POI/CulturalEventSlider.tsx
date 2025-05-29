@@ -21,14 +21,18 @@ interface CulturalEventSliderProps {
     events: CulturalEvent[];
     style: { opacity: number; y: number; scale: number };
     cardRef: (el: HTMLDivElement | null) => void;
+    currentIndex: number;
+    setCurrentIndex: (idx: number) => void;
 }
 
 export default function CulturalEventSlider({
     events,
     style,
     cardRef,
+    currentIndex,
+    setCurrentIndex,
 }: CulturalEventSliderProps) {
-    const [currentIndex, setCurrentIndex] = useState(0);
+    // const [currentIndex, setCurrentIndex] = useState(0);
     const { setHighlightPOI, selectedAreaId } = usePlace();
     const [modalImg, setModalImg] = useState<string | null>(null);
 
@@ -97,6 +101,7 @@ export default function CulturalEventSlider({
                                             key={idx}
                                             className="min-w-full flex flex-col md:flex-row bg-gray-50 hover:bg-lime-50 rounded-2xl p-4 gap-4 min-h-[240px] cursor-pointer"
                                             onClick={() => {
+                                                setCurrentIndex(0);
                                                 setHighlightPOI(poiForMap);
                                                 (
                                                     window as unknown as {
