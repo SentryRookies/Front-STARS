@@ -255,7 +255,7 @@ const UserInfo = () => {
                 setUserData(initialUserData);
             }
         } catch (err) {
-            console.error(err);
+            console.warn(err);
             setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
             setUserData(initialUserData);
         } finally {
@@ -298,9 +298,9 @@ const UserInfo = () => {
             } else {
                 alert(response.message || "계정 삭제에 실패했습니다.");
             }
-        } catch (error) {
+        } catch (err) {
             alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-            console.error("API 오류:", error);
+            console.warn(err);
         } finally {
             setIsSubmitting(false);
         }

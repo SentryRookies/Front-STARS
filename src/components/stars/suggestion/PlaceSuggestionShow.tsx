@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { MapPin, Calendar, Coffee, RefreshCw, LogIn } from "lucide-react";
 import { getUserSuggestionList } from "../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
@@ -64,7 +64,7 @@ export default function PlaceSuggestionShow({
     );
 
     // 데이터 로딩 상태 관리 - 처음 한 번만 로딩하기 위한 ref
-    const isInitialized = useRef<boolean>(false);
+    // const isInitialized = useRef<boolean>(false);
     const hasLoadedData = useRef<boolean>(false);
 
     // 로그인 여부 확인
@@ -85,7 +85,6 @@ export default function PlaceSuggestionShow({
         }
 
         if (!isRefresh && hasLoadedData.current) {
-            console.log("이미 데이터가 로드되어 있습니다. 재로딩 생략.");
             return;
         }
 
@@ -101,9 +100,8 @@ export default function PlaceSuggestionShow({
 
             if (response) {
                 setUserData(response);
-                console.log("회원정보 로드:", response);
 
-                await loadSuggestion(response.user_id, isRefresh);
+                await loadSuggestion(response.user_id);
                 if (!isRefresh) {
                     hasLoadedData.current = true; // 데이터 로딩 완료 플래그 설정
                 }
@@ -126,23 +124,16 @@ export default function PlaceSuggestionShow({
 
     // suggestion 과거 데이터 로드 함수
     const loadSuggestion = async (
-        userId: string | undefined,
-        isRefresh: boolean = false
+        userId: string | undefined
+        // isRefresh: boolean = false
     ) => {
         if (!userId) return;
 
         try {
-            console.log("추천 목록 로드:", userId);
             const response = await getUserSuggestionList(userId);
 
             if (response) {
                 setSuggestionList(response);
-                console.log("추천 목록:", response);
-
-                // 새로고침 성공 시 성공 메시지 (선택사항)
-                if (isRefresh) {
-                    console.log("새로고침 완료");
-                }
             } else {
                 setError(
                     response.message ||
@@ -152,7 +143,7 @@ export default function PlaceSuggestionShow({
             }
         } catch (err) {
             setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-            console.log(err);
+            console.error(err);
             setSuggestionList([]);
         }
     };
@@ -160,28 +151,25 @@ export default function PlaceSuggestionShow({
     // 새로고침 핸들러
     const handleRefresh = async () => {
         if (!isLogin) return;
-        console.log("수동 새로고침 시작");
         await loadUserInfo(true);
     };
-
-    // 새 데이터 추가 후 목록 새로고침 - 필요할 때만 호출
-    const refreshSuggestionList = async () => {
-        if (!userData?.user_id) return;
-
-        console.log("새 추천 생성 후 목록 새로고침");
-        setIsLoading(true);
-        await loadSuggestion(userData.user_id);
-        setIsLoading(false);
-    };
-
-    // 컴포넌트 마운트 시 한 번만 데이터 로딩
-    useEffect(() => {
-        if (isOpen && !isInitialized.current) {
-            console.log("컴포넌트 첫 마운트 - 데이터 로딩 시작");
-            isInitialized.current = true;
-            loadUserInfo();
-        }
-    }, [isOpen, isLogin]);
+    //
+    // // 새 데이터 추가 후 목록 새로고침 - 필요할 때만 호출
+    // const refreshSuggestionList = async () => {
+    //     if (!userData?.user_id) return;
+    //
+    //     setIsLoading(true);
+    //     await loadSuggestion(userData.user_id);
+    //     setIsLoading(false);
+    // };
+    //
+    // // 컴포넌트 마운트 시 한 번만 데이터 로딩
+    // useEffect(() => {
+    //     if (isOpen && !isInitialized.current) {
+    //         isInitialized.current = true;
+    //         loadUserInfo();
+    //     }
+    // }, [isOpen, isLogin]);
 
     const formatDateTime = (isoString: string) => {
         const date = new Date(isoString);
@@ -197,7 +185,6 @@ export default function PlaceSuggestionShow({
 
     // 결과 닫기 핸들러 - 데이터 새로고침 제거
     const handleCloseResult = () => {
-        console.log("결과 화면 닫기 - 데이터 새로고침 없음");
         setShowResult(false);
         setSuggestionResult({} as Suggestion);
     };

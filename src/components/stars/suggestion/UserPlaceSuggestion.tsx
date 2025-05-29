@@ -462,15 +462,12 @@ export default function UserPlaceSuggestion({
                 optional_request: optionalRequest,
             };
 
-            // console.log('제출된 데이터:', requestData);
-
             const response = await createUserSuggestion(
                 userData.user_id,
                 requestData
             );
 
             if (response) {
-                // console.log("여행 루트 추천 생성 성공:", response);
                 setSuggestionResult(response);
                 setIsCreate(false);
                 setShowResult(true);
@@ -479,7 +476,7 @@ export default function UserPlaceSuggestion({
                 alert("여행 루트 추천 생성에 실패했습니다. 다시 시도해주세요.");
             }
         } catch (err) {
-            console.error("여행 루트 추천 생성 오류:", err);
+            console.error(err);
             alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
         } finally {
             setIsSubmitting(false);

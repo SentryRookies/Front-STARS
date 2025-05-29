@@ -50,7 +50,6 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
         {}
     );
     const { congestionInfo } = usePlace();
-    console.log("AreaFocusCard congestionInfo:", congestionInfo);
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
 
     useEffect(() => {

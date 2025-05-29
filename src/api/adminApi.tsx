@@ -20,9 +20,6 @@ export const getFavoriteList = async () => {
             "Content-Type": "application/json",
         },
     };
-
-    console.log("getFavoriteList...");
     const res = await jwtAxios.get(`${prefix}/favorite/list`, header);
-    console.log(res);
     return res.data;
 };

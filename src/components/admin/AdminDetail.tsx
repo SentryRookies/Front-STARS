@@ -23,10 +23,6 @@ const AdminDetail = () => {
     const location = useLocation();
     const spotData: CombinedAreaData = location.state?.combinedAreaData;
 
-    // 실제 받아서 처리해야하는 데이터 : spotData
-    console.log("받은 데이터: ", spotData);
-
-    // 전역 상태에서 데이터 가져오기
     const { touristInfoData, refreshAllData } = useAdminData();
 
     // 로컬 상태 관리
@@ -39,7 +35,6 @@ const AdminDetail = () => {
     // 차트 데이터 처리
     useEffect(() => {
         if (spotData) {
-            console.log("넘어오는 데이터중 날씨: ", spotData.weather);
             if (spotData.population) {
                 processChartData(spotData.population);
                 if (spotData.weather) {

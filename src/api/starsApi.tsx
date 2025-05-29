@@ -65,7 +65,6 @@ export const subscribeCongestionUpdate = (
         const congestionData = JSON.parse((event as MessageEvent).data);
         onUpdate(congestionData);
     });
-    console.log("connect Congestion Update");
     return eventSource;
 };
 
@@ -80,7 +79,6 @@ export const subscribeCongestionAlert = (
         const alertData = JSON.parse((event as MessageEvent).data);
         onAlert(alertData);
     });
-    console.log("connect Congestion Alert");
     return eventSource;
 };
 
@@ -95,7 +93,6 @@ export const subscribeWeatherUpdate = (
         const weatherData = JSON.parse((event as MessageEvent).data);
         onUpdate(weatherData);
     });
-    console.log("connect Weather Update");
     return eventSource;
 };
 
@@ -110,7 +107,6 @@ export const subscribeTrafficUpdate = (
         const trafficData = JSON.parse((event as MessageEvent).data);
         onUpdate(trafficData);
     });
-    console.log("connect Trraffic Update");
     return eventSource;
 };
 
@@ -125,7 +121,6 @@ export const subscribeParkUpdate = (
         const parkData = JSON.parse((event as MessageEvent).data);
         onUpdate(parkData);
     });
-    console.log("connect Park Update");
     return eventSource;
 };
 
@@ -140,7 +135,6 @@ export const subscribeAccidentUpdate = (
         const parkData = JSON.parse((event as MessageEvent).data);
         onUpdate(parkData);
     });
-    console.log("connect Accident Update");
     return eventSource;
 };
 
@@ -265,12 +259,11 @@ export const getEventList = async () => {
             "Content-Type": "application/json",
         },
     };
-    console.log("fetching event list...");
     try {
         const res = await axios.get(`${prefix}/place/main/events`, header);
         return res.data;
     } catch (err) {
-        console.error("Event list fetch error:", err);
+        console.error(err);
         throw err;
     }
 };
