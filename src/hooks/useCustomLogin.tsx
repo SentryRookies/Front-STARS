@@ -42,7 +42,7 @@ const useCustomLogin = () => {
     };
 
     const moveToLogin = () => {
-        navigate({ pathname: "/login" }, { replace: true });
+        navigate({ pathname: "/login" }, { replace: false });
     };
 
     const moveToLoginReturn = () => {

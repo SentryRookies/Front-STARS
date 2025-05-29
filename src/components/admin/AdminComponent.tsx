@@ -5,6 +5,7 @@ import AdminHeader from "./AdminHeader";
 import CongestionTag from "./cards/CongestionTag";
 import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
+import AdminInsight from "./AdminComponentInsight";
 
 // 타입 가져오기
 import {
@@ -18,6 +19,8 @@ export default function AdminComponent() {
     const navigate = useNavigate();
     const [sortField, setSortField] = useState<string>("spotName");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+    const [isInsightModalOpen, setIsInsightModalOpen] =
+        useState<boolean>(false);
 
     const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -141,6 +144,15 @@ export default function AdminComponent() {
         }
     };
 
+    // 인사이트 모달 열기/닫기 핸들러
+    const handleInsightModalOpen = () => {
+        setIsInsightModalOpen(true);
+    };
+
+    const handleInsightModalClose = () => {
+        setIsInsightModalOpen(false);
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
             {/* Modern Header */}
@@ -176,6 +188,37 @@ export default function AdminComponent() {
                     </div>
                 </div>
             )}
+
+            {/* 인사이트 버튼 추가 */}
+            <div className="p-3">
+                <div className="mb-3">
+                    <button
+                        onClick={handleInsightModalOpen}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-3"
+                        disabled={isLoading || combinedAreaData.length === 0}
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                            />
+                        </svg>
+                        <span className="text-lg">
+                            관광특구 통합 인사이트 보기
+                        </span>
+                        <span className="bg-white/20 text-white text-sm font-medium px-3 py-1 rounded-full">
+                            {combinedAreaData.length}곳 분석
+                        </span>
+                    </button>
+                </div>
+            </div>
 
             {/* Main Content Grid - Compact */}
             <div className="p-3 space-y-3">
@@ -539,6 +582,14 @@ export default function AdminComponent() {
                     </div>
                 </div>
             </div>
+
+            {/* AdminInsight 모달 */}
+            <AdminInsight
+                combinedAreaData={combinedAreaData}
+                accidentData={accidentData}
+                isVisible={isInsightModalOpen}
+                onClose={handleInsightModalClose}
+            />
         </div>
     );
 }
