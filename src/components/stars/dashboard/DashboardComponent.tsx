@@ -133,6 +133,9 @@ export default function DashboardComponent() {
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
     const [currentEventIndex, setCurrentEventIndex] = useState(0);
     const attractionScrollRef = useRef<HTMLUListElement | null>(null);
+    const cafeScrollRef = useRef<HTMLUListElement | null>(null);
+    const restaurantScrollRef = useRef<HTMLUListElement | null>(null);
+    const accommodationScrollRef = useRef<HTMLUListElement | null>(null);
 
     // 카드 스타일 및 ref
     const [cardStyles, setCardStyles] = useState<
@@ -373,18 +376,21 @@ export default function DashboardComponent() {
                     pois={cafePOIs}
                     style={cardStyles[300]}
                     cardRef={(el) => (cardRefs.current[300] = el)}
+                    scrollRef={cafeScrollRef}
                 />
                 <POITableCard
                     title="식당"
                     pois={restaurantPOIs}
                     style={cardStyles[301]}
                     cardRef={(el) => (cardRefs.current[301] = el)}
+                    scrollRef={restaurantScrollRef}
                 />
                 <POITableCard
                     title="숙박업소"
                     pois={accommodationPOIs}
                     style={cardStyles[302]}
                     cardRef={(el) => (cardRefs.current[302] = el)}
+                    scrollRef={accommodationScrollRef}
                 />
 
                 <AttractionTableCard
@@ -409,6 +415,18 @@ export default function DashboardComponent() {
                         scrollToTop(containerRef.current);
                         setCurrentEventIndex(0);
                         attractionScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        cafeScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        restaurantScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        accommodationScrollRef.current?.scrollTo({
                             top: 0,
                             behavior: "smooth",
                         });
