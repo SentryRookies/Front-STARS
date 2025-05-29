@@ -281,3 +281,16 @@ export const getPlaceListByArea = async (areaId: number) => {
     );
     return res.data;
 };
+
+export const getReview = async (type: string, placeCode: number) => {
+    const header = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    };
+    const res = await axios.get(
+        `${prefix}/place/summary/${type}/${placeCode}`,
+        header
+    );
+    return res.data;
+};

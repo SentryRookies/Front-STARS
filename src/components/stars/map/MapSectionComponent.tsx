@@ -15,6 +15,7 @@ import { useMapMarkers } from "../../../hooks/useMapMarkers";
 import { useMapboxInit } from "../../../hooks/useMapboxInit";
 import { getAreaList } from "../../../api/starsApi";
 import { useFavorites } from "../../../hooks/useFavorites";
+import CustomPopupCard from "./CustomPopupCard";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -57,20 +58,29 @@ export default function MapSectionComponent({
     const [alertMessage, setAlertMessage] = useState("");
     const [AlertType, setAlertType] = useState<"success" | "remove">("success");
 
-    // useMapMarkers 훅 사용
-    const { showHighlightPOI, showSearchResults, toggleSingleResultPopup } =
-        useMapMarkers({
-            mapRef,
-            isLogin,
-            isItemFavorite,
-            setAlertMessage,
-            setAlertType,
-            setAlertOpen,
-            setToggledFavorites,
-            getItemKey,
-            setSelectedAreaId,
-            setShowFocusCard,
-        });
+    // useMapMarkers 훅 사용 - 업데이트된 반환값들 포함
+    const {
+        showHighlightPOI,
+        showSearchResults,
+        toggleSingleResultPopup,
+        // CustomPopupCard용 상태와 핸들러들
+        popupItem,
+        popupPosition,
+        handlePopupClose,
+        handleFavoriteToggle,
+        handleDetailClick,
+    } = useMapMarkers({
+        mapRef,
+        isLogin,
+        isItemFavorite,
+        setAlertMessage,
+        setAlertType,
+        setAlertOpen,
+        setToggledFavorites,
+        getItemKey,
+        setSelectedAreaId,
+        setShowFocusCard,
+    });
 
     useEffect(() => {
         showHighlightPOI(highlightPOI, setHighlightPOI);
@@ -129,18 +139,14 @@ export default function MapSectionComponent({
                     </button>
                 </div>
             )}
-
             <SearchBar
                 keyword={searchKeyword ?? undefined}
                 onKeywordSearched={onSearchComplete}
                 onResultClick={handleSearchResultClick}
                 onSingleResultClick={handleSingleResultClick}
             />
-
             <PlaceSuggestion />
-
             <div className="w-full h-full" ref={mapContainer} />
-
             {selectedAreaId && (
                 <AreaFocusCard
                     areaId={selectedAreaId}
@@ -158,7 +164,6 @@ export default function MapSectionComponent({
                 accidents={accidentData}
                 onViewArea={handleViewArea}
             />
-
             <AlertModal
                 alerts={alerts}
                 onDismiss={dismissAlert}
@@ -169,6 +174,16 @@ export default function MapSectionComponent({
                 message={alertMessage}
                 type={AlertType}
                 onClose={() => setAlertOpen(false)}
+            />
+
+            <CustomPopupCard
+                item={popupItem}
+                position={popupPosition}
+                onClose={handlePopupClose}
+                onFavoriteToggle={handleFavoriteToggle}
+                onDetailClick={handleDetailClick}
+                isItemFavorite={isItemFavorite}
+                isLogin={isLogin}
             />
         </div>
     );
