@@ -1,4 +1,5 @@
 // ✅ AttractionTableCard.tsx
+import { useEffect, useRef, RefObject } from "react";
 import { motion } from "framer-motion";
 import { usePlace } from "../../../../context/PlaceContext";
 import { SearchResult } from "../../../../api/searchApi";
@@ -16,14 +17,22 @@ interface AttractionTableCardProps {
     attractions: Attraction[];
     style: { opacity: number; y: number; scale: number };
     cardRef: (el: HTMLDivElement | null) => void;
+    scrollRef?: RefObject<HTMLUListElement | null>;
 }
 
 export default function AttractionTableCard({
     attractions,
     style,
     cardRef,
+    scrollRef,
 }: AttractionTableCardProps) {
     const { setHighlightPOI, selectedAreaId } = usePlace();
+
+    const scrollContainerRef = useRef<HTMLUListElement | null>(null);
+
+    useEffect(() => {
+        scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }, []);
 
     return (
         <motion.div
@@ -57,7 +66,10 @@ export default function AttractionTableCard({
                     </p>
                 </div>
             ) : (
-                <ul className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-none rounded-xl">
+                <ul
+                    ref={scrollRef ?? scrollContainerRef}
+                    className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-none rounded-xl"
+                >
                     {attractions.map((a, idx) => (
                         <li
                             key={idx}
