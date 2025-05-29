@@ -1,7 +1,7 @@
 // ✅ POITableCard.tsx
 import { motion } from "framer-motion";
-import { usePlace } from "../../../context/PlaceContext";
-import { SearchResult } from "../../../api/searchApi";
+import { usePlace } from "../../../../context/PlaceContext";
+import { SearchResult } from "../../../../api/searchApi";
 
 interface POI {
     name: string;

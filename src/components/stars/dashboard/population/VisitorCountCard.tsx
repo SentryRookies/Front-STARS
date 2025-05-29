@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import React from "react";
-import { CongestionData } from "../../../context/PlaceContext";
+import { CongestionData } from "../../../../context/PlaceContext";
 
 interface VisitorCountCardProps {
     refEl: React.RefObject<HTMLSpanElement | null>;

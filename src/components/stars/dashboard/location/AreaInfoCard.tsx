@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-// import { places } from "../../../data/placesData";
 
 interface PlaceInfoCardProps {
     placeName: string;

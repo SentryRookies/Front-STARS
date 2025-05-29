@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { usePlace } from "../../../context/PlaceContext";
-import { SearchResult } from "../../../api/searchApi";
-import ModalPortal from "../dashboard/ModalPortal";
+import { usePlace } from "../../../../context/PlaceContext";
+import { SearchResult } from "../../../../api/searchApi";
+import ModalPortal from "./ModalPortal";
 
 interface CulturalEvent {
     name: string;

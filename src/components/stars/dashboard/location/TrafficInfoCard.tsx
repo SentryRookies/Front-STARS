@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { AccidentData, MapData } from "../../../data/adminData";
-// import TrafficMap from "../../admin/TrafficMapComponent";
-import TrafficMapDemo from "../../admin/TrafficMapComponentDemo";
+import { AccidentData, MapData } from "../../../../data/adminData";
+import TrafficMapDemo from "../../../admin/TrafficMapComponent";
 
 interface TrafficInfoCardProps {
     style: { opacity: number; y: number; scale: number };
