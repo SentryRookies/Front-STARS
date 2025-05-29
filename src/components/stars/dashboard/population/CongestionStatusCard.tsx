@@ -22,7 +22,7 @@ export default function CongestionStatusCard({
 
     return (
         <motion.div
-            className={`col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3 rounded-3xl shadow-lg p-4 my-2 ${color}`}
+            className={`col-span-12 sm:col-span-4 md:col-span-4 lg:col-span-3 rounded-3xl shadow-lg p-4 my-2 ${color}`}
             whileHover={{ y: -6 }}
             animate={
                 style
