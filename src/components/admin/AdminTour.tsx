@@ -110,7 +110,7 @@ const AdminTour = () => {
                 setError("이벤트 데이터가 비어있거나 정의되지 않았습니다.");
             }
         } catch (err) {
-            console.error("Failed to fetch events:", err);
+            console.error(err);
             setError("문화 행사 데이터를 불러오는데 실패했습니다.");
             setList([]);
         } finally {
@@ -212,7 +212,7 @@ const AdminTour = () => {
                 day: "numeric",
             });
         } catch (error) {
-            console.error("날짜 형식 변환 오류:", error);
+            console.error(error);
             return dateString;
         }
     };

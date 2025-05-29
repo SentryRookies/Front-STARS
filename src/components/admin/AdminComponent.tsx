@@ -121,7 +121,6 @@ export default function AdminComponent() {
 
     const handleSpotClick = (info: CombinedAreaData) => {
         window.scrollTo(0, 0);
-        console.log(info);
         navigate(`/manage/${info.area_id}`, {
             state: {
                 combinedAreaData: info,
@@ -138,9 +137,6 @@ export default function AdminComponent() {
         if (matchedArea) {
             handleSpotClick(matchedArea);
         } else {
-            console.log(
-                `관련 지역 정보를 찾을 수 없습니다: ${accidentLocation}`
-            );
             alert(`관련 지역 정보를 찾을 수 없습니다: ${accidentLocation}`);
         }
     };

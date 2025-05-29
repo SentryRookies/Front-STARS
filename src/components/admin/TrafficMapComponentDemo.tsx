@@ -1,4 +1,3 @@
-// ✅ TrafficMapComponent.tsx (무한 렌더링/로그 방지 버전)
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl, { LngLatLike, NavigationControl } from "mapbox-gl";
 import MapboxLanguage from "@mapbox/mapbox-gl-language";

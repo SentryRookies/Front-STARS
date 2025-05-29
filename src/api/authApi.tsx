@@ -39,10 +39,6 @@ export const logoutPost = async () => {
     };
 
     const res = await jwtAxios.post(`${prefix}/logout`, null, header);
-    console.log("logout res", res);
-    if (res.data && res.data.message) {
-        console.log("logout message:", res.data.message);
-    }
     return res.data;
 };
 
@@ -75,13 +71,10 @@ export const signoutUser = async (member_id: string | undefined) => {
 };
 
 export const refreshToken = async () => {
-    console.log("refreshToken 요청 시작");
-
     const user = getCookie<{ refreshToken: string }>("user");
     if (!user || !user.refreshToken) {
         throw new Error("리프레시 토큰이 없습니다.");
     }
-    console.log("리프레시 토큰:", user.refreshToken);
     const body = {
         refreshToken: user.refreshToken,
     };
@@ -92,6 +85,5 @@ export const refreshToken = async () => {
 
     const res = await axios.post(`${prefix}/refresh`, body, { headers });
 
-    console.log("refreshToken 응답:", res);
     return res.data;
 };

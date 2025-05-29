@@ -34,22 +34,15 @@ export const typeStyles: Record<
         bgColor: "bg-red-50",
         icon: "🍽️",
         borderColor: "border-red-200",
-
     },
 };
 
-// Default style for fallback
 export const defaultStyle = {
     color: "text-gray-600",
     bgColor: "bg-gray-50",
     icon: "📍",
 };
 
-/**
- * Get style information for a specific type
- * @param type - The category type
- * @returns The style object for the specified type or default style if not found
- */
 export const getTypeStyle = (type: string) => {
     return typeStyles[type] || defaultStyle;
 };

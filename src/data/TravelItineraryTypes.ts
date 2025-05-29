@@ -1,4 +1,3 @@
-// TravelItineraryTypes.ts
 export interface TimeItem {
     time: string;
     content: string;

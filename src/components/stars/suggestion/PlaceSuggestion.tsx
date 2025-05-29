@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import PlaceSuggestionShow from "./suggestion/PlaceSuggestionShow";
+import PlaceSuggestionShow from "./PlaceSuggestionShow";
 
 export default function PlaceSuggestion() {
     const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);
@@ -10,7 +10,6 @@ export default function PlaceSuggestion() {
 
     // 닫기 핸들러 추가
     const handleClose = () => {
-        console.log("닫기 함수 호출됨");
         setIsSuggestionOpen(false);
     };
 

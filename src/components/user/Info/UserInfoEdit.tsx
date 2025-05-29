@@ -207,7 +207,6 @@ const UserInfoEdit: React.FC<UserInfoEditProps> = ({
             const response = await editUserProfile(userDataToSubmit);
 
             if (response) {
-                console.log(response);
                 alert(
                     response.message || "회원 정보가 성공적으로 수정되었습니다."
                 );
@@ -222,7 +221,7 @@ const UserInfoEdit: React.FC<UserInfoEditProps> = ({
                 );
             }
         } catch (error) {
-            console.error("API error:", error);
+            console.error(error);
             alert(
                 error instanceof Error
                     ? error.message

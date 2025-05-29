@@ -39,14 +39,13 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
 
             if (response) {
                 setFavorites(response);
-                console.log(response);
             } else {
                 setError("즐겨찾기 목록을 불러오는데 실패했습니다.");
                 setFavorites([]);
             }
         } catch (err) {
             setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-            console.log(err);
+            console.warn(err);
             setFavorites([]);
         } finally {
             setIsLoading(false);
@@ -79,7 +78,6 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
 
         try {
             const response = await deleteFavorite(favoriteToDelete);
-            console.log("삭제 결과: ", response);
 
             if (response.message === "즐겨찾기 삭제 완료") {
                 // 성공적으로 삭제되면 상태에서도 삭제
@@ -90,7 +88,7 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
             }
         } catch (err) {
             alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-            console.log(err);
+            console.warn(err);
         } finally {
             setDeletingId(null);
         }
@@ -353,23 +351,11 @@ const UserFavorite: React.FC<UserFavoriteProps> = ({ onMapView }) => {
                         <div className="flex justify-between gap-3">
                             <button
                                 onClick={() => {
-                                    console.log(
-                                        "[UserFavorite] 지도에서 보기 클릭",
-                                        fav.name
-                                    );
                                     if (window.fullpage_api) {
                                         window.fullpage_api.moveSlideLeft();
                                     }
                                     if (onMapView) {
-                                        console.log(
-                                            "[UserFavorite] onMapView 호출",
-                                            fav.name
-                                        );
                                         onMapView(fav.name ?? "");
-                                    } else {
-                                        console.log(
-                                            "[UserFavorite] onMapView 없음"
-                                        );
                                     }
                                 }}
                                 className="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg text-sm flex items-center font-medium shadow-sm border border-indigo-200 transition-colors"
