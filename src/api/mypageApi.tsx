@@ -74,7 +74,6 @@ export const deleteFavorite = async (favorite: Favorite) => {
             "Content-Type": "application/json",
         },
     };
-    console.log("deleteFavorite", favorite);
     const res = await jwtAxios.delete(
         `${prefix}/favorite/delete/${favorite.type}/${favorite.place_id}`,
         header

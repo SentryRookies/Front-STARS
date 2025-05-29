@@ -46,7 +46,6 @@ const beforeReq = async (
     config: InternalAxiosRequestConfig
 ): Promise<InternalAxiosRequestConfig> => {
     const userInfo = getCookie<UserCookie>("user");
-    console.log("요청 직전 accessToken:", userInfo?.accessToken);
 
     if (!userInfo) {
         console.error("토큰 정보를 찾을 수 없습니다. 로그인 필요");
@@ -67,7 +66,7 @@ const beforeReq = async (
 };
 
 const requestFail = (err: AxiosError): Promise<never> => {
-    console.error("요청 중 오류가 발생했습니다:", err);
+    console.error(err);
     return Promise.reject(err);
 };
 
@@ -103,7 +102,6 @@ const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
         }
 
         try {
-            console.log("responseFail에서 토큰 갱신 시도");
             const result = await refreshTokenApi();
 
             if (!result.accessToken) {
@@ -135,7 +133,7 @@ const responseFail = async (err: AxiosError<ErrorResponse>): Promise<never> => {
 
             return axios(originalRequest);
         } catch (refreshError) {
-            console.error("토큰 갱신 실패:", refreshError);
+            console.error(refreshError);
             // 토큰 갱신 실패 시 완전한 로그아웃 처리
             handleLogout("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
             return Promise.reject(refreshError);

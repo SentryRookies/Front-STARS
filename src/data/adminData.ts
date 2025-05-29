@@ -1,29 +1,27 @@
-// src/data/adminData.ts
-
 export interface TouristSpot {
     area_nm: string;
     area_cd: string;
     area_congest_lvl: string;
 }
 
-export interface WeatherCardType {
-    date: string;
-    hour: string;
-    status: string;
-    icon: string;
-    temperature: string;
-    dust: {
-        fineDust: string;
-        ultraFineDust: string;
-    };
-}
+// export interface WeatherCardType {
+//     date: string;
+//     hour: string;
+//     status: string;
+//     icon: string;
+//     temperature: string;
+//     dust: {
+//         fineDust: string;
+//         ultraFineDust: string;
+//     };
+// }
 
-export interface TouristInfo {
-    spotName: string; // 이름
-    spotCode: string; // 코드
-    timestamp: string; // 측정시간
-    participantCount: string; // 4단계 예측
-}
+// export interface TouristInfo {
+//     spotName: string; // 이름
+//     spotCode: string; // 코드
+//     timestamp: string; // 측정시간
+//     participantCount: string; // 4단계 예측
+// }
 
 export interface PopulationData {
     area_nm: string; // 지역명
@@ -46,13 +44,13 @@ export interface PopulationData {
 }
 
 // 전체 데이터 구조 인터페이스
-export interface PopulationResponse {
-    data: PopulationData[]; // 인구 데이터
-}
-
-export interface ForecastPopulationWrapper {
-    fcst_ppltn: ForecastPopulation[]; // 예측 인구 데이터 배열
-}
+// export interface PopulationResponse {
+//     data: PopulationData[]; // 인구 데이터
+// }
+//
+// export interface ForecastPopulationWrapper {
+//     fcst_ppltn: ForecastPopulation[]; // 예측 인구 데이터 배열
+// }
 
 export interface ForecastPopulation {
     fcst_time: string; // 예측 시간

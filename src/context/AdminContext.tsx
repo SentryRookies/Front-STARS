@@ -20,10 +20,6 @@ import {
     MapData,
 } from "../data/adminData";
 import { isAdmin } from "../slices/loginSlice";
-import { dummyTouristData } from "../data/dummy/population";
-import { dummyAccidentData } from "../data/dummy/accident";
-import { dummyTrafficData } from "../data/dummy/traffic";
-import { dummyWeatherData } from "../data/dummy/weather";
 
 // 컨텍스트에서 제공할 데이터 타입 정의
 interface AdminDataContextType {
@@ -37,8 +33,6 @@ interface AdminDataContextType {
     mapData: MapData[];
     findAreaData: (areaId: number) => CombinedAreaData | undefined;
     isLoading: boolean;
-    // spotsLoading: boolean;
-    // weatherLoading: boolean;
     error: string | null;
     refreshAllData: () => Promise<void>; // 새로고침, 근데 이걸 넘길 필요가 있나?
     refreshing: boolean;
@@ -142,7 +136,6 @@ export const AdminDataProvider: React.FC<AdminDataProviderProps> = ({
                 });
             }
             const entry = combinedMap.get(areaId)!;
-            // console.log(traffic);
             entry.trafficData = traffic;
         });
 
@@ -175,50 +168,39 @@ export const AdminDataProvider: React.FC<AdminDataProviderProps> = ({
         setError(null);
 
         try {
-            if (!test) {
-                // 기존 연결이 있으면 닫기
-                if (eventSources.current.congestions) {
-                    eventSources.current.congestions.close();
-                }
-
-                // congestion-update 이벤트 처리 콜백
-                const handleCongestionUpdate = (
-                    data: Record<string, unknown>
-                ) => {
-                    console.log("들어온 congestion-update 데이터: ", data);
-                    setTouristInfoData(data as unknown as PopulationData[]);
-
-                    if (error) {
-                        setError(null);
-                    }
-                };
-
-                // congestion-alert 이벤트 처리 콜백
-                const handleCongestionAlert = (
-                    data: Record<string, unknown>
-                ) => {
-                    console.log("들어온 congestion-alert 데이터: ", data);
-                    setTouristSpotsData(data as unknown as TouristSpot[]);
-
-                    if (error) {
-                        setError(null);
-                    }
-                };
-
-                // 두 콜백을 모두 전달
-                const event: EventSource = subscribeCongestions(
-                    handleCongestionUpdate,
-                    handleCongestionAlert
-                );
-
-                // 연결 저장
-                eventSources.current.congestions = event;
-            } else {
-                // 테스트용, 더미데이터로 진행
-                setTouristSpotsData(dummyTouristData);
+            // 기존 연결이 있으면 닫기
+            if (eventSources.current.congestions) {
+                eventSources.current.congestions.close();
             }
+
+            // congestion-update 이벤트 처리 콜백
+            const handleCongestionUpdate = (data: Record<string, unknown>) => {
+                setTouristInfoData(data as unknown as PopulationData[]);
+
+                if (error) {
+                    setError(null);
+                }
+            };
+
+            // congestion-alert 이벤트 처리 콜백
+            const handleCongestionAlert = (data: Record<string, unknown>) => {
+                setTouristSpotsData(data as unknown as TouristSpot[]);
+
+                if (error) {
+                    setError(null);
+                }
+            };
+
+            // 두 콜백을 모두 전달
+            const event: EventSource = subscribeCongestions(
+                handleCongestionUpdate,
+                handleCongestionAlert
+            );
+
+            // 연결 저장
+            eventSources.current.congestions = event;
         } catch (err) {
-            console.error("Congestion 데이터 구독 오류:", err);
+            console.error(err);
             setTouristInfoData([]);
             setTouristSpotsData([]);
             setError("실시간 혼잡도 데이터 연결에 실패했습니다.");
@@ -233,59 +215,46 @@ export const AdminDataProvider: React.FC<AdminDataProviderProps> = ({
         setError(null);
 
         try {
-            if (!test) {
-                if (eventSources.current.externals) {
-                    eventSources.current.externals.close();
-                }
-                const handelWeatherUpdate = (data: Record<string, unknown>) => {
-                    console.log("들어온 weather-update 데이터: ", data);
-                    setWeatherInfoData(data as unknown as WeatherData[]);
-
-                    if (error) {
-                        setError(null);
-                    }
-                };
-                const handelTrafficUpdate = (data: Record<string, unknown>) => {
-                    console.log("들어온 traffic-update 데이터: ", data);
-                    setTrafficData(data as unknown as TrafficData[]);
-
-                    if (error) {
-                        setError(null);
-                    }
-                };
-                const handelParkUpdate = (data: Record<string, unknown>) => {
-                    console.log("들어온 park-update 데이터: ", data);
-                    setParkData(data as unknown as ParkData[]);
-
-                    if (error) {
-                        setError(null);
-                    }
-                };
-                const handelAccidentUpdate = (
-                    data: Record<string, unknown>
-                ) => {
-                    console.log("들어온 accident-update 데이터: ", data);
-                    setAccidentData(data as unknown as AccidentData[]);
-
-                    if (error) {
-                        setError(null);
-                    }
-                };
-                const event = subscribeExternal(
-                    handelWeatherUpdate,
-                    handelTrafficUpdate,
-                    handelParkUpdate,
-                    handelAccidentUpdate
-                );
-                eventSources.current.externals = event;
-            } else {
-                setAccidentData(dummyAccidentData as unknown as AccidentData[]);
-                setTrafficData(dummyTrafficData as TrafficData[]);
-                setWeatherInfoData(dummyWeatherData as WeatherData[]);
-                // 주차 정보가 없음
+            if (eventSources.current.externals) {
+                eventSources.current.externals.close();
             }
+            const handelWeatherUpdate = (data: Record<string, unknown>) => {
+                setWeatherInfoData(data as unknown as WeatherData[]);
+
+                if (error) {
+                    setError(null);
+                }
+            };
+            const handelTrafficUpdate = (data: Record<string, unknown>) => {
+                setTrafficData(data as unknown as TrafficData[]);
+
+                if (error) {
+                    setError(null);
+                }
+            };
+            const handelParkUpdate = (data: Record<string, unknown>) => {
+                setParkData(data as unknown as ParkData[]);
+
+                if (error) {
+                    setError(null);
+                }
+            };
+            const handelAccidentUpdate = (data: Record<string, unknown>) => {
+                setAccidentData(data as unknown as AccidentData[]);
+
+                if (error) {
+                    setError(null);
+                }
+            };
+            const event = subscribeExternal(
+                handelWeatherUpdate,
+                handelTrafficUpdate,
+                handelParkUpdate,
+                handelAccidentUpdate
+            );
+            eventSources.current.externals = event;
         } catch (err) {
-            console.log(err);
+            console.error(err);
             setWeatherInfoData([]);
             setTrafficData([]);
             setParkData([]);
@@ -304,7 +273,7 @@ export const AdminDataProvider: React.FC<AdminDataProviderProps> = ({
         try {
             await Promise.all([fetchCongestions(), fetchExternals()]);
         } catch (error) {
-            console.error("데이터 새로고침 중 오류 발생:", error);
+            console.error(error);
         } finally {
             setRefreshing(false);
         }

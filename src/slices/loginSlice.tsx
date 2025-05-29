@@ -72,7 +72,6 @@ const loginSlice = createSlice({
         builder
             .addCase(loginPostAsync.fulfilled, (_state, action) => {
                 const payload = action.payload as UserCookie;
-                console.log("payload", payload);
                 if (!payload.error) {
                     setCookie("user", JSON.stringify(payload));
                 }

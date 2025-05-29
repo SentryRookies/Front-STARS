@@ -70,7 +70,6 @@ const AdminTraffic = () => {
 
     // 지도 초기화
     useEffect(() => {
-        console.log("교통 주차 통합 데이터: ", mapData);
         if (!mapContainer.current) return;
 
         // mapbox token 설정
@@ -100,7 +99,6 @@ const AdminTraffic = () => {
 
         // 지도 로드 완료 이벤트
         mapInstance.on("load", () => {
-            console.log("Map loaded");
             setMapLoaded(true);
         });
 
@@ -292,7 +290,6 @@ const AdminTraffic = () => {
     // 특정 지역의 도로 그리기
     const drawRoadsForArea = (trafficData: TrafficData) => {
         if (!map.current || !mapLoaded) {
-            console.log("Map not ready yet");
             return;
         }
 
@@ -355,7 +352,7 @@ const AdminTraffic = () => {
                     },
                 });
             } catch (error) {
-                console.error("Error adding source or layer:", error);
+                console.error(error);
             }
         });
     };
@@ -363,7 +360,6 @@ const AdminTraffic = () => {
     // 주차장 마커 그리기
     const drawParkingMarkersForArea = (parkingList: ParkNode[]) => {
         if (!map.current || !mapLoaded) {
-            console.log("Map not ready yet");
             return;
         }
 
@@ -380,8 +376,6 @@ const AdminTraffic = () => {
     // 주차장 마커 생성 함수
     const createParkingMarker = (park: ParkNode): mapboxgl.Marker | null => {
         if (!map.current) return null;
-
-        console.log("park info: ", park);
 
         // Create popup content - Improved for mobile
         const popupContent = `
