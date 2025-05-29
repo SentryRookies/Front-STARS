@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MapPin, Calendar, Coffee, RefreshCw, LogIn } from "lucide-react";
 import { getUserSuggestionList } from "../../../api/suggestionApi";
 import ImprovedTravelItinerary from "./TravelPlanPreview";
@@ -64,7 +64,7 @@ export default function PlaceSuggestionShow({
     );
 
     // 데이터 로딩 상태 관리 - 처음 한 번만 로딩하기 위한 ref
-    // const isInitialized = useRef<boolean>(false);
+    const isInitialized = useRef<boolean>(false);
     const hasLoadedData = useRef<boolean>(false);
 
     // 로그인 여부 확인
@@ -153,23 +153,14 @@ export default function PlaceSuggestionShow({
         if (!isLogin) return;
         await loadUserInfo(true);
     };
-    //
-    // // 새 데이터 추가 후 목록 새로고침 - 필요할 때만 호출
-    // const refreshSuggestionList = async () => {
-    //     if (!userData?.user_id) return;
-    //
-    //     setIsLoading(true);
-    //     await loadSuggestion(userData.user_id);
-    //     setIsLoading(false);
-    // };
-    //
-    // // 컴포넌트 마운트 시 한 번만 데이터 로딩
-    // useEffect(() => {
-    //     if (isOpen && !isInitialized.current) {
-    //         isInitialized.current = true;
-    //         loadUserInfo();
-    //     }
-    // }, [isOpen, isLogin]);
+
+    // 컴포넌트 마운트 시 한 번만 데이터 로딩
+    useEffect(() => {
+        if (isOpen && !isInitialized.current) {
+            isInitialized.current = true;
+            loadUserInfo();
+        }
+    }, [isOpen, isLogin]);
 
     const formatDateTime = (isoString: string) => {
         const date = new Date(isoString);
@@ -487,16 +478,16 @@ export default function PlaceSuggestionShow({
                                     <p className="text-xs md:text-sm text-gray-700 text-center bg-gray-50 p-4 rounded-lg mb-4">
                                         추천 기록이 없습니다.
                                     </p>
-                                    <button
-                                        onClick={handleRefresh}
-                                        disabled={isRefreshing}
-                                        className="text-white bg-purple-500 hover:bg-purple-600 disabled:text-gray-400 text-sm flex items-center gap-2 px-4 py-2 rounded-lg"
-                                    >
-                                        <RefreshCw
-                                            className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-                                        />
-                                        새로고침
-                                    </button>
+                                    {/*<button*/}
+                                    {/*    onClick={handleRefresh}*/}
+                                    {/*    disabled={isRefreshing}*/}
+                                    {/*    className="text-white bg-purple-500 hover:bg-purple-600 disabled:text-gray-400 text-sm flex items-center gap-2 px-4 py-2 rounded-lg"*/}
+                                    {/*>*/}
+                                    {/*    <RefreshCw*/}
+                                    {/*        className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}*/}
+                                    {/*    />*/}
+                                    {/*    새로고침*/}
+                                    {/*</button>*/}
                                 </div>
                             )}
                         </div>
