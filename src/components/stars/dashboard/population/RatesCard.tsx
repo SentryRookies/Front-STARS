@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { usePlace } from "../../../context/PlaceContext";
+import { usePlace } from "../../../../context/PlaceContext";
 import {
     BarChart,
     Bar,

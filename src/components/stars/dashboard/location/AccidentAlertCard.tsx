@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { AccidentData } from "../../../data/adminData";
+import { AccidentData } from "../../../../data/adminData";
 
 interface AccidentAlertCardProps {
     style: { opacity: number; y: number; scale: number };

@@ -2,23 +2,19 @@ import { motion, useScroll } from "framer-motion";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { usePlace } from "../../../context/PlaceContext";
 import { CountUp } from "countup.js";
-import VisitorCountCard from "./VisitorCountCard";
-import AreaInfoCard from "./AreaInfoCard";
-import WeatherCard from "./WeatherCard";
-import ChartCard from "./ChartCard";
-import POITableCard from "./POITableCard";
-import RatesCard from "./RatesCard";
-import TrafficInfoCard from "./TrafficInfoCard";
-// import ParkingInfoCard from "./ParkingInfoCard";
-import AccidentAlertCard from "./AccidentAlertCard";
-import CongestionStatusCard from "./CongestionStatusCard";
-import ClickInfoCard from "./ClickInfoCard";
-import AttractionTableCard from "./AttractionCard";
-// import CulturalEventCard from "./CulturalEventCard";
-import CulturalEventSlider from "./CulturalEventSlider";
+import VisitorCountCard from "./population/VisitorCountCard";
+import AreaInfoCard from "./location/AreaInfoCard";
+import WeatherCard from "./location/WeatherCard";
+import ChartCard from "./population/ChartCard";
+import POITableCard from "./POI/POITableCard";
+import RatesCard from "./population/RatesCard";
+import TrafficInfoCard from "./location/TrafficInfoCard";
+import AccidentAlertCard from "./location/AccidentAlertCard";
+import CongestionStatusCard from "./population/CongestionStatusCard";
+import ClickInfoCard from "./POI/ClickInfoCard";
+import AttractionTableCard from "./POI/AttractionCard";
+import CulturalEventSlider from "./POI/CulturalEventSlider";
 import { scrollToTop } from "../../../utils/scrollToTop";
-
-// API 호출
 import {
     getAreaList,
     getPlaceListByArea,
@@ -26,6 +22,7 @@ import {
 } from "../../../api/starsApi";
 import { MapData } from "../../../data/adminData";
 
+// 타입 정의
 interface Area {
     area_id: number;
     area_name: string;
@@ -34,7 +31,6 @@ interface Area {
     category: string;
     name_eng: string;
 }
-
 interface POI {
     name: string;
     address: string;
@@ -43,7 +39,6 @@ interface POI {
     lat: number;
     type: "cafe" | "restaurant" | "accommodation";
 }
-
 interface POIRawItem {
     name?: string;
     cafe_name?: string;
@@ -52,7 +47,6 @@ interface POIRawItem {
     lon: number;
     lat: number;
 }
-
 interface Attraction {
     name: string;
     address: string;
@@ -61,7 +55,6 @@ interface Attraction {
     lat: number;
     lon: number;
 }
-
 interface CulturalEvent {
     name: string;
     address: string;
@@ -74,7 +67,6 @@ interface CulturalEvent {
     lat: number;
     lon: number;
 }
-
 interface WeatherForecast {
     fcst_dt: string;
     pre_temp: number;
@@ -83,7 +75,6 @@ interface WeatherForecast {
     pre_rain_chance: number;
     pre_sky_stts: string;
 }
-
 interface WeatherData {
     temp: number;
     precipitation: string;
@@ -100,19 +91,18 @@ interface WeatherData {
     area_id: number;
     fcst24hours: WeatherForecast[];
 }
-
 type PlaceType =
     | "cafe"
     | "restaurant"
     | "accommodation"
     | "attraction"
     | "cultural_event";
-
 interface PlaceListItem {
     type: PlaceType;
     content: unknown[];
 }
 
+// 유틸 함수
 function isValidStatus(
     level: string | undefined
 ): level is "여유" | "보통" | "약간 붐빔" | "붐빔" {
@@ -129,67 +119,74 @@ export default function DashboardComponent() {
         setTriggerCountUp,
         congestionInfo,
         mapData,
+        accidentData,
     } = usePlace();
 
+    // 상태
     const [areaName, setAreaName] = useState("");
     const [areaCategory, setAreaCategory] = useState("");
     const [areaEngName, setAreaEngName] = useState("");
-
     const [poiList, setPoiList] = useState<POI[]>([]);
     const [attractions, setAttractions] = useState<Attraction[]>([]);
     const [events, setEvents] = useState<CulturalEvent[]>([]);
-
     const [weatherList, setWeatherList] = useState<WeatherData[]>([]);
-
-    const { accidentData } = usePlace();
-
-    const cafePOIs = poiList.filter((poi) => poi.type === "cafe");
-    const restaurantPOIs = poiList.filter((poi) => poi.type === "restaurant");
-    const accommodationPOIs = poiList.filter(
-        (poi) => poi.type === "accommodation"
-    );
-
-    const selectedAccidents = useMemo(() => {
-        if (!selectedAreaId || !accidentData) return [];
-        return accidentData.filter((acc) => acc.area_id === selectedAreaId);
-    }, [accidentData, selectedAreaId]);
-
-    // 선택된 위치 교통 정보 찾기
-    const map: MapData | undefined = mapData?.find(
-        (map: MapData) => map.area_id === selectedAreaId
-    );
-
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
 
+    // 카드 스타일 및 ref
+    const [cardStyles, setCardStyles] = useState<
+        Record<number, { opacity: number; y: number; scale: number }>
+    >({});
+    const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    // 메모이제이션
+    const cafePOIs = useMemo(
+        () => poiList.filter((poi) => poi.type === "cafe"),
+        [poiList]
+    );
+    const restaurantPOIs = useMemo(
+        () => poiList.filter((poi) => poi.type === "restaurant"),
+        [poiList]
+    );
+    const accommodationPOIs = useMemo(
+        () => poiList.filter((poi) => poi.type === "accommodation"),
+        [poiList]
+    );
+    const selectedAccidents = useMemo(
+        () =>
+            !selectedAreaId || !accidentData
+                ? []
+                : accidentData.filter((acc) => acc.area_id === selectedAreaId),
+        [accidentData, selectedAreaId]
+    );
+    const map = useMemo(
+        () => mapData?.find((m: MapData) => m.area_id === selectedAreaId),
+        [mapData, selectedAreaId]
+    );
     const forecastChartData = useMemo(() => {
         if (!congestionInfo?.fcst_ppltn) return [];
-
         return congestionInfo.fcst_ppltn.map((item) => {
             const avg = Math.round(
                 (item.fcst_ppltn_min + item.fcst_ppltn_max) / 2
             );
             return {
-                time: item.fcst_time.slice(11, 16), // '16:00' 형식
+                time: item.fcst_time.slice(11, 16),
                 forecast: avg,
             };
         });
     }, [congestionInfo]);
-
-    useEffect(() => {
-        const eventSource = subscribeWeatherUpdate((data) => {
-            if (Array.isArray(data)) {
-                setWeatherList(data as WeatherData[]);
-            }
-        });
-        return () => eventSource.close();
-    }, []);
-
     const selectedWeather = useMemo(() => {
         if (!selectedAreaId || weatherList.length === 0) return null;
         return weatherList.find((w) => w.area_id === selectedAreaId) ?? null;
     }, [selectedAreaId, weatherList]);
 
-    // 관광특구 이름, 카테고리, 영문명 정보 가져오기
+    // 데이터 구독 및 로딩
+    useEffect(() => {
+        const eventSource = subscribeWeatherUpdate((data) => {
+            if (Array.isArray(data)) setWeatherList(data as WeatherData[]);
+        });
+        return () => eventSource.close();
+    }, []);
+
     useEffect(() => {
         if (!selectedAreaId) return;
         getAreaList().then((areas: Area[]) => {
@@ -200,23 +197,19 @@ export default function DashboardComponent() {
                 setAreaEngName(found.name_eng);
             }
         });
-
         getPlaceListByArea(selectedAreaId).then(
             (placeList: PlaceListItem[]) => {
                 type POIType = "cafe" | "restaurant" | "accommodation";
-
                 const poiTypes: POIType[] = [
                     "restaurant",
                     "cafe",
                     "accommodation",
                 ];
-
                 const pois: POI[] = placeList
-                    .filter((p) => poiTypes.includes(p.type as POIType)) // filter는 단순 확인만
+                    .filter((p) => poiTypes.includes(p.type as POIType))
                     .flatMap((p) => {
                         const poiType = p.type as POIType;
                         const poiItems = p.content as POIRawItem[];
-
                         return poiItems.map((item) => ({
                             name: item.name || item.cafe_name || "이름 없음",
                             address: item.address,
@@ -227,21 +220,19 @@ export default function DashboardComponent() {
                         }));
                     });
                 setPoiList(pois);
-
-                const attractionData =
+                setAttractions(
                     (placeList.find((p) => p.type === "attraction")
-                        ?.content as Attraction[]) ?? [];
-                setAttractions(attractionData);
-
-                const eventData =
+                        ?.content as Attraction[]) ?? []
+                );
+                setEvents(
                     (placeList.find((p) => p.type === "cultural_event")
-                        ?.content as CulturalEvent[]) ?? [];
-                setEvents(eventData);
+                        ?.content as CulturalEvent[]) ?? []
+                );
             }
         );
     }, [selectedAreaId]);
 
-    // 혼잡도 기반 CountUp 애니메이션 실행
+    // CountUp 애니메이션
     useEffect(() => {
         if (
             triggerCountUp &&
@@ -264,40 +255,22 @@ export default function DashboardComponent() {
         }
     }, [triggerCountUp, congestionInfo, setTriggerCountUp]);
 
-    // const dummyPOIs = useMemo(
-    //     () =>
-    //         Array.from({ length: 30 }, (_, i) => ({
-    //             name: `상권 ${i + 1}번`,
-    //             address: `서울 중구 상권로 ${i + 1}길`,
-    //             tel: `02-0000-00${String(i + 1).padStart(2, "0")}`,
-    //         })),
-    //     []
-    // );
-
-    const [cardStyles, setCardStyles] = useState<{
-        [key: number]: { opacity: number; y: number; scale: number };
-    }>({});
-    const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
+    // 카드 스타일 업데이트
     useEffect(() => {
         const updateStyles = () => {
             if (!containerRef.current) return;
-
             const containerRect = containerRef.current.getBoundingClientRect();
             const containerTop = containerRect.top;
             const containerBottom = containerRect.bottom;
             const fadeMargin = 50;
-
-            const newStyles: {
-                [key: number]: { opacity: number; y: number; scale: number };
-            } = {};
-
+            const newStyles: Record<
+                number,
+                { opacity: number; y: number; scale: number }
+            > = {};
             cardRefs.current.forEach((el, i) => {
                 if (!el) return;
-
                 const cardRect = el.getBoundingClientRect();
                 const cardCenter = cardRect.top + cardRect.height / 2;
-
                 if (
                     cardCenter >= containerTop + fadeMargin &&
                     cardCenter <= containerBottom - fadeMargin
@@ -305,29 +278,18 @@ export default function DashboardComponent() {
                     newStyles[i] = { opacity: 1, y: 0, scale: 1 };
                     return;
                 }
-
-                const opacity = 1;
                 let y = 0;
-                const scale = 1;
-
                 if (cardCenter < containerTop + fadeMargin) {
                     const ratio = (cardCenter - containerTop) / fadeMargin;
-                    // opacity = Math.max(0, ratio);
-                    // scale = Math.max(0, ratio);
                     y = -15 * (1 - ratio);
                 } else if (cardCenter > containerBottom - fadeMargin) {
                     const ratio = (containerBottom - cardCenter) / fadeMargin;
-                    // opacity = Math.max(0, ratio);
-                    // scale = Math.max(0.8, ratio);
                     y = 15 * (1 - ratio);
                 }
-
-                newStyles[i] = { opacity, y, scale };
+                newStyles[i] = { opacity: 1, y, scale: 1 };
             });
-
             setCardStyles(newStyles);
         };
-
         updateStyles();
         const interval = setInterval(updateStyles, 50);
         return () => clearInterval(interval);
@@ -339,13 +301,8 @@ export default function DashboardComponent() {
             className="h-screen w-full overflow-y-scroll bg-gray-100 text-black px-10 md:py-[120px] py-[100px]"
         >
             <motion.div className="max-w-[1000px] mx-auto grid grid-cols-12 gap-4">
-                {/*<ActionButton*/}
-                {/*    style={cardStyles[0]}*/}
-                {/*    cardRef={(el) => (cardRefs.current[0] = el)}*/}
-                {/*/>*/}
-
                 <AreaInfoCard
-                    placeName={areaName} // ✅ 관광특구 이름
+                    placeName={areaName}
                     category={areaCategory}
                     nameEng={areaEngName}
                     style={cardStyles[1]}
@@ -361,6 +318,7 @@ export default function DashboardComponent() {
                             ? congestionInfo.area_congest_lvl
                             : "보통"
                     }
+                    congestionInfo={congestionInfo}
                 />
 
                 <CongestionStatusCard
@@ -372,12 +330,6 @@ export default function DashboardComponent() {
                     style={cardStyles[3]}
                     cardRef={(el) => (cardRefs.current[3] = el)}
                 />
-
-                {/*<PlaceImageCard*/}
-                {/*    image={place.image}*/}
-                {/*    style={cardStyles[4]}*/}
-                {/*    cardRef={(el) => (cardRefs.current[4] = el)}*/}
-                {/*/>*/}
 
                 <WeatherCard
                     style={cardStyles[5]}
@@ -433,22 +385,6 @@ export default function DashboardComponent() {
                     cardRef={(el) => (cardRefs.current[302] = el)}
                 />
 
-                {/*<ParkingInfoCard*/}
-                {/*    style={cardStyles[9]}*/}
-                {/*    cardRef={(el) => (cardRefs.current[9] = el)}*/}
-                {/*/>*/}
-
-                {/*/!* 관광지 카드들 *!/*/}
-                {/*{attractions.map((a, i) => (*/}
-                {/*    <AttractionCard*/}
-                {/*        key={i}*/}
-                {/*        attraction={a}*/}
-                {/*        style={cardStyles[100 + i]}*/}
-                {/*        cardRef={(el) => (cardRefs.current[100 + i] = el)}*/}
-                {/*    />*/}
-                {/*))}*/}
-
-                {/* 관광지 카드 - 리스트형 하나로 묶어서 출력 */}
                 <AttractionTableCard
                     attractions={attractions}
                     style={cardStyles[100]}
@@ -457,27 +393,9 @@ export default function DashboardComponent() {
 
                 <CulturalEventSlider
                     events={events}
-                    style={cardStyles[400]} // 적절한 인덱스 사용
+                    style={cardStyles[400]}
                     cardRef={(el) => (cardRefs.current[400] = el)}
                 />
-
-                {/*/!* POI 카드들 *!/*/}
-                {/*<POICardList*/}
-                {/*    pois={poiList}*/}
-                {/*    baseIndex={10}*/}
-                {/*    cardRefs={cardRefs}*/}
-                {/*    cardStyles={cardStyles}*/}
-                {/*/>*/}
-
-                {/*/!* 문화행사 카드들 *!/*/}
-                {/*{events.map((e, i) => (*/}
-                {/*    <CulturalEventCard*/}
-                {/*        key={i}*/}
-                {/*        event={e}*/}
-                {/*        style={cardStyles[200 + i]}*/}
-                {/*        cardRef={(el) => (cardRefs.current[200 + i] = el)}*/}
-                {/*    />*/}
-                {/*))}*/}
             </motion.div>
             <div className="absolute top-8 right-8 z-10 justify-between flex gap-2">
                 <div

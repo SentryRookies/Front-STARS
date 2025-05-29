@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import React from "react";
+import { CongestionData } from "../../../../context/PlaceContext";
 
 interface VisitorCountCardProps {
     refEl: React.RefObject<HTMLSpanElement | null>;
     style: { opacity: number; y: number; scale: number };
     cardRef: (el: HTMLDivElement | null) => void;
     status: "여유" | "보통" | "약간 붐빔" | "붐빔";
+    congestionInfo: CongestionData | null;
 }
 
 const textColors: Record<VisitorCountCardProps["status"], string> = {
@@ -20,6 +22,7 @@ export default function VisitorCountCard({
     cardRef,
     style,
     status,
+    congestionInfo,
 }: VisitorCountCardProps) {
     return (
         <motion.div
@@ -38,7 +41,17 @@ export default function VisitorCountCard({
                 약 <span ref={refEl}></span>명
             </p>
             <p className="text-sm text-gray-500 mt-2">
-                {new Date().toLocaleString()} 기준
+                {congestionInfo?.get_time
+                    ? `${new Date(congestionInfo.get_time).toLocaleTimeString(
+                          "ko-KR",
+                          {
+                              month: "narrow",
+                              day: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                          }
+                      )} 기준`
+                    : ""}
             </p>
         </motion.div>
     );
