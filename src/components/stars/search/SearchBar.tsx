@@ -127,7 +127,7 @@ export default function SearchBarWithMenu({
         <div ref={wrapperRef}>
             {/* SearchBar */}
             <div
-                className={`absolute top-6 left-1/2 transform -translate-x-1/2 z-20 w-11/12 max-w-md bg-white shadow-md flex items-center rounded-full px-2 py-2 transition-all duration-300 ${
+                className={`absolute top-6 left-1/2 transform -translate-x-1/2 z-10 w-11/12 max-w-md bg-white shadow-md flex items-center rounded-full px-2 py-2 transition-all duration-300 ${
                     isMenuOpen
                         ? "bg-opacity-90"
                         : "bg-opacity-60 hover:bg-opacity-90"

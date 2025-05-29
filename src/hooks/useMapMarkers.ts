@@ -1,7 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { SearchResult } from "../api/searchApi";
-import { renderPopupHTML, bindPopupEvents } from "../utils/popupUtils";
 
 interface UseMapMarkersParams {
     mapRef: React.MutableRefObject<mapboxgl.Map | null>;
@@ -20,7 +19,6 @@ interface UseMapMarkersParams {
 
 export function useMapMarkers({
     mapRef,
-    isLogin,
     isItemFavorite,
     setAlertMessage,
     setAlertType,
@@ -35,97 +33,142 @@ export function useMapMarkers({
     >([]);
     const isAnimatingRef = useRef(false);
 
-    // 하이라이트된 POI 마커 생성 및 팝업 표시
+    // CustomPopupCard 상태 관리
+    const [popupItem, setPopupItem] = useState<SearchResult | null>(null);
+    const [popupPosition, setPopupPosition] = useState<{
+        x: number;
+        y: number;
+    } | null>(null);
+
+    // 마커 클릭시 CustomPopupCard 표시를 위한 헬퍼 함수
+    const showCustomPopup = (item: SearchResult, marker: mapboxgl.Marker) => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        // 마커의 화면상 위치 계산
+        const markerElement = marker.getElement();
+        const rect = markerElement.getBoundingClientRect();
+        const position = {
+            x: rect.left + rect.width / 2,
+            y: rect.top,
+        };
+
+        setPopupItem(item);
+        setPopupPosition(position);
+    };
+
+    // 즐겨찾기 토글 핸들러
+    const handleFavoriteToggle = (item: SearchResult) => {
+        const placeId = item.id ?? item.place_id;
+        const itemKey = getItemKey(item.type, placeId);
+        const currentFavoriteStatus = isItemFavorite(item.type, placeId);
+
+        setToggledFavorites((prev) => ({
+            ...prev,
+            [itemKey]: !currentFavoriteStatus,
+        }));
+
+        setAlertMessage(
+            !currentFavoriteStatus
+                ? "즐겨찾기에 추가되었습니다"
+                : "즐겨찾기에서 제거되었습니다"
+        );
+        setAlertType(!currentFavoriteStatus ? "success" : "remove");
+        setAlertOpen(true);
+    };
+
+    // 상세보기 클릭 핸들러
+    const handleDetailClick = (areaId: number) => {
+        setSelectedAreaId(areaId);
+        setShowFocusCard(true);
+    };
+
+    // 팝업 닫기 핸들러
+    const handlePopupClose = () => {
+        setPopupItem(null);
+        setPopupPosition(null);
+    };
+
+    // 하이라이트된 POI 마커 생성 및 CustomPopupCard 표시
     const showHighlightPOI = (
         highlightPOI: SearchResult | null,
         setHighlightPOI: (v: any) => void
     ) => {
         if (!highlightPOI || !mapRef.current) return;
         const map = mapRef.current;
+
+        // 기존 마커들 제거
         searchMarkersRef.current.forEach(({ marker }) => marker.remove());
         searchMarkersRef.current = [];
+
+        // 새 마커 생성
         const el = document.createElement("div");
         el.className = "custom-marker";
         el.style.width = "24px";
         el.style.height = "24px";
         el.style.backgroundColor = "#8b5cf6";
         el.style.borderRadius = "50%";
-        const isFavorite = isItemFavorite(
-            highlightPOI.type,
-            highlightPOI.id ?? highlightPOI.place_id
-        );
-        const popup = new mapboxgl.Popup({
-            offset: 10,
-            closeButton: false,
-            maxWidth: "1000px",
-        }).setHTML(renderPopupHTML(highlightPOI, isFavorite));
+        el.style.cursor = "pointer";
+
         const marker = new mapboxgl.Marker({ element: el })
             .setLngLat([highlightPOI.lon, highlightPOI.lat])
-            .setPopup(popup)
             .addTo(map);
+
+        // 마커 클릭 이벤트
+        el.addEventListener("click", () => {
+            showCustomPopup(highlightPOI, marker);
+        });
+
         searchMarkersRef.current.push({ marker, item: highlightPOI });
+
+        // 지도 이동
         map.flyTo({
             center: [highlightPOI.lon, highlightPOI.lat],
             zoom: 17,
             pitch: 45,
             duration: 800,
         });
-        popup.addTo(map);
-        bindPopupEvents({
-            popup,
-            item: highlightPOI,
-            isLogin,
-            isItemFavorite,
-            setAlertMessage,
-            setAlertType,
-            setAlertOpen,
-            setToggledFavorites,
-            getItemKey,
-            setSelectedAreaId,
-            setShowFocusCard,
-        });
+
+        // 자동으로 팝업 표시
+
         setHighlightPOI(null);
     };
 
-    // 검색 결과 마커 생성 및 팝업 표시
+    // 검색 결과 마커 생성 및 CustomPopupCard 표시
     const showSearchResults = (items: SearchResult[]) => {
         const map = mapRef.current;
         if (!map) return;
+
+        // 기존 마커들 제거
         searchMarkersRef.current.forEach(({ marker }) => marker.remove());
         searchMarkersRef.current = [];
+
+        // 팝업 닫기
+        handlePopupClose();
+
         items.forEach((item) => {
             const el = document.createElement("div");
             el.className = "custom-marker";
-            const isFavorite = isItemFavorite(
-                item.type,
-                item.id ?? item.place_id
-            );
-            const popup = new mapboxgl.Popup({
-                offset: 10,
-                closeButton: false,
-                maxWidth: "1000px",
-            }).setHTML(renderPopupHTML(item, isFavorite));
-            popup.on("open", () => {
-                bindPopupEvents({
-                    popup,
-                    item,
-                    isLogin,
-                    isItemFavorite,
-                    setAlertMessage,
-                    setAlertType,
-                    setAlertOpen,
-                    setToggledFavorites,
-                    getItemKey,
-                    setSelectedAreaId,
-                    setShowFocusCard,
-                });
-            });
+            el.style.width = "20px";
+            el.style.height = "20px";
+            el.style.backgroundColor = "#7c3bf6";
+            el.style.borderRadius = "50%";
+            el.style.cursor = "pointer";
+            el.style.border = "2px solid white";
+            el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+
             const marker = new mapboxgl.Marker({ element: el })
                 .setLngLat([item.lon, item.lat])
-                .setPopup(popup)
                 .addTo(map);
+
+            // 마커 클릭 이벤트
+            el.addEventListener("click", () => {
+                showCustomPopup(item, marker);
+            });
+
             searchMarkersRef.current.push({ marker, item });
         });
+
         if (items.length > 0) {
             map.flyTo({
                 center: [items[0].lon, items[0].lat],
@@ -138,28 +181,33 @@ export function useMapMarkers({
         }
     };
 
-    // 단일 검색 결과 클릭 시 팝업 토글
+    // 단일 검색 결과 클릭 시 CustomPopupCard 토글
     const toggleSingleResultPopup = (item: SearchResult) => {
         const map = mapRef.current;
         if (!map || isAnimatingRef.current) return;
+
         if (!item.lon || !item.lat || isNaN(item.lon) || isNaN(item.lat)) {
             console.warn("Invalid coordinates:", item);
             return;
         }
-        searchMarkersRef.current.forEach(({ marker }) =>
-            marker.getPopup()?.remove()
-        );
+
+        // 기존 팝업 닫기
+        handlePopupClose();
+
         const found = searchMarkersRef.current.find(
             (m) => m.item.name === item.name && m.item.address === item.address
         );
+
         if (found) {
             isAnimatingRef.current = true;
             map.stop();
+
             const onMoveEnd = () => {
                 map.off("moveend", onMoveEnd);
                 isAnimatingRef.current = false;
-                found.marker.togglePopup();
+                showCustomPopup(item, found.marker);
             };
+
             map.on("moveend", onMoveEnd);
             map.flyTo({
                 center: [item.lon, item.lat],
@@ -167,13 +215,8 @@ export function useMapMarkers({
                 pitch: 45,
                 essential: true,
             });
-            setTimeout(() => {
-                if (isAnimatingRef.current) {
-                    map.off("moveend", onMoveEnd);
-                    isAnimatingRef.current = false;
-                    found.marker.togglePopup();
-                }
-            }, 1000);
+
+            // 타임아웃으로 안전장치
         }
     };
 
@@ -182,5 +225,11 @@ export function useMapMarkers({
         showSearchResults,
         toggleSingleResultPopup,
         searchMarkersRef,
+        // CustomPopupCard용 상태와 핸들러들
+        popupItem,
+        popupPosition,
+        handlePopupClose,
+        handleFavoriteToggle,
+        handleDetailClick,
     };
 }
