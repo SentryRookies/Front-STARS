@@ -1,4 +1,5 @@
 // ✅ POITableCard.tsx
+import { RefObject } from "react";
 import { motion } from "framer-motion";
 import { usePlace } from "../../../../context/PlaceContext";
 import { SearchResult } from "../../../../api/searchApi";
@@ -17,6 +18,7 @@ interface POITableCardProps {
     pois: POI[];
     style: { opacity: number; y: number; scale: number };
     cardRef: (el: HTMLDivElement | null) => void;
+    scrollRef?: RefObject<HTMLUListElement | null>;
 }
 
 export default function POITableCard({
@@ -24,6 +26,7 @@ export default function POITableCard({
     pois,
     style,
     cardRef,
+    scrollRef,
 }: POITableCardProps) {
     const { selectedAreaId, setHighlightPOI } = usePlace();
 
@@ -56,7 +59,10 @@ export default function POITableCard({
                     </p>
                 </div>
             ) : (
-                <ul className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-none rounded-xl">
+                <ul
+                    ref={scrollRef}
+                    className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-none rounded-xl"
+                >
                     {pois.map((poi, idx) => (
                         <li
                             key={idx}

@@ -131,6 +131,11 @@ export default function DashboardComponent() {
     const [events, setEvents] = useState<CulturalEvent[]>([]);
     const [weatherList, setWeatherList] = useState<WeatherData[]>([]);
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
+    const [currentEventIndex, setCurrentEventIndex] = useState(0);
+    const attractionScrollRef = useRef<HTMLUListElement | null>(null);
+    const cafeScrollRef = useRef<HTMLUListElement | null>(null);
+    const restaurantScrollRef = useRef<HTMLUListElement | null>(null);
+    const accommodationScrollRef = useRef<HTMLUListElement | null>(null);
 
     // 카드 스타일 및 ref
     const [cardStyles, setCardStyles] = useState<
@@ -371,30 +376,36 @@ export default function DashboardComponent() {
                     pois={cafePOIs}
                     style={cardStyles[300]}
                     cardRef={(el) => (cardRefs.current[300] = el)}
+                    scrollRef={cafeScrollRef}
                 />
                 <POITableCard
                     title="식당"
                     pois={restaurantPOIs}
                     style={cardStyles[301]}
                     cardRef={(el) => (cardRefs.current[301] = el)}
+                    scrollRef={restaurantScrollRef}
                 />
                 <POITableCard
                     title="숙박업소"
                     pois={accommodationPOIs}
                     style={cardStyles[302]}
                     cardRef={(el) => (cardRefs.current[302] = el)}
+                    scrollRef={accommodationScrollRef}
                 />
 
                 <AttractionTableCard
                     attractions={attractions}
                     style={cardStyles[100]}
                     cardRef={(el) => (cardRefs.current[100] = el)}
+                    scrollRef={attractionScrollRef}
                 />
 
                 <CulturalEventSlider
                     events={events}
                     style={cardStyles[400]}
                     cardRef={(el) => (cardRefs.current[400] = el)}
+                    currentIndex={currentEventIndex}
+                    setCurrentIndex={setCurrentEventIndex}
                 />
             </motion.div>
             <div className="absolute top-8 right-8 z-10 justify-between flex gap-2">
@@ -402,6 +413,23 @@ export default function DashboardComponent() {
                     className="bg-gray-50 hover:bg-indigo-600 text-indigo-600 hover:text-white font-medium rounded-2xl p-4 w-auto h-12 flex items-center justify-center text-lg shadow-lg transition cursor-pointer"
                     onClick={() => {
                         scrollToTop(containerRef.current);
+                        setCurrentEventIndex(0);
+                        attractionScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        cafeScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        restaurantScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                        accommodationScrollRef.current?.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
                         setTimeout(() => {
                             window.fullpage_api?.moveSectionUp();
                         }, 500);
