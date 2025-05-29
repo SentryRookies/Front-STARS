@@ -38,7 +38,7 @@ const FavoriteToastAlert: React.FC<FavoriteToastAlertProps> = ({
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -50, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className={`fixed top-6 inset-x-0 z-50 mx-auto w-fit px-6 py-3 rounded-xl border shadow-lg flex items-center space-x-2 ${bgColor} ${borderColor}`}
+                    className={`absolute top-6 inset-x-0 z-50 mx-auto w-fit px-6 py-3 rounded-xl border shadow-lg flex items-center space-x-2 ${bgColor} ${borderColor}`}
                 >
                     <Icon className={`w-5 h-5 ${textColor}`} />
                     <div className={`text-base font-semibold ${textColor}`}>
