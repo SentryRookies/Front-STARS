@@ -38,7 +38,7 @@ export default function RatesCard({ style, cardRef }: RatesCardProps) {
 
     return (
         <motion.div
-            className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-8 bg-white rounded-3xl shadow-lg p-4 flex flex-col gap-4 my-2"
+            className="col-span-12 sm:col-span-6 md:col-span-7 lg:col-span-8 bg-white rounded-3xl shadow-lg p-4 flex flex-col gap-4 my-2"
             whileHover={{ y: -6 }}
             animate={
                 style

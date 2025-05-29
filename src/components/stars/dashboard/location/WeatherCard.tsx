@@ -63,7 +63,7 @@ export default function WeatherCard({
 
     return (
         <motion.div
-            className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-6 bg-red-500 rounded-3xl shadow-lg p-4 my-2"
+            className="col-span-12 sm:col-span-8 md:col-span-6 lg:col-span-6 bg-red-500 rounded-3xl shadow-lg p-4 my-2"
             whileHover={{ y: -6 }}
             animate={
                 style
