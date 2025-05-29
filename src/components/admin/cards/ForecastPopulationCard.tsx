@@ -133,7 +133,6 @@ const ForecastPopulationCard = ({
                     };
                 });
 
-                console.log("Formatted chart data:", formattedData);
                 setChartData(formattedData);
             } else {
                 // 데이터가 없는 경우
@@ -141,7 +140,7 @@ const ForecastPopulationCard = ({
                 setHasError(true);
             }
         } catch (error) {
-            console.error("Error processing forecast data:", error);
+            console.error(error);
             setHasError(true);
             setChartData([]);
         } finally {
