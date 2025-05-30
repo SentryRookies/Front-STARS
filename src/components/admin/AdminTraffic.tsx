@@ -971,7 +971,7 @@ const AdminTraffic = () => {
                                 {/* 초기화 버튼 */}
                                 <button
                                     onClick={resetMapView}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-xs md:text-sm flex items-center shadow-md transition-colors duration-200"
+                                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-xs md:text-sm flex items-center shadow-md transition-colors duration-200"
                                     title="초기 화면으로 돌아가기"
                                 >
                                     <svg
@@ -1002,7 +1002,7 @@ const AdminTraffic = () => {
                                 placeholder="지역명 검색..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="w-full px-2 py-1 md:px-4 md:py-2 pr-8 md:pr-10 border border-gray-300 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                className="w-full px-2 py-1 md:px-4 md:py-2 pr-8 md:pr-10 border border-gray-300 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                             />
                             {searchTerm && (
                                 <button
@@ -1034,7 +1034,7 @@ const AdminTraffic = () => {
                                     key={idx}
                                     className={`p-2 md:p-3 border-2 rounded-lg mb-2 md:mb-3 cursor-pointer transition-all duration-200 ${
                                         selectedArea === area.area_nm
-                                            ? "bg-blue-50 border-blue-300 shadow-md"
+                                            ? "bg-indigo-50 border-indigo-300 shadow-md"
                                             : "hover:bg-gray-50"
                                     } ${getTrafficBorder(area)}`}
                                     onClick={() => {
