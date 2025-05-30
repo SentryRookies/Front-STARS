@@ -198,7 +198,7 @@ export default function CustomPopupCard({
                 style={{
                     left: position.x,
                     top: position.y,
-                    transform: "translate(-50%, -110%)", // 마커 위쪽에 표시
+                    transform: "translate(-50%, -105%)", // 마커 위쪽에 표시
                 }}
             >
                 <div className="flex flex-col gap-3">
