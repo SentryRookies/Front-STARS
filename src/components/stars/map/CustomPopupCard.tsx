@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { SearchResult } from "../../../api/searchApi";
 import { getReview } from "../../../api/starsApi";
 import { getUserFavoriteList } from "../../../api/mypageApi";
+import { addFavorite, deleteFavorite } from "../../../api/mypageApi";
 
 interface CustomPopupCardProps {
     item: SearchResult | null;
@@ -134,27 +135,33 @@ export default function CustomPopupCard({
         setIsLoadingFavorite(true);
 
         try {
-            // 부모 컴포넌트의 즐겨찾기 토글 함수 호출
-            await onFavoriteToggle(item);
+            if (currentIsFavorite) {
+                // 서버 기준 즐겨찾기 되어있으면 삭제 요청
+                await deleteFavorite({
+                    type: item.type,
+                    place_id: placeId,
+                });
+            } else {
+                // 서버 기준 즐겨찾기 안되어있으면 추가 요청
+                await addFavorite({
+                    type: item.type,
+                    place_id: placeId,
+                });
+            }
 
-            // 즐겨찾기 토글 후 목록 다시 조회하여 상태 동기화
+            // 요청 후 목록 재조회로 상태 동기화
             const updatedFavorites = await getUserFavoriteList();
-
             setFavoriteList(updatedFavorites || []);
-
-            // 새로운 즐겨찾기 상태 확인
             const isInFavorites = (updatedFavorites || []).some(
                 (favorite: FavoriteItem) => {
                     const favoriteId =
                         favorite.placeId ?? favorite.id ?? favorite.place_id;
-                    const currentId = placeId;
                     return (
                         favorite.type === item.type &&
-                        String(favoriteId) === String(currentId)
+                        String(favoriteId) === String(placeId)
                     );
                 }
             );
-
             setCurrentIsFavorite(isInFavorites);
         } catch (error) {
             console.error("즐겨찾기 토글 실패:", error);
