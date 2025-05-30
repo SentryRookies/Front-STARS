@@ -63,7 +63,6 @@ export default function MapSectionComponent({
         showHighlightPOI,
         showSearchResults,
         toggleSingleResultPopup,
-        // CustomPopupCard용 상태와 핸들러들
         popupItem,
         popupPosition,
         handlePopupClose,

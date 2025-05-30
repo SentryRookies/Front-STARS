@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { SearchResult } from "../api/searchApi";
+import { addFavorite, addFavorite2, deleteFavorite2 } from "../api/mypageApi";
 
 interface UseMapMarkersParams {
     mapRef: React.MutableRefObject<mapboxgl.Map | null>;
@@ -58,23 +59,47 @@ export function useMapMarkers({
     };
 
     // 즐겨찾기 토글 핸들러
-    const handleFavoriteToggle = (item: SearchResult) => {
+    const handleFavoriteToggle = async (item: SearchResult) => {
         const placeId = item.id ?? item.place_id;
         const itemKey = getItemKey(item.type, placeId);
         const currentFavoriteStatus = isItemFavorite(item.type, placeId);
 
+        // UI 상태 즉시 업데이트 (낙관적 업데이트)
         setToggledFavorites((prev) => ({
             ...prev,
             [itemKey]: !currentFavoriteStatus,
         }));
 
-        setAlertMessage(
-            !currentFavoriteStatus
-                ? "즐겨찾기에 추가되었습니다"
-                : "즐겨찾기에서 제거되었습니다"
-        );
-        setAlertType(!currentFavoriteStatus ? "success" : "remove");
-        setAlertOpen(true);
+        try {
+            // 서버 요청을 await로 대기
+            if (!currentFavoriteStatus) {
+                await addFavorite2(item.type, item.place_id);
+            } else {
+                await deleteFavorite2(item.type, item.place_id);
+            }
+
+            // 성공 메시지
+            setAlertMessage(
+                !currentFavoriteStatus
+                    ? "즐겨찾기에 추가되었습니다"
+                    : "즐겨찾기에서 제거되었습니다"
+            );
+            setAlertType(!currentFavoriteStatus ? "success" : "remove");
+            setAlertOpen(true);
+        } catch (error) {
+            console.error("즐겨찾기 토글 실패:", error);
+
+            // 실패시 이전 상태로 롤백
+            setToggledFavorites((prev) => ({
+                ...prev,
+                [itemKey]: currentFavoriteStatus,
+            }));
+
+            // 에러 메시지
+            setAlertMessage("즐겨찾기 처리 중 오류가 발생했습니다");
+            setAlertType("remove");
+            setAlertOpen(true);
+        }
     };
 
     // 상세보기 클릭 핸들러

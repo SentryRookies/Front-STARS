@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { SearchResult } from "../../../api/searchApi";
 import { getReview } from "../../../api/starsApi";
+import { getUserFavoriteList } from "../../../api/mypageApi";
 
 interface CustomPopupCardProps {
     item: SearchResult | null;
@@ -38,6 +39,13 @@ interface Summary {
     positiveKeywords: string[];
 }
 
+interface FavoriteItem {
+    type: string;
+    placeId?: string | number;
+    id?: string | number;
+    place_id?: string | number;
+}
+
 export default function CustomPopupCard({
     item,
     position,
@@ -50,25 +58,109 @@ export default function CustomPopupCard({
     if (!item || !position) return null;
 
     const [review, setReview] = useState<Summary | null>(null);
+    const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
+    const [favoriteList, setFavoriteList] = useState<FavoriteItem[]>([]);
+    const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+    const [currentIsFavorite, setCurrentIsFavorite] = useState(false);
+
     const placeId: string | number = item.id ?? item.place_id;
 
+    // 팝업이 열릴 때마다 즐겨찾기 목록 조회
     useEffect(() => {
-        console.log(item.type, item.place_id);
+        const fetchFavorites = async () => {
+            if (!isLogin) {
+                setCurrentIsFavorite(false);
+                return;
+            }
+
+            setIsLoadingFavorites(true);
+            try {
+                const favorites = await getUserFavoriteList();
+
+                setFavoriteList(favorites || []);
+
+                // 현재 아이템이 즐겨찾기에 있는지 확인
+                const isInFavorites = (favorites || []).some(
+                    (favorite: FavoriteItem) => {
+                        const favoriteId =
+                            favorite.placeId ??
+                            favorite.id ??
+                            favorite.place_id;
+                        const currentId = placeId;
+
+                        return (
+                            favorite.type === item.type &&
+                            String(favoriteId) === String(currentId)
+                        );
+                    }
+                );
+
+                setCurrentIsFavorite(isInFavorites);
+            } catch (error) {
+                console.error("즐겨찾기 목록 조회 실패:", error);
+                setFavoriteList([]);
+                setCurrentIsFavorite(false);
+            } finally {
+                setIsLoadingFavorites(false);
+            }
+        };
+
+        fetchFavorites();
+    }, [isLogin, item.type, placeId]); // 팝업이 열릴 때마다 조회
+
+    // 리뷰 조회
+    useEffect(() => {
         getReview(item.type, placeId as number).then((res) => {
             setReview(res as unknown as Summary);
         });
     }, [item.type, placeId]);
 
-    const isFavorite = isItemFavorite(item.type, placeId);
+    // 즐겨찾기 상태 결정 (서버 데이터 우선, 로딩 중에는 기존 함수 사용)
+    const isFavorite = isLoadingFavorites
+        ? isLogin
+            ? isItemFavorite(item.type, placeId)
+            : false
+        : currentIsFavorite;
+
     const badge = categoryBadge[item.type] ?? "bg-gray-100 text-gray-700";
     const label = categoryMap[item.type] ?? item.type;
 
-    const handleFavoriteClick = () => {
+    const handleFavoriteClick = async () => {
         if (!isLogin) {
             alert("즐겨찾기 기능은 로그인 후 이용 가능합니다.");
             return;
         }
-        onFavoriteToggle(item);
+
+        setIsLoadingFavorite(true);
+
+        try {
+            // 부모 컴포넌트의 즐겨찾기 토글 함수 호출
+            await onFavoriteToggle(item);
+
+            // 즐겨찾기 토글 후 목록 다시 조회하여 상태 동기화
+            const updatedFavorites = await getUserFavoriteList();
+
+            setFavoriteList(updatedFavorites || []);
+
+            // 새로운 즐겨찾기 상태 확인
+            const isInFavorites = (updatedFavorites || []).some(
+                (favorite: FavoriteItem) => {
+                    const favoriteId =
+                        favorite.placeId ?? favorite.id ?? favorite.place_id;
+                    const currentId = placeId;
+                    return (
+                        favorite.type === item.type &&
+                        String(favoriteId) === String(currentId)
+                    );
+                }
+            );
+
+            setCurrentIsFavorite(isInFavorites);
+        } catch (error) {
+            console.error("즐겨찾기 토글 실패:", error);
+        } finally {
+            setIsLoadingFavorite(false);
+        }
     };
 
     const handleDetailClick = () => {
@@ -121,9 +213,33 @@ export default function CustomPopupCard({
                             item.type !== "culturalevent" && (
                                 <button
                                     onClick={handleFavoriteClick}
-                                    className="bg-white rounded-full shadow-md p-2 hover:shadow-lg transition-shadow"
+                                    disabled={
+                                        isLoadingFavorite || isLoadingFavorites
+                                    }
+                                    className="bg-white rounded-full shadow-md p-2 hover:shadow-lg transition-shadow disabled:opacity-50"
                                 >
-                                    {isFavorite ? (
+                                    {isLoadingFavorite || isLoadingFavorites ? (
+                                        // 로딩 스피너
+                                        <svg
+                                            className="w-5 h-5 text-gray-400 animate-spin"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            />
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            />
+                                        </svg>
+                                    ) : isFavorite ? (
                                         <svg
                                             className="w-5 h-5 text-yellow-400"
                                             fill="currentColor"

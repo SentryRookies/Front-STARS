@@ -68,6 +68,22 @@ export const addFavorite = async (favorite: Favorite) => {
     return res.data;
 };
 
+export const addFavorite2 = async (type: string, id: number) => {
+    const header = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    };
+
+    const data = {
+        type: type,
+        place_id: id,
+    };
+
+    const res = await jwtAxios.post(`${prefix}/favorite/add`, data, header);
+    return res.data;
+};
+
 export const deleteFavorite = async (favorite: Favorite) => {
     const header = {
         headers: {
@@ -76,6 +92,19 @@ export const deleteFavorite = async (favorite: Favorite) => {
     };
     const res = await jwtAxios.delete(
         `${prefix}/favorite/delete/${favorite.type}/${favorite.place_id}`,
+        header
+    );
+    return res.data;
+};
+
+export const deleteFavorite2 = async (type: string, id: number) => {
+    const header = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    };
+    const res = await jwtAxios.delete(
+        `${prefix}/favorite/delete/${type}/${id}`,
         header
     );
     return res.data;
