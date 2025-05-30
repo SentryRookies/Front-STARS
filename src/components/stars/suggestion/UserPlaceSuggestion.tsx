@@ -1362,7 +1362,7 @@ export default function UserPlaceSuggestion({
                         className={`w-full py-3 bg-purple-500 text-white font-medium rounded-lg transition-all duration-300 shadow-md 
   ${
       isSubmitting || (questionType > 0 && (!startDate || !endDate))
-          ? "opacity-70 cursor-not-allowed"
+          ? "opacity-70 cursor-progress"
           : "hover:bg-purple-600"
   }`}
                     >
