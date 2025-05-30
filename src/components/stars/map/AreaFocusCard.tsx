@@ -244,11 +244,11 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                             return (
                                 <div
                                     key={type}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-full shadow cursor-pointer transition
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-full shadow transition
                                         ${
                                             isDisabled
                                                 ? "bg-white/10 text-gray-300 cursor-not-allowed"
-                                                : "bg-white/30 text-white hover:bg-white/30"
+                                                : "bg-white/30 text-white hover:bg-white/40 cursor-pointer"
                                         }
                                     `}
                                     onClick={() => {
