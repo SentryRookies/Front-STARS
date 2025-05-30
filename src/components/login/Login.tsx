@@ -27,91 +27,81 @@ export default function Login() {
         setErrorMessage(message);
         setErrorVisible(true);
 
-        // 1.5초 후 fade-out 시작
-        setTimeout(() => {
-            setErrorVisible(false);
-        }, 1500);
-
-        // fade-out 끝나고 에러 메시지 비우기
-        setTimeout(() => {
-            setErrorMessage("");
-        }, 2000);
+        setTimeout(() => setErrorVisible(false), 1500);
+        setTimeout(() => setErrorMessage(""), 2000);
     };
 
     return (
-        <div className="relative w-full h-screen overflow-hidden">
-            {/* 배경 비디오 */}
-            <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute w-full h-full object-cover"
-            >
-                <source src="/home-bg-video.mp4" type="video/mp4" />
-            </video>
-
-            {/* 블러 오버레이 */}
-            <div className="absolute w-full h-full bg-black/20 backdrop-blur-sm" />
-
-            {/* 폼 카드 */}
-            <div className="relative flex items-center justify-center h-full z-10">
-                <div className="w-full max-w-md bg-white/20 rounded-lg shadow-lg p-8">
-                    {/* 제목 */}
-                    <h2 className="text-2xl font-bold text-center text-gray-100 mb-6">
-                        {isRegistering ? "회원가입" : "Login"}
-                    </h2>
-
-                    {/* 에러메시지 공간 항상 확보 */}
-                    <div className="min-h-[24px] mb-4 text-center">
-                        <AnimatePresence>
-                            {errorMessage && (
-                                <motion.div
-                                    key={errorMessage}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: errorVisible ? 1 : 0 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="text-red-300 text-sm"
-                                >
-                                    {errorMessage}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    {/* 폼 부분 */}
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={isRegistering ? "register" : "login"}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {isRegistering ? (
-                                <RegisterForm
-                                    onRegisterSuccess={handleRegisterSuccess}
-                                />
-                            ) : (
-                                <LoginForm onError={handleError} />
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-
-                    {/* 로그인/회원가입 전환 버튼 */}
-                    <div className="mt-6 text-center">
-                        <button
-                            onClick={handleFormSwitch}
-                            className="text-xs bg-slate-600/50 hover:bg-slate-700/50 text-white font-semibold shadow-lg rounded-md focus:outline-none focus:ring-0"
-                        >
-                            {isRegistering
-                                ? "이미 계정이 있으신가요? 로그인"
-                                : "계정이 없으신가요? 회원가입"}
-                        </button>
-                    </div>
-                </div>
+        <div className="relative min-h-screen w-full bg-[#e0e5ec] flex items-center justify-center overflow-hidden">
+            <div className="absolute -bottom-36 scale-125 left-0 h-full w-1/2 flex items-end justify-center">
+                <motion.img
+                    src="/img/login-bg-1.png"
+                    alt="Login Background"
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 1.0, ease: "easeOut" }}
+                    className="max-w-[100%] max-h-[110%] object-contain"
+                />
             </div>
+
+            {/* 우측 로그인 박스 */}
+            <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 1.0, ease: "easeOut" }}
+                className="relative z-10 w-full max-w-md ml-[40%] mr-0 bg-[#e0e5ec] rounded-3xl shadow-[8px_8px_20px_rgba(163,177,198,0.5),-8px_-8px_20px_rgba(255,255,255,0.8)] p-8"
+            >
+                <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
+                    {isRegistering ? "회원가입" : "로그인"}
+                </h2>
+
+                {/* 에러 메시지 */}
+                <div className="min-h-[24px] mb-4 text-center">
+                    <AnimatePresence>
+                        {errorMessage && (
+                            <motion.div
+                                key={errorMessage}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: errorVisible ? 1 : 0 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1.0 }}
+                                className="text-red-500 text-sm"
+                            >
+                                {errorMessage}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={isRegistering ? "register" : "login"}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {isRegistering ? (
+                            <RegisterForm
+                                onRegisterSuccess={handleRegisterSuccess}
+                            />
+                        ) : (
+                            <LoginForm onError={handleError} />
+                        )}
+                    </motion.div>
+                </AnimatePresence>
+
+                <div className="mt-6 text-center">
+                    <button
+                        onClick={handleFormSwitch}
+                        className="text-xs py-2 px-4 rounded-full text-gray-700 bg-[#e0e5ec] shadow-[inset_6px_6px_12px_rgba(163,177,198,0.4),inset_-6px_-6px_12px_rgba(255,255,255,0.9)] hover:shadow-[6px_6px_12px_rgba(163,177,198,0.4),-6px_-6px_12px_rgba(255,255,255,0.9)]"
+                    >
+                        {isRegistering
+                            ? "이미 계정이 있으신가요? 로그인"
+                            : "계정이 없으신가요? 회원가입"}
+                    </button>
+                </div>
+            </motion.div>
         </div>
     );
 }
