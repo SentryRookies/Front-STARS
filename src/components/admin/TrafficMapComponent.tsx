@@ -47,7 +47,6 @@ const TrafficMapDemo: React.FC<TrafficMapProps> = ({
             style: "mapbox://styles/mapbox/light-v11",
             center: initialCenter,
             zoom: initialZoom,
-            interactive: false, // ✅ 초기 비활성화
         });
 
         const enableInteractions = () => {

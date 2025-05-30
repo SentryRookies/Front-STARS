@@ -146,11 +146,11 @@ const AdminUserFavorite = () => {
                 };
             case "accommodation":
                 return {
-                    bg: "bg-blue-50",
-                    border: "border-blue-200",
-                    text: "text-blue-800",
-                    tag: "bg-blue-100",
-                    tagText: "text-blue-800",
+                    bg: "bg-indigo-50",
+                    border: "border-indigo-200",
+                    text: "text-indigo-800",
+                    tag: "bg-indigo-100",
+                    tagText: "text-indigo-800",
                     icon: "🏨",
                 };
             case "attraction":
@@ -194,8 +194,8 @@ const AdminUserFavorite = () => {
                         className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 transition-colors duration-150
                             ${
                                 isSelected
-                                    ? "bg-blue-600 text-white"
-                                    : `${styles.tag} ${styles.tagText} border border-transparent hover:border-blue-400`
+                                    ? "bg-indigo-600 text-white"
+                                    : `${styles.tag} ${styles.tagText} border border-transparent hover:border-indigo-400`
                             }`}
                         onClick={() => setSelected(ko)}
                     >
@@ -244,7 +244,7 @@ const AdminUserFavorite = () => {
             hash = userId.charCodeAt(i) + ((hash << 5) - hash);
         }
         const colors = [
-            "bg-blue-100",
+            "bg-indigo-100",
             "bg-green-100",
             "bg-yellow-100",
             "bg-red-100",
@@ -277,7 +277,7 @@ const AdminUserFavorite = () => {
                     <div className="mb-2 flex">
                         <button
                             onClick={handleBack}
-                            className="flex items-center text-blue-600 mb-1 bg-white"
+                            className="flex items-center text-indigo-600 mb-1 bg-white"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -307,13 +307,13 @@ const AdminUserFavorite = () => {
                                     <span>사용자 목록</span>
                                     <div className="flex items-center">
                                         {loading && (
-                                            <span className="text-sm text-blue-500 font-normal mr-2">
+                                            <span className="text-sm text-indigo-500 font-normal mr-2">
                                                 로딩 중...
                                             </span>
                                         )}
                                         <button
                                             onClick={handleRefresh}
-                                            className="ml-2 text-sm bg-blue-600 text-white hover:bg-blue-700"
+                                            className="ml-2 text-sm bg-indigo-500 text-white hover:bg-indigo-600"
                                             title="새로고침"
                                             disabled={loading}
                                         >
@@ -326,7 +326,7 @@ const AdminUserFavorite = () => {
                                     <input
                                         type="text"
                                         placeholder="사용자 ID 검색..."
-                                        className="w-full px-3 py-2 border rounded-lg text-black bg-gray-50 focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border rounded-lg text-black bg-gray-50 focus:ring-2 focus:ring-indigo-500"
                                         value={searchTerm}
                                         onChange={(e) =>
                                             setSearchTerm(e.target.value)
@@ -354,7 +354,7 @@ const AdminUserFavorite = () => {
                                     </span>
                                     <div className="flex items-center">
                                         {favoriteLoading && (
-                                            <span className="text-sm text-blue-500 font-normal mr-2">
+                                            <span className="text-sm text-indigo-500 font-normal mr-2">
                                                 로딩 중...
                                             </span>
                                         )}
@@ -452,7 +452,7 @@ const AdminUserFavorite = () => {
                                                                 }
                                                                 idType="place_id"
                                                                 extra={
-                                                                    <span className="absolute -top-2 -left-2 bg-blue-400 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-lg shadow">
+                                                                    <span className="absolute -top-2 -left-2 bg-indigo-400 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-lg shadow">
                                                                         {idx +
                                                                             1}
                                                                     </span>
@@ -486,13 +486,13 @@ const AdminUserFavorite = () => {
                                     <span>사용자 목록</span>
                                     <div className="flex items-center">
                                         {loading && (
-                                            <span className="text-sm text-blue-500 font-normal mr-2">
+                                            <span className="text-sm text-indigo-500 font-normal mr-2">
                                                 로딩 중...
                                             </span>
                                         )}
                                         <button
                                             onClick={handleRefresh}
-                                            className="ml-2 text-sm bg-white text-black hover:text-blue-500"
+                                            className="ml-2 text-sm bg-indigo-500 text-white hover:bg-indigo-600"
                                             title="새로고침"
                                             disabled={loading}
                                         >
@@ -505,7 +505,7 @@ const AdminUserFavorite = () => {
                                     <input
                                         type="text"
                                         placeholder="사용자 ID 검색..."
-                                        className="w-full px-3 py-2 border rounded-lg text-black bg-gray-50 focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border rounded-lg text-black bg-gray-50 focus:ring-2 focus:ring-indigo-500"
                                         value={searchTerm}
                                         onChange={(e) =>
                                             setSearchTerm(e.target.value)
@@ -536,7 +536,7 @@ const AdminUserFavorite = () => {
                                     </span>
                                     <div className="flex items-center">
                                         {favoriteLoading && (
-                                            <span className="text-sm text-blue-500 font-normal mr-2">
+                                            <span className="text-sm text-indigo-500 font-normal mr-2">
                                                 로딩 중...
                                             </span>
                                         )}
@@ -633,7 +633,7 @@ const AdminUserFavorite = () => {
                                                             }
                                                             idType="place_id"
                                                             extra={
-                                                                <span className="absolute -top-2 -left-2 bg-blue-400 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-lg shadow">
+                                                                <span className="absolute -top-2 -left-2 bg-indigo-400 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-lg shadow">
                                                                     {idx + 1}
                                                                 </span>
                                                             }
@@ -662,7 +662,7 @@ const AdminUserFavorite = () => {
                 <div className="flex bottom-0 left-0 right-0 bg-white border-t px-4 justify-around z-10">
                     <button
                         onClick={() => setMobileTab(0)}
-                        className={`flex flex-col items-center ${mobileTab === 0 ? "text-blue-600" : "text-gray-500"} bg-white`}
+                        className={`flex flex-col items-center ${mobileTab === 0 ? "text-indigo-600" : "text-gray-500"} bg-white`}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -682,7 +682,7 @@ const AdminUserFavorite = () => {
                     </button>
                     <button
                         onClick={() => setMobileTab(1)}
-                        className={`flex flex-col items-center ${mobileTab === 1 ? "text-blue-600" : "text-gray-500"} bg-white`}
+                        className={`flex flex-col items-center ${mobileTab === 1 ? "text-indigo-600" : "text-gray-500"} bg-white`}
                         disabled={!selectedUserId}
                     >
                         <svg
@@ -703,7 +703,7 @@ const AdminUserFavorite = () => {
                     </button>
                     <button
                         onClick={() => setMobileTab(2)}
-                        className={`flex flex-col items-center ${mobileTab === 2 ? "text-blue-600" : "text-gray-500"} bg-white`}
+                        className={`flex flex-col items-center ${mobileTab === 2 ? "text-indigo-600" : "text-gray-500"} bg-white`}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

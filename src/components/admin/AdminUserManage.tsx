@@ -2,7 +2,18 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import AdminHeader from "./AdminHeader";
 import { getUserList } from "../../api/adminApi";
 import UserInsightDashboard from "./AdminUserInsight";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    Menu,
+    Grid,
+    ChevronLeft,
+    ChevronRight,
+    Filter,
+    Search,
+    User,
+    Users,
+    Calendar,
+    X,
+} from "lucide-react";
 
 // 사용자 정보 타입 정의
 interface UserInfo {
@@ -287,7 +298,7 @@ const AdminUserManagement: React.FC = () => {
     const getRoleBadgeStyle = (role: string) => {
         return role === "ROLE_ADMIN"
             ? "bg-red-100 text-red-800 border-red-200"
-            : "bg-blue-100 text-blue-800 border-blue-200";
+            : "bg-indigo-100 text-indigo-800 border-indigo-200";
     };
 
     // 성별 아이콘
@@ -299,7 +310,7 @@ const AdminUserManagement: React.FC = () => {
     const getMBTIColor = (mbti: string) => {
         const colors = {
             E: "bg-red-100 text-red-700",
-            I: "bg-blue-100 text-blue-700",
+            I: "bg-indigo-100 text-indigo-700",
             S: "bg-green-100 text-green-700",
             N: "bg-purple-100 text-purple-700",
             T: "bg-orange-100 text-orange-700",
@@ -336,7 +347,7 @@ const AdminUserManagement: React.FC = () => {
                 placeholder="사용자 ID나 닉네임으로 실시간 검색..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="block w-full pl-10 pr-10 py-2 border text-gray-600 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full pl-10 pr-10 py-2 border text-gray-600 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
             />
             {searchQuery && (
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -445,7 +456,7 @@ const AdminUserManagement: React.FC = () => {
                                         }
                                         className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                                             currentPage === page
-                                                ? "bg-blue-600 text-white"
+                                                ? "bg-indigo-600 text-white"
                                                 : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                                         }`}
                                     >
@@ -567,7 +578,7 @@ const AdminUserManagement: React.FC = () => {
                 {stats && (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4">
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border">
-                            <div className="text-lg md:text-2xl font-bold text-blue-600">
+                            <div className="text-lg md:text-2xl font-bold text-indigo-600">
                                 {stats.totalUsers}
                             </div>
                             <div className="text-xs md:text-sm text-gray-600">
@@ -623,11 +634,11 @@ const AdminUserManagement: React.FC = () => {
                             </div>
                         </div>
                         <div
-                            className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 md:p-4 rounded-lg shadow-sm border border-blue-200 hover:shadow-md hover:from-blue-100 hover:to-purple-100 transition-all cursor-pointer"
+                            className="bg-gradient-to-r from-indigo-50 to-purple-50 p-3 md:p-4 rounded-lg shadow-sm border border-indigo-200 hover:shadow-md hover:from-indigo-100 hover:to-purple-100 transition-all cursor-pointer"
                             onClick={() => setIsInsightModalOpen(true)}
                         >
-                            <div className="text-lg md:text-2xl font-bold text-blue-600">
-                                📊 사용자 분석
+                            <div className="text-lg md:text-2xl font-bold text-indigo-600">
+                                사용자 분석
                             </div>
                             <div className="text-xs md:text-sm text-gray-600">
                                 상세 인사이트 보기
@@ -646,7 +657,7 @@ const AdminUserManagement: React.FC = () => {
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="md:hidden px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                                className="md:hidden px-3 py-2 text-sm font-medium text-white bg-indigo-500 border  rounded-md transition-colors"
                             >
                                 {showFilters ? "필터 숨기기" : "필터 보기"}
                             </button>
@@ -660,39 +671,15 @@ const AdminUserManagement: React.FC = () => {
                                 <div className="flex items-center space-x-2">
                                     <button
                                         onClick={() => setViewMode("list")}
-                                        className={`p-2 rounded-md ${viewMode === "list" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+                                        className={`p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-indigo-500 text-indigo-100" : "bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-500"}`}
                                     >
-                                        <svg
-                                            className="w-4 h-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M4 6h16M4 12h16M4 18h16"
-                                            />
-                                        </svg>
+                                        <Menu className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => setViewMode("grid")}
-                                        className={`p-2 rounded-md ${viewMode === "grid" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+                                        className={`p-2 rounded-md transition-colors ${viewMode === "grid" ? "bg-indigo-500 text-indigo-100" : "bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-500"}`}
                                     >
-                                        <svg
-                                            className="w-4 h-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                                            />
-                                        </svg>
+                                        <Grid className="w-4 h-4" />
                                     </button>
                                 </div>
                             )}
@@ -717,7 +704,7 @@ const AdminUserManagement: React.FC = () => {
                                     onChange={(e) =>
                                         setRoleFilterValue(e.target.value)
                                     }
-                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
                                     <option value="all">전체</option>
                                     <option value="ROLE_USER">일반</option>
@@ -735,7 +722,7 @@ const AdminUserManagement: React.FC = () => {
                                     onChange={(e) =>
                                         setGenderFilterValue(e.target.value)
                                     }
-                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
                                     <option value="all">전체</option>
                                     <option value="male">남성</option>
@@ -753,7 +740,7 @@ const AdminUserManagement: React.FC = () => {
                                     onChange={(e) =>
                                         setAgeRangeFilterValue(e.target.value)
                                     }
-                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
                                     <option value="all">전체</option>
                                     <option value="teens">10대</option>
@@ -775,7 +762,7 @@ const AdminUserManagement: React.FC = () => {
                                         onChange={(e) =>
                                             setSortByValue(e.target.value)
                                         }
-                                        className="flex-1 px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        className="flex-1 px-2.5 py-1.5 text-sm border bg-white text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                                     >
                                         <option value="created_at">
                                             가입일
@@ -791,7 +778,7 @@ const AdminUserManagement: React.FC = () => {
                                                     : "asc"
                                             )
                                         }
-                                        className="px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        className="px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                                         title={
                                             sortOrderValue === "asc"
                                                 ? "내림차순으로 변경"
@@ -809,87 +796,110 @@ const AdminUserManagement: React.FC = () => {
                             roleFilterValue !== "all" ||
                             genderFilterValue !== "all" ||
                             ageRangeFilterValue !== "all") && (
-                            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
-                                <span className="text-sm text-gray-600">
-                                    활성 필터:
-                                </span>
-                                {searchQuery && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        검색: {searchQuery}
-                                        <button
-                                            onClick={clearSearch}
-                                            className="ml-1 bg-blue-100 text-blue-600 hover:text-blue-800"
-                                        >
-                                            ×
-                                        </button>
+                            <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <Filter className="w-4 h-4 text-gray-500" />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        활성 필터
                                     </span>
-                                )}
-                                {roleFilterValue !== "all" && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        역할:{" "}
-                                        {roleFilterValue === "ROLE_ADMIN"
-                                            ? "관리자"
-                                            : "일반사용자"}
-                                        <button
-                                            onClick={() =>
-                                                setRoleFilterValue("all")
-                                            }
-                                            className="ml-1 bg-green-100 text-green-600 hover:text-green-800"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                )}
-                                {genderFilterValue !== "all" && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                        성별:{" "}
-                                        {genderFilterValue === "male"
-                                            ? "남성"
-                                            : "여성"}
-                                        <button
-                                            onClick={() =>
-                                                setGenderFilterValue("all")
-                                            }
-                                            className="ml-1 bg-purple-100 text-purple-600 hover:text-purple-800"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                )}
-                                {ageRangeFilterValue !== "all" && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                        연령:{" "}
-                                        {ageRangeFilterValue === "teens"
-                                            ? "10대"
-                                            : ageRangeFilterValue === "twenties"
-                                              ? "20대"
-                                              : ageRangeFilterValue ===
-                                                  "thirties"
-                                                ? "30대"
-                                                : ageRangeFilterValue ===
-                                                    "forties"
-                                                  ? "40대"
-                                                  : "50대+"}
-                                        <button
-                                            onClick={() =>
-                                                setAgeRangeFilterValue("all")
-                                            }
-                                            className="ml-1 bg-orange-100 text-orange-600 hover:text-orange-800"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                )}
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {searchQuery && (
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm">
+                                            <Search className="w-3.5 h-3.5" />
+                                            <span>검색: {searchQuery}</span>
+                                            <button
+                                                onClick={clearSearch}
+                                                className="ml-1 p-0.5 rounded-full hover:bg-indigo-200 transition-colors"
+                                            >
+                                                <X className="w-3 h-3 text-indigo-600" />
+                                            </button>
+                                        </span>
+                                    )}
+
+                                    {roleFilterValue !== "all" && (
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm">
+                                            <User className="w-3.5 h-3.5" />
+                                            <span>
+                                                역할:{" "}
+                                                {roleFilterValue ===
+                                                "ROLE_ADMIN"
+                                                    ? "관리자"
+                                                    : "일반사용자"}
+                                            </span>
+                                            <button
+                                                onClick={() =>
+                                                    setRoleFilterValue("all")
+                                                }
+                                                className="ml-1 p-0.5 rounded-full bg-gray-100 hover:bg-emerald-200 transition-colors"
+                                            >
+                                                <X className="w-3 h-3 text-emerald-600" />
+                                            </button>
+                                        </span>
+                                    )}
+
+                                    {genderFilterValue !== "all" && (
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-rose-50 to-rose-100 text-rose-700 border border-rose-200 shadow-sm">
+                                            <Users className="w-3.5 h-3.5" />
+                                            <span>
+                                                성별:{" "}
+                                                {genderFilterValue === "male"
+                                                    ? "남성"
+                                                    : "여성"}
+                                            </span>
+                                            <button
+                                                onClick={() =>
+                                                    setGenderFilterValue("all")
+                                                }
+                                                className="ml-1 p-0.5 rounded-full bg-gray-100 hover:bg-rose-200 transition-colors"
+                                            >
+                                                <X className="w-3 h-3 text-rose-600" />
+                                            </button>
+                                        </span>
+                                    )}
+
+                                    {ageRangeFilterValue !== "all" && (
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border border-amber-200 shadow-sm">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            <span>
+                                                연령:{" "}
+                                                {ageRangeFilterValue === "teens"
+                                                    ? "10대"
+                                                    : ageRangeFilterValue ===
+                                                        "twenties"
+                                                      ? "20대"
+                                                      : ageRangeFilterValue ===
+                                                          "thirties"
+                                                        ? "30대"
+                                                        : ageRangeFilterValue ===
+                                                            "forties"
+                                                          ? "40대"
+                                                          : "50대+"}
+                                            </span>
+                                            <button
+                                                onClick={() =>
+                                                    setAgeRangeFilterValue(
+                                                        "all"
+                                                    )
+                                                }
+                                                className="ml-1 p-0.5 rounded-full bg-gray-100 hover:bg-amber-200 transition-colors"
+                                            >
+                                                <X className="w-3 h-3 text-amber-600" />
+                                            </button>
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         )}
 
                         {/* 검색 결과 요약 */}
                         {processedUsers.length !== userList.length && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                            <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
                                 <div className="flex">
                                     <div className="flex-shrink-0">
                                         <svg
-                                            className="h-5 w-5 text-blue-400"
+                                            className="h-5 w-5 text-indigo-400"
                                             fill="currentColor"
                                             viewBox="0 0 20 20"
                                         >
@@ -901,7 +911,7 @@ const AdminUserManagement: React.FC = () => {
                                         </svg>
                                     </div>
                                     <div className="ml-3">
-                                        <p className="text-sm text-blue-700">
+                                        <p className="text-sm text-indigo-700">
                                             전체 {userList.length}명 중{" "}
                                             <strong>
                                                 {processedUsers.length}명
@@ -926,14 +936,14 @@ const AdminUserManagement: React.FC = () => {
                                     {currentUsers.map((user) => (
                                         <div
                                             key={user.member_id}
-                                            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md cursor-pointer transition-all duration-200 bg-white"
+                                            className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:shadow-md cursor-pointer transition-all duration-200 bg-white"
                                             onClick={() =>
                                                 handleUserClick(user)
                                             }
                                         >
                                             <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center space-x-3">
-                                                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                                                         {user.nickname.charAt(
                                                             0
                                                         )}
@@ -1000,7 +1010,7 @@ const AdminUserManagement: React.FC = () => {
                                                 >
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
-                                                            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                                                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
                                                                 {user.nickname.charAt(
                                                                     0
                                                                 )}
@@ -1074,7 +1084,7 @@ const AdminUserManagement: React.FC = () => {
                                                                     user
                                                                 );
                                                             }}
-                                                            className="bg-white border-gray-500 text-blue-600 hover:text-blue-900"
+                                                            className="bg-white border-gray-500 text-indigo-600 hover:text-indigo-900"
                                                         >
                                                             상세
                                                         </button>
@@ -1134,7 +1144,7 @@ const AdminUserManagement: React.FC = () => {
                                     </h3>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        className="text-white bg-indigo-500 hover:bg-indigo-600"
                                     >
                                         <svg
                                             className="w-6 h-6"
@@ -1155,7 +1165,7 @@ const AdminUserManagement: React.FC = () => {
                                 <div className="space-y-4">
                                     {/* 프로필 섹션 */}
                                     <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                                        <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
                                             {selectedUser.nickname.charAt(0)}
                                         </div>
                                         <div>

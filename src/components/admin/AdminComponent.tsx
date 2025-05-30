@@ -190,8 +190,8 @@ export default function AdminComponent() {
             )}
 
             {/* 인사이트 버튼 추가 */}
-            <div className="p-3">
-                <div className="mb-3">
+            <div className="pt-3 pr-3 pl-3">
+                <div className="">
                     <button
                         onClick={handleInsightModalOpen}
                         className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-3"
@@ -210,8 +210,12 @@ export default function AdminComponent() {
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                             />
                         </svg>
-                        <span className="text-lg">
-                            관광특구 통합 인사이트 보기
+                        <span
+                            className={`${isMobile ? "text-base" : "text-lg"}`}
+                        >
+                            {isMobile
+                                ? "통합 인사이트"
+                                : "관광특구 통합 인사이트 보기"}
                         </span>
                         <span className="bg-white/20 text-white text-sm font-medium px-3 py-1 rounded-full">
                             {combinedAreaData.length}곳 분석
@@ -353,6 +357,7 @@ export default function AdminComponent() {
                     {/* Right Column - Compact */}
                     <div className="lg:col-span-2 space-y-3">
                         {/* Accident Information Card - Compact */}
+                        {/* Accident Information Card - Compact */}
                         <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 overflow-hidden">
                             <div className="bg-gradient-to-r from-red-500 to-pink-500 px-3 py-2">
                                 <div className="flex items-center justify-between">
@@ -376,28 +381,33 @@ export default function AdminComponent() {
                                             사고 정보
                                         </h2>
                                     </div>
-                                    {isLoading && (
-                                        <svg
-                                            className="animate-spin h-3 w-3 text-white"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                            ></circle>
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            ></path>
-                                        </svg>
-                                    )}
+                                    <div className="flex items-center space-x-1">
+                                        <span className="bg-white/20 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                                            {accidentData.length}건
+                                        </span>
+                                        {isLoading && (
+                                            <svg
+                                                className="animate-spin h-3 w-3 text-white"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
+                                            </svg>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="md:h-[25vh] h-[40vh]">

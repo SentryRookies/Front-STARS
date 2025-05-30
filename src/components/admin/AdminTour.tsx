@@ -222,7 +222,7 @@ const AdminTour = () => {
         const colors: Record<string, string> = {
             음악: "bg-purple-100 text-purple-800 border-purple-300",
             공연: "bg-pink-100 text-pink-800 border-pink-300",
-            전시: "bg-blue-100 text-blue-800 border-blue-300",
+            전시: "bg-indigo-100 text-indigo-800 border-indigo-300",
             축제: "bg-orange-100 text-orange-800 border-orange-300",
             체험: "bg-green-100 text-green-800 border-green-300",
             기타: "bg-gray-100 text-gray-800 border-gray-300",
@@ -343,7 +343,7 @@ const AdminTour = () => {
                             className={`text-xs font-medium ${
                                 item.is_free
                                     ? "text-emerald-600"
-                                    : "text-blue-600"
+                                    : "text-indigo-600"
                             }`}
                         >
                             {item.is_free ? "상세 정보 보기" : "요금 정보 보기"}
@@ -495,7 +495,7 @@ const AdminTour = () => {
                                 {loading && (
                                     <span className="inline-flex items-center ml-2">
                                         <svg
-                                            className="animate-spin h-4 w-4 text-blue-500 mr-1"
+                                            className="animate-spin h-4 w-4 text-indigo-500 mr-1"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                         >
@@ -513,7 +513,7 @@ const AdminTour = () => {
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             />
                                         </svg>
-                                        <span className="text-blue-500 text-sm">
+                                        <span className="text-indigo-500 text-sm">
                                             로딩 중
                                         </span>
                                     </span>
@@ -557,7 +557,7 @@ const AdminTour = () => {
                                         }
                                         className={`${isMobileView ? "w-8 h-8" : "px-3 py-2"} text-sm font-medium rounded-lg transition-colors flex items-center justify-center ${
                                             currentPage === page
-                                                ? "bg-blue-600 text-white"
+                                                ? "bg-indigo-500 text-white"
                                                 : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                                         }`}
                                     >
@@ -610,7 +610,7 @@ const AdminTour = () => {
                             {loading && (
                                 <div className="inline-flex items-center ml-2">
                                     <svg
-                                        className="animate-spin h-3 w-3 text-blue-500 mr-1"
+                                        className="animate-spin h-3 w-3 text-indigo-500 mr-1"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                     >
@@ -628,7 +628,7 @@ const AdminTour = () => {
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                         />
                                     </svg>
-                                    <span className="text-blue-500 text-xs">
+                                    <span className="text-indigo-500 text-xs">
                                         로딩 중
                                     </span>
                                 </div>
@@ -697,18 +697,18 @@ const AdminTour = () => {
                             <div className="text-right">
                                 <p className="text-sm text-gray-600">
                                     총{" "}
-                                    <span className="font-semibold text-blue-600">
+                                    <span className="font-semibold text-indigo-600">
                                         {list.length}
                                     </span>
                                     개 중{" "}
-                                    <span className="font-semibold text-blue-600">
+                                    <span className="font-semibold text-indigo-600">
                                         {filteredList.length}
                                     </span>
                                     개 표시
                                     {loading && (
                                         <span className="inline-flex items-center ml-2">
                                             <svg
-                                                className="animate-spin h-4 w-4 text-blue-500 mr-1"
+                                                className="animate-spin h-4 w-4 text-indigo-500 mr-1"
                                                 fill="none"
                                                 viewBox="0 0 24 24"
                                             >
@@ -726,7 +726,7 @@ const AdminTour = () => {
                                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                                 ></path>
                                             </svg>
-                                            <span className="text-blue-500 text-sm">
+                                            <span className="text-indigo-500 text-sm">
                                                 로딩 중
                                             </span>
                                         </span>
@@ -772,7 +772,7 @@ const AdminTour = () => {
                                 카테고리
                             </label>
                             <select
-                                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 value={filterCategory}
                                 onChange={(e) =>
                                     setFilterCategory(e.target.value)
@@ -793,7 +793,7 @@ const AdminTour = () => {
                                 요금 유형
                             </label>
                             <select
-                                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 value={filterFeeType}
                                 onChange={(e) =>
                                     setFilterFeeType(e.target.value)
@@ -814,7 +814,7 @@ const AdminTour = () => {
                                 <input
                                     type="text"
                                     placeholder="행사 제목 검색..."
-                                    className="w-full px-4 py-2 pl-10 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    className="w-full px-4 py-2 pl-10 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                     value={searchTerm}
                                     onChange={(e) =>
                                         setSearchTerm(e.target.value)
@@ -862,7 +862,7 @@ const AdminTour = () => {
                                 <span className="text-xs">초기화</span>
                             </button>
                             <button
-                                className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                                className={`flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                                 onClick={fetchEvents}
                                 disabled={loading}
                             >
@@ -970,7 +970,7 @@ const AdminTour = () => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* 모달 헤더 */}
-                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
+                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-2xl">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-xl font-bold mb-1">
@@ -1061,10 +1061,10 @@ const AdminTour = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                                <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
                                     <div className="flex items-start">
                                         <svg
-                                            className="w-5 h-5 text-blue-600 mr-3 mt-0.5"
+                                            className="w-5 h-5 text-indigo-600 mr-3 mt-0.5"
                                             fill="currentColor"
                                             viewBox="0 0 20 20"
                                         >
@@ -1076,7 +1076,7 @@ const AdminTour = () => {
                                             />
                                         </svg>
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-blue-900 mb-2">
+                                            <p className="text-sm font-medium text-indigo-900 mb-2">
                                                 {selectedEvent.is_free
                                                     ? "참가비"
                                                     : "요금 정보"}
@@ -1125,7 +1125,7 @@ const AdminTour = () => {
                         <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
                             <button
                                 onClick={closeModal}
-                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium py-3 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium py-3 px-4 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                             >
                                 확인
                             </button>
