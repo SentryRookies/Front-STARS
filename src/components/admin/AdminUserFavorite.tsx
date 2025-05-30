@@ -492,7 +492,7 @@ const AdminUserFavorite = () => {
                                         )}
                                         <button
                                             onClick={handleRefresh}
-                                            className="ml-2 text-sm bg-white text-black hover:text-blue-500"
+                                            className="ml-2 text-sm bg-blue-600 text-white hover:bg-blue-700"
                                             title="새로고침"
                                             disabled={loading}
                                         >
