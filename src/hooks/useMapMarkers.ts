@@ -235,7 +235,7 @@ export function useMapMarkers({
 
             map.on("moveend", onMoveEnd);
             map.flyTo({
-                center: [item.lon, item.lat],
+                center: [item.lon, item.lat + 0.0005],
                 zoom: 17,
                 pitch: 45,
                 essential: true,
