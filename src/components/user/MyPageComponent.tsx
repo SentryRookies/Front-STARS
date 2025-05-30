@@ -84,7 +84,7 @@ export default function MyPageComponent({
     };
 
     return (
-        <div className="relative w-screen h-screen flex items-center justify-center py-2 px-2 bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="relative w-screen h-screen app-full-height flex items-center justify-center py-2 px-2 bg-gradient-to-br from-gray-50 to-gray-100">
             {/* Back Button (Absolute positioned) */}
             <div className="absolute bottom-4 left-4 z-20">
                 <button

@@ -295,8 +295,8 @@ export default function CustomPopupCard({
 
                     {/* 리뷰 키워드 배지 */}
                     {review &&
-                        (review.positiveKeywords.length > 0 ||
-                            review.negativeKeywords.length > 0) && (
+                        (review.positiveKeywords.length > 1 ||
+                            review.negativeKeywords.length > 1) && (
                             <div className="space-y-2">
                                 {/* 긍정 키워드 */}
                                 {review.positiveKeywords.length > 0 && (
