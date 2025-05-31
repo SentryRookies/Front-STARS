@@ -56,8 +56,20 @@ export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+
         if (form.password !== form.confirmPassword) {
             alert("비밀번호가 일치하지 않습니다.");
+            return;
+        }
+
+        // ✅ 비밀번호 유효성 검사 추가
+        const passwordRegex =
+            /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+
+        if (!passwordRegex.test(form.password)) {
+            alert(
+                "비밀번호는 8자 이상이며 영문, 숫자, 특수문자(@ $ ! % * # ? &)를 모두 포함해야 합니다."
+            );
             return;
         }
 
