@@ -7,10 +7,12 @@ export default function Login() {
     const [isRegistering, setIsRegistering] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorVisible, setErrorVisible] = useState(false);
+    const [hasSwitched, setHasSwitched] = useState(false);
 
     const handleFormSwitch = () => {
         setErrorMessage("");
         setErrorVisible(false);
+        setHasSwitched(true); // ✅ 폼 전환 애니메이션 플래그
         setIsRegistering((prev) => !prev);
     };
 
@@ -86,7 +88,7 @@ export default function Login() {
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={isRegistering ? "register" : "login"}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={hasSwitched ? { opacity: 0, y: 20 } : false} // ✅ 최초 렌더링 시 애니메이션 생략
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3 }}
