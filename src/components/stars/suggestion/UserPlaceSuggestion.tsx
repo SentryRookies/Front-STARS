@@ -440,9 +440,23 @@ export default function UserPlaceSuggestion({
             return;
         }
 
-        if (startDate && startDate < new Date()) {
-            alert("여행 날짜를 다시 선택해주세요.");
-            return;
+        if (startDate) {
+            const now = new Date();
+            let compareDate: Date;
+
+            if (questionType === 0) {
+                // 오늘 여행: startTime은 "HH:MM" 형식
+                const dateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`;
+                compareDate = new Date(`${dateStr}T${startTime}`);
+            } else {
+                // 일정/숙박 여행: startTime은 "YYYY-MM-DDTHH:MM" 형식
+                compareDate = new Date(startTime);
+            }
+
+            if (compareDate < now) {
+                alert("여행 날짜와 시간을 다시 선택해주세요.");
+                return;
+            }
         }
 
         setIsSubmitting(true);
