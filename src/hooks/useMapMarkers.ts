@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { SearchResult } from "../api/searchApi";
-import { addFavorite, addFavorite2, deleteFavorite2 } from "../api/mypageApi";
+import { addFavorite2, deleteFavorite2 } from "../api/mypageApi";
 
 interface UseMapMarkersParams {
     mapRef: React.MutableRefObject<mapboxgl.Map | null>;
