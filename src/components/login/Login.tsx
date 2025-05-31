@@ -33,22 +33,32 @@ export default function Login() {
 
     return (
         <div className="relative min-h-screen w-full bg-[#e0e5ec] flex items-center justify-center overflow-hidden">
+            <div className="absolute bottom-0 left-0 w-1/2 h-full z-0 flex items-end justify-start">
+                <motion.img
+                    src="/img/login-wave.PNG" // 첨부한 wave 이미지
+                    alt="Wave Background"
+                    initial={{ x: -100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                    className="w-full h-auto object-contain"
+                />
+            </div>
             <div className="absolute -bottom-36 scale-125 left-0 h-full w-1/2 flex items-end justify-center">
                 <motion.img
                     src="/img/login-bg-1.png"
                     alt="Login Background"
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 1.0, ease: "easeOut" }}
+                    transition={{ duration: 1.0, ease: "easeInOut" }}
                     className="max-w-[100%] max-h-[110%] object-contain"
                 />
             </div>
 
             {/* 우측 로그인 박스 */}
             <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1.0, ease: "easeOut" }}
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.7, ease: "easeOut" }}
                 className="relative z-10 w-full max-w-md ml-[40%] mr-0 bg-[#e0e5ec] rounded-3xl shadow-[8px_8px_20px_rgba(163,177,198,0.5),-8px_-8px_20px_rgba(255,255,255,0.8)] p-8"
             >
                 <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
