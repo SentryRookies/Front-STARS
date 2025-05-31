@@ -180,7 +180,7 @@ export default function CustomPopupCard({
     };
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
             if (
                 popupRef.current &&
                 !popupRef.current.contains(event.target as Node)
@@ -190,8 +190,11 @@ export default function CustomPopupCard({
         };
 
         document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
         };
     }, [onClose]);
 
