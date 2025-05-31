@@ -331,17 +331,33 @@ const UserInfoEdit: React.FC<UserInfoEditProps> = ({
                 </div>
 
                 {/* Birth Year */}
+                {/* Birth Year */}
                 <div className="col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         생년월일
                     </label>
-                    <input
-                        className="w-full px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    <select
                         name="birth_year"
-                        type="number"
+                        required
                         value={editableUserInfo.birth_year}
                         onChange={handleChange}
-                    />
+                        className="w-full px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                        <option value="" disabled>
+                            출생년도 선택
+                        </option>
+                        {Array.from(
+                            { length: new Date().getFullYear() - 1949 },
+                            (_, i) => {
+                                const year = new Date().getFullYear() - i;
+                                return (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                );
+                            }
+                        )}
+                    </select>
                 </div>
 
                 {/* MBTI */}
