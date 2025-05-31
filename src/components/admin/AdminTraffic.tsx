@@ -913,7 +913,7 @@ const AdminTraffic = () => {
 
                     <div className="p-2 md:p-4 border-b">
                         <div className="flex justify-between items-center mb-2 md:mb-3">
-                            <h2 className="text-xl font-bold">
+                            <h2 className="text-lg font-bold">
                                 교통 & 주차 현황
                             </h2>
 
