@@ -1,13 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import { Home } from "lucide-react";
 
 export default function Login() {
     const [isRegistering, setIsRegistering] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorVisible, setErrorVisible] = useState(false);
     const [hasSwitched, setHasSwitched] = useState(false);
+    const navigate = useNavigate();
 
     const handleFormSwitch = () => {
         setErrorMessage("");
@@ -35,6 +38,19 @@ export default function Login() {
 
     return (
         <div className="relative min-h-screen w-full app-full-height bg-[#e0e5ec] flex items-center justify-center overflow-hidden">
+            <motion.div
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.7, ease: "easeOut" }}
+                className="absolute top-8 right-8 z-10 flex gap-2"
+            >
+                <div
+                    className="bg-[#e0e5ec] text-gray-700 font-medium rounded-2xl p-4 w-auto h-12 flex items-center justify-center text-lg shadow-[8px_8px_20px_rgba(163,177,198,0.5),-8px_-8px_20px_rgba(255,255,255,0.8)] hover:shadow-[inset_6px_6px_12px_rgba(163,177,198,0.4),inset_-6px_-6px_12px_rgba(255,255,255,0.9)] transition cursor-pointer"
+                    onClick={() => navigate("/map")}
+                >
+                    <Home size={24} />
+                </div>
+            </motion.div>
             <div className="absolute bottom-0 left-0 w-1/2 h-full z-0 hidden md:flex items-end justify-start">
                 <motion.img
                     src="/img/login-wave.PNG" // 첨부한 wave 이미지
