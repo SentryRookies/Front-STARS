@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { SearchResult } from "../api/searchApi";
-import { addFavorite, addFavorite2, deleteFavorite2 } from "../api/mypageApi";
+import { addFavorite2, deleteFavorite2 } from "../api/mypageApi";
 
 interface UseMapMarkersParams {
     mapRef: React.MutableRefObject<mapboxgl.Map | null>;
@@ -117,7 +117,7 @@ export function useMapMarkers({
     // 하이라이트된 POI 마커 생성 및 CustomPopupCard 표시
     const showHighlightPOI = (
         highlightPOI: SearchResult | null,
-        setHighlightPOI: (v: any) => void
+        setHighlightPOI: (v: SearchResult | null) => void
     ) => {
         if (!highlightPOI || !mapRef.current) return;
         const map = mapRef.current;
@@ -129,11 +129,13 @@ export function useMapMarkers({
         // 새 마커 생성
         const el = document.createElement("div");
         el.className = "custom-marker";
-        el.style.width = "24px";
-        el.style.height = "24px";
-        el.style.backgroundColor = "#8b5cf6";
+        el.style.width = "20px";
+        el.style.height = "20px";
+        el.style.backgroundColor = "#7c3bf6";
         el.style.borderRadius = "50%";
         el.style.cursor = "pointer";
+        el.style.border = "2px solid white";
+        el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
 
         const marker = new mapboxgl.Marker({ element: el })
             .setLngLat([highlightPOI.lon, highlightPOI.lat])
@@ -144,15 +146,15 @@ export function useMapMarkers({
             showCustomPopup(highlightPOI, marker);
         });
 
-        searchMarkersRef.current.push({ marker, item: highlightPOI });
-
         // 지도 이동
         map.flyTo({
-            center: [highlightPOI.lon, highlightPOI.lat],
+            center: [highlightPOI.lon, highlightPOI.lat + 0.0005],
             zoom: 17,
             pitch: 45,
             duration: 800,
         });
+
+        searchMarkersRef.current.push({ marker, item: highlightPOI });
 
         // 자동으로 팝업 표시
 
@@ -188,7 +190,18 @@ export function useMapMarkers({
 
             // 마커 클릭 이벤트
             el.addEventListener("click", () => {
-                showCustomPopup(item, marker);
+                if (!map) return;
+                map.stop();
+                map.once("moveend", () => {
+                    showCustomPopup(item, marker);
+                });
+                map.flyTo({
+                    center: [item.lon, item.lat + 0.0005],
+                    zoom: 16,
+                    pitch: 45,
+                    duration: 500,
+                    essential: true,
+                });
             });
 
             searchMarkersRef.current.push({ marker, item });

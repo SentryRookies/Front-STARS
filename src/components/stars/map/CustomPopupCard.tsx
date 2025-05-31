@@ -1,5 +1,5 @@
 // CustomPopupCard.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SearchResult } from "../../../api/searchApi";
 import { getReview } from "../../../api/starsApi";
 import { getUserFavoriteList } from "../../../api/mypageApi";
@@ -63,6 +63,8 @@ export default function CustomPopupCard({
     const [favoriteList, setFavoriteList] = useState<FavoriteItem[]>([]);
     const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
     const [currentIsFavorite, setCurrentIsFavorite] = useState(false);
+
+    const popupRef = useRef<HTMLDivElement>(null);
 
     const placeId: string | number = item.id ?? item.place_id;
 
@@ -177,24 +179,31 @@ export default function CustomPopupCard({
         }
     };
 
-    const handleBackgroundClick = (e: React.MouseEvent) => {
-        // 배경 div 자체를 클릭했을 때만 닫기
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
-    };
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            if (
+                popupRef.current &&
+                !popupRef.current.contains(event.target as Node)
+            ) {
+                onClose();
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
+    }, [onClose]);
 
     return (
         <>
-            {/* 배경 클릭으로 닫기 */}
-            <div
-                className="fixed inset-0 z-10"
-                onClick={handleBackgroundClick}
-            />
-
             {/* 팝업 카드 */}
             <div
-                className="absolute z-40 bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-sm min-w-[280px]"
+                ref={popupRef}
+                className="absolute z-30 bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-sm min-w-[280px]"
                 style={{
                     left: position.x,
                     top: position.y,

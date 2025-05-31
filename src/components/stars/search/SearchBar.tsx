@@ -160,7 +160,12 @@ export default function SearchBarWithMenu({
                 isOpen={isMenuOpen}
                 searchData={searchResults}
                 hasSearched={hasSearched}
-                onResultClick={onSingleResultClick}
+                onResultClick={(item) => {
+                    onSingleResultClick?.(item);
+                    if (window.innerWidth < 768) {
+                        setIsMenuOpen(false); // 모바일에서 메뉴 닫기
+                    }
+                }}
             />
         </div>
     );
