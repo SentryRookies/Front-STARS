@@ -179,15 +179,28 @@ export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
                 ))}
             </select>
 
-            <input
-                type="number"
+            <select
                 name="birth_year"
-                placeholder="출생년도 (예: 2000)"
                 required
-                className="w-[85%] mx-auto px-4 py-2 bg-[#e0e5ec] border-b border-gray-300 text-gray-700 focus:border-blue-500 focus:outline-none"
                 value={form.birth_year}
                 onChange={handleChange}
-            />
+                className="w-[85%] mx-auto px-4 py-2 bg-[#e0e5ec] border-b border-gray-300 text-gray-700 focus:border-blue-500 focus:outline-none"
+            >
+                <option value="" disabled>
+                    출생년도 선택
+                </option>
+                {Array.from(
+                    { length: new Date().getFullYear() - 1949 },
+                    (_, i) => {
+                        const year = new Date().getFullYear() - i;
+                        return (
+                            <option key={year} value={year}>
+                                {year}
+                            </option>
+                        );
+                    }
+                )}
+            </select>
 
             <select
                 name="gender"
