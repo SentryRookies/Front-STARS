@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { usePlace } from "../../../context/PlaceContext";
@@ -16,6 +16,8 @@ import { useMapboxInit } from "../../../hooks/useMapboxInit";
 import { getAreaList } from "../../../api/starsApi";
 import { useFavorites } from "../../../hooks/useFavorites";
 import CustomPopupCard from "./CustomPopupCard";
+import { WeatherData } from "../dashboard/location/WeatherCard";
+import { subscribeWeatherUpdate } from "../../../api/starsApi";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -49,6 +51,18 @@ export default function MapSectionComponent({
     const [showFocusCard, setShowFocusCard] = useState(false);
     const { alerts, dismissAlert } = useCongestionAlert();
     const { isLogin } = useCustomLogin();
+    const [weatherList, setWeatherList] = useState<WeatherData[]>([]);
+    useEffect(() => {
+        const eventSource = subscribeWeatherUpdate((data) => {
+            if (Array.isArray(data)) setWeatherList(data as WeatherData[]);
+        });
+        return () => eventSource.close();
+    }, []);
+
+    const selectedWeather = useMemo(() => {
+        if (!selectedAreaId || weatherList.length === 0) return null;
+        return weatherList.find((w) => w.area_id === selectedAreaId) ?? null;
+    }, [selectedAreaId, weatherList]);
 
     // useFavorites 훅 사용
     const { setToggledFavorites, isItemFavorite, getItemKey } =
@@ -157,6 +171,7 @@ export default function MapSectionComponent({
                         window.fullpage_api?.moveSectionDown();
                     }}
                     onCategoryClick={handleSearchResultClick}
+                    weather={selectedWeather}
                 />
             )}
             <AccidentAlertModal

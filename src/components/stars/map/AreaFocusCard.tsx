@@ -4,6 +4,8 @@ import { CountUp } from "countup.js";
 import { getAreaList, getPlaceListByArea } from "../../../api/starsApi";
 import { SearchResult } from "../../../api/searchApi";
 import { usePlace } from "../../../context/PlaceContext";
+import { WeatherData } from "../dashboard/location/WeatherCard";
+import { Utensils, Coffee, BedDouble, Landmark, Ticket } from "lucide-react";
 
 interface AreaFocusCardProps {
     areaId: number;
@@ -11,6 +13,7 @@ interface AreaFocusCardProps {
     onClose: () => void;
     onDetail: () => void;
     onCategoryClick?: (items: SearchResult[]) => void;
+    weather: WeatherData | null;
 }
 
 interface AreaDetail {
@@ -44,6 +47,7 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     onClose,
     onDetail,
     onCategoryClick,
+    weather,
 }) => {
     const [area, setArea] = useState<AreaDetail | null>(null);
     const [placeSummary, setPlaceSummary] = useState<Record<string, number>>(
@@ -51,6 +55,14 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
     );
     const { congestionInfo } = usePlace();
     const visitorCountRef = useRef<HTMLSpanElement | null>(null);
+
+    const iconMap: Record<string, React.ReactNode> = {
+        restaurant: <Utensils size={16} />,
+        cafe: <Coffee size={16} />,
+        accommodation: <BedDouble size={16} />,
+        attraction: <Landmark size={16} />,
+        cultural_event: <Ticket size={16} />,
+    };
 
     useEffect(() => {
         if (!visitorCountRef.current || !congestionInfo) return;
@@ -182,86 +194,126 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                 className="relative z-20 flex flex-col items-center gap-6 w-auto px-6"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* 방문자 수 */}
-                <motion.div
-                    className="bg-white rounded-2xl shadow-lg p-4 md:w-auto max-w-96 w-4/5"
-                    whileHover={{ y: -8 }}
-                >
-                    <div className="flex justify-between w-full">
-                        {/* 왼쪽 영역: 방문자 수 및 영어 제목 */}
-                        <div className="flex flex-col justify-start mt-1">
-                            <h3 className="md:text-2xl text-lg font-semibold text-gray-700">
+                {/* 방문자 수 + 날씨 카드 가로 정렬 */}
+                <div className="flex flex-row sm:flex-row items-center justify-center gap-4">
+                    {/* 방문자 수 */}
+                    <motion.div
+                        className="bg-white rounded-2xl shadow-lg p-4 max-w-96 sm:w-auto"
+                        whileHover={{ y: -8 }}
+                    >
+                        <div className="flex flex-col gap-y-2">
+                            <h3 className="text-base sm:text-xl md:text-2xl font-semibold text-gray-900">
                                 {area?.area_name}
                             </h3>
-                            <p className="md:text-base text-sm text-gray-500">
-                                {area?.name_eng}
+
+                            {/* 방문자 수 카운트 표시 */}
+                            <p className="text-lg sm:text-3xl font-bold text-gray-700">
+                                약 <span ref={visitorCountRef}></span>명
                             </p>
-                        </div>
 
-                        {/* 오른쪽 영역: 카테고리 및 혼잡도 */}
-                        <div className="flex flex-col items-end md:ml-4 ml-2">
-                            <span className="bg-indigo-100 text-indigo-700 inline-flex w-auto rounded-full m-1 md:text-base text-sm px-2 py-1 font-semibold whitespace-nowrap self-end">
-                                #{area?.category}
-                            </span>
-                            {congestionInfo?.area_congest_lvl && (
-                                <span
-                                    className={[
-                                        "inline-flex w-auto rounded-full m-1 md:text-base text-sm px-2 py-1 font-semibold whitespace-nowrap self-end",
-                                        congestionInfo.area_congest_lvl ===
-                                        "여유"
-                                            ? "bg-green-100 text-green-700"
-                                            : congestionInfo.area_congest_lvl ===
-                                                "보통"
-                                              ? "bg-yellow-100 text-yellow-700"
-                                              : congestionInfo.area_congest_lvl ===
-                                                  "약간 붐빔"
-                                                ? "bg-orange-100 text-orange-700"
-                                                : "bg-red-100 text-red-700",
-                                    ].join(" ")}
-                                >
-                                    #혼잡도 {congestionInfo.area_congest_lvl}
+                            <div className="flex flex-wrap gap-2">
+                                <span className="bg-indigo-100 text-indigo-700 inline-flex rounded-full text-xs sm:text-base px-2 py-1 font-semibold whitespace-nowrap">
+                                    #{area?.category}
                                 </span>
-                            )}
+                                {congestionInfo?.area_congest_lvl && (
+                                    <span
+                                        className={[
+                                            "inline-flex rounded-full text-xs sm:text-base px-2 py-1 font-semibold whitespace-nowrap",
+                                            congestionInfo.area_congest_lvl ===
+                                            "여유"
+                                                ? "bg-green-100 text-green-700"
+                                                : congestionInfo.area_congest_lvl ===
+                                                    "보통"
+                                                  ? "bg-yellow-100 text-yellow-700"
+                                                  : congestionInfo.area_congest_lvl ===
+                                                      "약간 붐빔"
+                                                    ? "bg-orange-100 text-orange-700"
+                                                    : "bg-red-100 text-red-700",
+                                        ].join(" ")}
+                                    >
+                                        #혼잡도{" "}
+                                        {congestionInfo.area_congest_lvl}
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    <p className="md:text-4xl text-2xl font-bold text-gray-900">
-                        약 <span ref={visitorCountRef}></span>명
-                    </p>
-                </motion.div>
+                    </motion.div>
 
-                {/* 장소 요약 */}
+                    {/* 현재 날씨 카드 */}
+                    {weather && (
+                        <motion.div
+                            className="bg-red-500 rounded-2xl shadow-lg px-6 py-4 flex flex-col items-center justify-center gap-2 w-fit"
+                            whileHover={{ y: -6 }}
+                        >
+                            <div className="text-4xl sm:text-5xl">
+                                {weather.fcst24hours?.[0]?.pre_sky_stts ===
+                                "맑음"
+                                    ? "☀️"
+                                    : weather.fcst24hours?.[0]?.pre_sky_stts ===
+                                        "구름많음"
+                                      ? "⛅️"
+                                      : "☁️"}
+                            </div>
+                            <p className="text-base sm:text-2xl font-bold text-white">
+                                {weather.temp}℃
+                            </p>
+                        </motion.div>
+                    )}
+                </div>
+
+                {/* 장소 요약 카드 (아래에 배치) */}
                 <motion.div
-                    className="bg-indigo-500 text-white rounded-2xl shadow-2xl p-4 md:w-auto max-w-72 w-auto"
+                    className="bg-indigo-500 text-white rounded-2xl shadow-2xl p-3 w-full max-w-[80%] sm:max-w-[16rem] md:max-w-[18rem]"
                     whileHover={{ y: -8 }}
                 >
-                    <h3 className="text-xl font-extrabold mb-4 tracking-tight">
+                    <h3 className="text-base sm:text-lg font-extrabold mb-3 tracking-tight">
                         장소 요약
                     </h3>
                     <div className="flex flex-wrap gap-2 justify-center">
                         {Object.entries(placeSummary).map(([type, count]) => {
                             const isDisabled = count === 0;
+                            const Icon = iconMap[type];
 
                             return (
                                 <div
                                     key={type}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-full shadow transition
-                                        ${
-                                            isDisabled
-                                                ? "bg-white/10 text-gray-300 cursor-not-allowed"
-                                                : "bg-white/30 text-white hover:bg-white/40 cursor-pointer"
-                                        }
-                                    `}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full shadow-sm transition
+            ${
+                isDisabled
+                    ? "bg-white/0 text-indigo-400 cursor-not-allowed"
+                    : "bg-white/10 text-white hover:bg-white/40 cursor-pointer"
+            }`}
                                     onClick={() => {
                                         if (!isDisabled)
                                             handleCategoryClick(type);
                                     }}
                                     aria-disabled={isDisabled}
                                 >
-                                    <span className="capitalize font-medium md:text-base text-sm">
+                                    {/* 아이콘 */}
+                                    {Icon && (
+                                        <span
+                                            className={
+                                                isDisabled
+                                                    ? "text-indigo-400"
+                                                    : "text-white"
+                                            }
+                                        >
+                                            {Icon}
+                                        </span>
+                                    )}
+
+                                    {/* 타입 이름 */}
+                                    <span className="capitalize font-medium text-xs sm:text-sm">
                                         {typeLabelMap[type] ?? type}
                                     </span>
+
+                                    {/* 개수 */}
                                     <span
-                                        className={`text-sm font-bold ${isDisabled ? "text-gray-300" : "text-white"}`}
+                                        className={`text-xs font-bold ${
+                                            isDisabled
+                                                ? "text-indigo-400"
+                                                : "text-white"
+                                        }`}
                                     >
                                         {count}곳
                                     </span>

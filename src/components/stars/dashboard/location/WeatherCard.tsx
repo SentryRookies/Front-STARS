@@ -11,7 +11,7 @@ interface WeatherForecast {
     pre_sky_stts: string;
 }
 
-interface WeatherData {
+export interface WeatherData {
     temp: number;
     precipitation: string;
     precpt_type: string;
@@ -79,7 +79,7 @@ export default function WeatherCard({
                 PM10 : {weather.pm10}㎍/㎥ · 강수확률 :{" "}
                 {weather.fcst24hours?.[0]?.pre_rain_chance ?? "-"}%
             </p>
-            <div className="flex justify-between text-gray-200 mt-4 text-sm">
+            <div className="flex justify-between text-gray-200 mt-4 text-md">
                 {weather.fcst24hours.slice(0, 6).map((f, i) => (
                     <div key={i} className="flex flex-col items-center">
                         <span>{f.fcst_dt.slice(8, 10)}시</span>
