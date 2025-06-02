@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { SearchResult } from "../api/searchApi";
-import { addFavorite2, deleteFavorite2 } from "../api/mypageApi";
 
 interface UseMapMarkersParams {
     mapRef: React.MutableRefObject<mapboxgl.Map | null>;
@@ -71,14 +70,6 @@ export function useMapMarkers({
         }));
 
         try {
-            // 서버 요청을 await로 대기
-            if (!currentFavoriteStatus) {
-                await addFavorite2(item.type, item.place_id);
-            } else {
-                await deleteFavorite2(item.type, item.place_id);
-            }
-
-            // 성공 메시지
             setAlertMessage(
                 !currentFavoriteStatus
                     ? "즐겨찾기에 추가되었습니다"
