@@ -1,4 +1,12 @@
 import React from "react";
+import {
+    Sun,
+    Cloud,
+    CloudRain,
+    Snowflake,
+    CloudDrizzle,
+    Cloudy,
+} from "lucide-react";
 
 interface WeatherData {
     temp: number;
@@ -33,23 +41,74 @@ const getTempGradient = (temp: number): string => {
     return "bg-gradient-to-br from-indigo-600/75 to-blue-700/75";
 };
 
-// Helper function to get weather icon based on sky status
-const getWeatherIcon = (skyStatus: string): string => {
+// Helper function to get weather icon component based on sky status
+const getWeatherIcon = (skyStatus: string, size: number = 28) => {
+    const shadowClass = "drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]";
+
     switch (skyStatus) {
         case "맑음":
-            return "☀️";
+            return (
+                <Sun
+                    size={size}
+                    strokeWidth={3}
+                    color="#ffffff"
+                    className={shadowClass}
+                />
+            );
         case "구름조금":
-            return "🌤️";
+            return (
+                <Cloudy
+                    size={size}
+                    strokeWidth={3}
+                    color="#ffffff"
+                    className={shadowClass}
+                />
+            );
         case "구름많음":
-            return "⛅";
+            return (
+                <Cloud
+                    size={size}
+                    strokeWidth={3}
+                    color="#ffffff"
+                    className={shadowClass}
+                />
+            );
         case "흐림":
-            return "☁️";
+            return (
+                <Cloud
+                    size={size}
+                    strokeWidth={3}
+                    color="#ffffff"
+                    className={shadowClass}
+                />
+            );
         case "비":
-            return "🌧️";
+            return (
+                <CloudRain
+                    size={size}
+                    strokeWidth={3}
+                    color="#ffffff"
+                    className={shadowClass}
+                />
+            );
         case "눈":
-            return "❄️";
+            return (
+                <Snowflake
+                    size={size}
+                    strokeWidth={3}
+                    color="#ffffff"
+                    className={shadowClass}
+                />
+            );
         default:
-            return "☁️";
+            return (
+                <Cloud
+                    size={size}
+                    strokeWidth={3}
+                    color="#ffffff"
+                    className={shadowClass}
+                />
+            );
     }
 };
 
@@ -132,20 +191,7 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
                     </h3>
                 </div>
                 <div className="flex flex-col items-center">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-12 w-12 text-gray-400 mb-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
-                        />
-                    </svg>
+                    <Cloud className="h-12 w-12 text-gray-400 mb-2" />
                     <p className="text-gray-600 text-center font-medium text-sm">
                         날씨 데이터가 없습니다
                     </p>
@@ -203,13 +249,14 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
                         체감 {weatherData?.sensible_temp || "?"}°C
                     </p>
                 </div>
-                <div className="text-right">
-                    <div className="text-3xl mb-1 drop-shadow-md">
+                <div className="text-right flex flex-col items-center">
+                    <div className="mb-1">
                         {hasForecast
                             ? getWeatherIcon(
-                                  forecastItems[0]?.pre_sky_stts || "흐림"
+                                  forecastItems[0]?.pre_sky_stts || "흐림",
+                                  32
                               )
-                            : "☁️"}
+                            : getWeatherIcon("흐림", 32)}
                     </div>
                     <p className="text-xs text-white font-bold drop-shadow-md">
                         {hasForecast
@@ -257,9 +304,9 @@ const WeatherCard = ({ datas }: WeatherCardProps) => {
                                 <span className="text-xs text-white font-semibold drop-shadow-md">
                                     {formatForecastTime(item.fcst_dt)}
                                 </span>
-                                <span className="my-1 text-sm drop-shadow-sm">
-                                    {getWeatherIcon(item.pre_sky_stts)}
-                                </span>
+                                <div className="my-1">
+                                    {getWeatherIcon(item.pre_sky_stts, 18)}
+                                </div>
                                 <span className="text-xs text-white font-bold drop-shadow-md">
                                     {item.pre_temp}°
                                 </span>
