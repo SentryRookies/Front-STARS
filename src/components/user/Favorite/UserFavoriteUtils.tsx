@@ -1,5 +1,13 @@
 import React from "react";
-import { Hotel, MapPin, Coffee, UtensilsCrossed, Camera } from "lucide-react";
+import {
+    Hotel,
+    MapPin,
+    Coffee,
+    UtensilsCrossed,
+    Camera,
+    BedDouble,
+    Landmark,
+} from "lucide-react";
 
 // Category mappings
 export const categoryMap: Record<string, string> = {
@@ -26,14 +34,14 @@ export const typeStyles: Record<
     accommodation: {
         color: "text-blue-600",
         bgColor: "bg-blue-50",
-        icon: <Hotel size={16} className="inline-block" />,
+        icon: <BedDouble size={16} className="inline-block" />,
         borderColor: "border-blue-200",
         iconComponent: Hotel,
     },
     attraction: {
         color: "text-green-600",
         bgColor: "bg-green-50",
-        icon: <Camera size={16} className="inline-block" />,
+        icon: <Landmark size={16} className="inline-block" />,
         borderColor: "border-green-200",
         iconComponent: Camera,
     },
