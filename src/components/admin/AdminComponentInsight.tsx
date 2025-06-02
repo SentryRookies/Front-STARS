@@ -6,6 +6,11 @@ import {
     AlertTriangle,
     MapPin,
     Clock,
+    Car,
+    Construction,
+    Flame,
+    Hospital,
+    Mic,
 } from "lucide-react";
 import { CombinedAreaData, AccidentData } from "../../data/adminData";
 
@@ -254,20 +259,24 @@ const AdminInsight: React.FC<AdminInsightProps> = ({
     };
 
     // 사고 유형 아이콘
-    const getAccidentIcon = (type: string): string => {
+    const getAccidentIcon = (type: string) => {
         switch (type) {
             case "교통사고":
-                return "🚗";
+                return <Car size={16} color="#F97316" />; // orange-500
             case "화재":
-                return "🔥";
+                return <Flame size={16} color="#EF4444" />; // red-500
             case "의료":
-                return "🏥";
+                return <Hospital size={16} color="#3B82F6" />; // blue-500
             case "공사":
-                return "🚧";
+                return <Construction size={16} color="#EAB308" />; // yellow-500
             case "낙하물":
-                return "⚠️";
+                return <AlertTriangle size={16} color="#A855F7" />; // purple-500
+            case "집회및행사":
+                return <Mic size={16} color="#22C55E" />; // green-500
+            case "기타":
+                return <MapPin size={16} color="#6B7280" />; // gray-500
             default:
-                return "📌";
+                return <MapPin size={16} color="#6B7280" />; // gray-500
         }
     };
 

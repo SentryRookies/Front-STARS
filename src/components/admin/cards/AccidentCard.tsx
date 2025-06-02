@@ -1,5 +1,15 @@
 import React from "react";
 import { AccidentData } from "../../../data/adminData";
+import {
+    Car,
+    Flame,
+    Hospital,
+    Construction,
+    AlertTriangle,
+    Mic,
+    MapPin,
+    AlertCircle,
+} from "lucide-react";
 
 interface AccidentSectionProps {
     accidentData: AccidentData[];
@@ -13,56 +23,56 @@ const getAccidentStyle = (type: string) => {
     switch (type.toLowerCase()) {
         case "교통사고":
             return {
-                icon: "🚗",
+                icon: <Car size={16} />,
                 bgColor: "bg-orange-100",
                 textColor: "text-orange-800",
                 borderColor: "border-orange-200",
             };
         case "화재":
             return {
-                icon: "🔥",
+                icon: <Flame size={16} />,
                 bgColor: "bg-red-100",
                 textColor: "text-red-800",
                 borderColor: "border-red-200",
             };
         case "의료":
             return {
-                icon: "🏥",
+                icon: <Hospital size={16} />,
                 bgColor: "bg-blue-100",
                 textColor: "text-blue-800",
                 borderColor: "border-blue-200",
             };
         case "공사":
             return {
-                icon: "🚧",
+                icon: <Construction size={16} />,
                 bgColor: "bg-yellow-100",
                 textColor: "text-yellow-800",
                 borderColor: "border-yellow-200",
             };
         case "낙하물":
             return {
-                icon: "⚠️",
+                icon: <AlertTriangle size={16} />,
                 bgColor: "bg-purple-100",
                 textColor: "text-purple-800",
                 borderColor: "border-purple-200",
             };
         case "집회및행사":
             return {
-                icon: "🎤",
+                icon: <Mic size={16} />,
                 bgColor: "bg-green-100",
                 textColor: "text-green-800",
                 borderColor: "border-green-200",
             };
         case "기타":
             return {
-                icon: "📌",
+                icon: <MapPin size={16} />,
                 bgColor: "bg-gray-100",
                 textColor: "text-gray-800",
                 borderColor: "border-gray-200",
             };
         default:
             return {
-                icon: "⚠️",
+                icon: <AlertTriangle size={16} />,
                 bgColor: "bg-gray-100",
                 textColor: "text-gray-800",
                 borderColor: "border-gray-200",
@@ -117,19 +127,7 @@ const AccidentTableSkeleton = () => (
 // 사고 정보 없음 컴포넌트
 const NoAccidentData = () => (
     <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-        <svg
-            className="w-8 h-8 mb-2 text-gray-300"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-        >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z"
-            />
-        </svg>
+        <AlertCircle size={32} className="mb-2 text-gray-300" />
         <p className="text-xs">사고 정보 없음</p>
     </div>
 );
@@ -161,7 +159,9 @@ const AccidentCard: React.FC<AccidentSectionProps> = ({
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-sm flex-shrink-0">
-                                                <span className="text-lg">
+                                                <span
+                                                    className={style.textColor}
+                                                >
                                                     {style.icon}
                                                 </span>
                                             </div>
@@ -224,7 +224,11 @@ const AccidentCard: React.FC<AccidentSectionProps> = ({
                                                 <div
                                                     className={`w-6 h-6 flex items-center justify-center ${style.bgColor} rounded-full mr-1 flex-shrink-0`}
                                                 >
-                                                    <span className="text-sm">
+                                                    <span
+                                                        className={
+                                                            style.textColor
+                                                        }
+                                                    >
                                                         {style.icon}
                                                     </span>
                                                 </div>
