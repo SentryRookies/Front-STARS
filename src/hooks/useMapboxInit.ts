@@ -26,7 +26,11 @@ export function useMapboxInit({
             style: "mapbox://styles/minseoks/cm99i4icd00fe01r9gia5c055",
             center: [126.9779692, 37.566535] as LngLatLike,
             zoom: 10.8,
-            minZoom: 10,
+            minZoom: 10.8,
+            maxBounds: [
+                [126.734086, 37.413294], // Southwest (SW) corner - 대략 서울 남서쪽
+                [127.269311, 37.715133], // Northeast (NE) corner - 대략 서울 북동쪽
+            ],
         });
         map.addControl(
             new NavigationControl({ visualizePitch: true }),
