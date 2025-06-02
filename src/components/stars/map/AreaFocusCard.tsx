@@ -104,11 +104,15 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
             if (selected) setArea(selected);
         });
 
-        getPlaceListByArea(areaId).then((placeList: PlaceCategoryContent[]) => {
+        getPlaceListByArea(areaId).then((placeList) => {
             const summary: Record<string, number> = {};
-            placeList.forEach((item: PlaceCategoryContent) => {
-                summary[item.type] = item.content.length;
-            });
+
+            (placeList as PlaceCategoryContent[]).forEach(
+                (item: PlaceCategoryContent) => {
+                    summary[item.type] = item.content.length;
+                }
+            );
+
             setPlaceSummary(summary);
         });
     }, [areaId, show]);
@@ -130,12 +134,14 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
 
     const handleCategoryClick = async (type: string) => {
         const placeList = await getPlaceListByArea(areaId);
-        const categoryItem = placeList.find((item) => item.type === type);
+        const categoryItem = (placeList as PlaceCategoryContent[]).find(
+            (item: PlaceCategoryContent) => item.type === type
+        );
         if (!categoryItem) return;
 
         const items: SearchResult[] = categoryItem.content.map(
             (place: PlaceContent) => ({
-                place_id: place.id,
+                place_id: Number(place.id), // string → number 변환
                 name: place.name,
                 address: place.address,
                 lon: place.lon,
@@ -187,7 +193,7 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                                 <p className="text-lg sm:text-3xl font-bold text-gray-700">
                                     약 <span ref={visitorCountRef}></span>명
                                 </p>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-2 mt-4">
                                     <span className="bg-indigo-100 text-indigo-700 inline-flex rounded-full text-xs sm:text-base px-2 py-1 font-semibold whitespace-nowrap">
                                         #{area?.category}
                                     </span>
