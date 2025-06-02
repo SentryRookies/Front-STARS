@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import UserInfo from "./Info/UserInfo";
 import UserFavorite from "./Favorite/UserFavorite";
 import { motion, AnimatePresence } from "framer-motion";
+import { User, Star, ChevronDown, ChevronRight } from "lucide-react";
 
 interface MenuItem {
     id: number;
     title: string;
-    icon: string;
+    icon: React.ReactNode;
 }
 
 export default function MyPageComponent({
@@ -17,7 +18,7 @@ export default function MyPageComponent({
     const [selectedItem, setSelectedItem] = useState<MenuItem>({
         id: 1,
         title: "회원정보",
-        icon: "👤",
+        icon: <User size={20} />,
     });
 
     // Menu data with icons
@@ -25,12 +26,12 @@ export default function MyPageComponent({
         {
             id: 1,
             title: "회원정보",
-            icon: "👤",
+            icon: <User size={20} />,
         },
         {
             id: 2,
             title: "즐겨찾기",
-            icon: "⭐",
+            icon: <Star size={20} />,
         },
     ];
 
@@ -102,7 +103,7 @@ export default function MyPageComponent({
                     {isMobile && (
                         <div className="flex justify-between items-center bg-indigo-600 text-white p-4 sticky top-0 z-20">
                             <h2 className="text-xl font-bold flex items-center">
-                                <span className="mr-2 text-xl">
+                                <span className="mr-2">
                                     {selectedItem.icon}
                                 </span>
                                 {selectedItem.title}
@@ -114,20 +115,10 @@ export default function MyPageComponent({
                                 <span className="mr-1">
                                     {mobileMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
                                 </span>
-                                <svg
-                                    className={`w-4 h-4 transition-transform duration-300 ${mobileMenuOpen ? "rotate-180" : ""}`}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 9l-7 7-7-7"
-                                    />
-                                </svg>
+                                <ChevronDown
+                                    size={16}
+                                    className={`transition-transform duration-300 ${mobileMenuOpen ? "rotate-180" : ""}`}
+                                />
                             </button>
                         </div>
                     )}
@@ -156,7 +147,7 @@ export default function MyPageComponent({
                                             }
                                         >
                                             <div className="flex items-center">
-                                                <span className="text-xl mr-3">
+                                                <span className="mr-3">
                                                     {item.icon}
                                                 </span>
                                                 <span>{item.title}</span>
@@ -188,24 +179,16 @@ export default function MyPageComponent({
                                                 handleSelectItem(item)
                                             }
                                         >
-                                            <span className="text-xl mr-3">
+                                            <span className="mr-3">
                                                 {item.icon}
                                             </span>
                                             <span>{item.title}</span>
                                             {selectedItem.id === item.id && (
                                                 <span className="ml-auto">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className="h-5 w-5 text-indigo-600"
-                                                        viewBox="0 0 20 20"
-                                                        fill="currentColor"
-                                                    >
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                                            clipRule="evenodd"
-                                                        />
-                                                    </svg>
+                                                    <ChevronRight
+                                                        size={20}
+                                                        className="text-indigo-600"
+                                                    />
                                                 </span>
                                             )}
                                         </button>
@@ -221,7 +204,7 @@ export default function MyPageComponent({
                         {!isMobile && (
                             <div className="p-6 border-b border-gray-200 flex-shrink-0">
                                 <div className="flex items-center">
-                                    <span className="text-2xl mr-3">
+                                    <span className="mr-3">
                                         {selectedItem.icon}
                                     </span>
                                     <h2 className="text-2xl font-bold text-gray-800">
