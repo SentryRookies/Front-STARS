@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { AccidentData } from "../../data/adminData";
+import { AlertTriangle } from "lucide-react";
 
 interface AccidentAlertModalProps {
     accidents: AccidentData[];
@@ -110,7 +111,8 @@ export const AccidentAlertModal: React.FC<AccidentAlertModalProps> = ({
             >
                 {activeAccidents.length > 0 ? (
                     <>
-                        <span className="text-lg">🚨</span>
+                        {/*<span className="text-lg">🚨</span>*/}
+                        <AlertTriangle className="h-4 w-4" />
                         <span>사고 {activeAccidents.length}건</span>
                         <motion.div
                             className="w-2 h-2 bg-white rounded-full"

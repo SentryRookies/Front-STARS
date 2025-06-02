@@ -1,8 +1,9 @@
-// Enhanced UserInfoShow.tsx with improved design
+// Enhanced UserInfoShow.tsx with Lucide React icons
 import React from "react";
 import { UserInfo } from "../../../data/UserInfoData";
 import { formatKoreanDate } from "../../../utils/dateUtil";
 import { motion } from "framer-motion";
+import { User, Calendar, Cake, Brain, Users } from "lucide-react";
 
 // Props interface
 interface UserInfoShowProps {
@@ -33,25 +34,29 @@ const UserInfoShow: React.FC<UserInfoShowProps> = ({ userInfo }) => {
 
             {/* Information cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem icon="👤" label="아이디" value={userInfo.user_id} />
                 <InfoItem
-                    icon="📅"
+                    icon={<User size={18} color="#3B82F6" />}
+                    label="아이디"
+                    value={userInfo.user_id}
+                />
+                <InfoItem
+                    icon={<Calendar size={18} color="#10B981" />}
                     label="가입일"
                     value={formatKoreanDate(userInfo.created_at)}
                 />
                 <InfoItem
-                    icon="🎂"
+                    icon={<Cake size={18} color="#EF4444" />}
                     label="출생년도"
                     value={userInfo.birth_year.toString()}
                 />
                 <InfoItem
-                    icon="🧠"
+                    icon={<Brain size={18} color="#8B5CF6" />}
                     label="MBTI"
                     value={userInfo.mbti}
                     highlight={true}
                 />
                 <InfoItem
-                    icon="⚧️"
+                    icon={<Users size={18} color="#F59E0B" />}
                     label="성별"
                     value={
                         userInfo.gender === "male"
@@ -68,7 +73,7 @@ const UserInfoShow: React.FC<UserInfoShowProps> = ({ userInfo }) => {
 
 // Enhanced info item component with icon and potential highlight
 interface InfoItemProps {
-    icon: string;
+    icon: React.ReactNode;
     label: string;
     value: string;
     highlight?: boolean;
@@ -85,7 +90,7 @@ const InfoItem: React.FC<InfoItemProps> = ({
             className={`p-4 rounded-lg border ${highlight ? "border-indigo-200 bg-indigo-50" : "border-gray-100 bg-gray-50"}`}
         >
             <div className="flex items-center">
-                <span className="text-lg mr-2">{icon}</span>
+                <span className="mr-2">{icon}</span>
                 <span className="text-sm font-medium text-gray-500">
                     {label}
                 </span>

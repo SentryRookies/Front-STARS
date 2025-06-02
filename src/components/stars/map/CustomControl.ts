@@ -29,7 +29,14 @@ export class LocationControl {
         this.button.title = this.title;
         this.button.setAttribute("aria-label", this.title);
 
-        this.button.innerHTML = "🏠";
+        // 간단한 집 SVG 아이콘 (fill 기반)
+        this.button.innerHTML = `
+            <div style="transform: translateX(7px);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="black">
+                    <path d="M12 2l10 9h-3v10h-6v-6h-4v6H3V11H0l12-9z"/>
+                </svg>
+            </div>
+        `;
 
         // 클릭 이벤트 리스너
         this.button.addEventListener("click", this.onClick.bind(this));
@@ -80,6 +87,7 @@ export function addLocationControlStyles(): void {
             width: 29px;
             height: 29px;
             transition: background-color 0.2s ease;
+            color: #333;
         }
         
         .mapboxgl-ctrl-location:hover {

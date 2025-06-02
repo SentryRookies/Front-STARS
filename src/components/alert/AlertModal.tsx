@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { InfoIcon } from "lucide-react";
 
 export type AlertType = "danger" | "warning" | "info" | "success";
 
@@ -65,19 +66,20 @@ export default function AlertModal({
                 className="mb-2 px-4 py-2 rounded-full bg-gradient-to-r bg-white shadow-lg text-indigo-500 font-semibold text-base flex items-center gap-2 transition-all duration-200 hover:bg-indigo-500 hover:text-white"
                 onClick={() => setShowAlerts((prev) => !prev)}
             >
-                <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
-                    />
-                </svg>
+                {/*<svg*/}
+                {/*    className="w-5 h-5"*/}
+                {/*    fill="none"*/}
+                {/*    stroke="currentColor"*/}
+                {/*    strokeWidth={2}*/}
+                {/*    viewBox="0 0 24 24"*/}
+                {/*>*/}
+                {/*    <path*/}
+                {/*        strokeLinecap="round"*/}
+                {/*        strokeLinejoin="round"*/}
+                {/*        d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"*/}
+                {/*    />*/}
+                {/*</svg>*/}
+                <InfoIcon className="h-4 w-4" />
                 혼잡 지역 확인
                 <svg
                     className={`w-4 h-4 ml-1 transform transition-transform duration-300 ${showAlerts ? "rotate-180" : ""}`}

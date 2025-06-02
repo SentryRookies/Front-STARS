@@ -52,7 +52,6 @@ interface AdminDataProviderProps {
 // 컨텍스트 제공자 컴포넌트
 export const AdminDataProvider: React.FC<AdminDataProviderProps> = ({
     children,
-    test = false,
 }) => {
     // 관리자 권한 확인
     const adminCheck = isAdmin();
