@@ -5,6 +5,13 @@ import { getFavoriteList } from "../../api/adminApi";
 import { useLocation } from "react-router-dom";
 import FavoriteCard from "./cards/FavoriteCard";
 import UserList from "./cards/UserList";
+import {
+    Coffee,
+    UtensilsCrossed,
+    MapPin,
+    Landmark,
+    BedDouble,
+} from "lucide-react";
 
 // 카테고리 한글 매핑
 const categoryMap: Record<string, string> = {
@@ -123,7 +130,6 @@ const AdminUserFavorite = () => {
         }
     }, [searchTerm, userFavorites]);
 
-    // 타입별 색상 및 아이콘
     const getTypeStylesAndIcon = (type: string) => {
         switch (type?.toLowerCase()) {
             case "cafe":
@@ -133,7 +139,23 @@ const AdminUserFavorite = () => {
                     text: "text-yellow-800",
                     tag: "bg-yellow-100",
                     tagText: "text-yellow-800",
-                    icon: "☕",
+                    shadow: "",
+                    icon: (
+                        <Coffee
+                            size={16}
+                            strokeWidth={2}
+                            color="#92400e"
+                            className=""
+                        />
+                    ),
+                    selectedIcon: (
+                        <Coffee
+                            size={16}
+                            strokeWidth={2}
+                            color="#ffffff"
+                            className=""
+                        />
+                    ),
                 };
             case "restaurant":
                 return {
@@ -142,7 +164,23 @@ const AdminUserFavorite = () => {
                     text: "text-red-800",
                     tag: "bg-red-100",
                     tagText: "text-red-800",
-                    icon: "🍽️",
+                    shadow: "",
+                    icon: (
+                        <UtensilsCrossed
+                            size={16}
+                            strokeWidth={2}
+                            color="#991b1b"
+                            className=""
+                        />
+                    ),
+                    selectedIcon: (
+                        <UtensilsCrossed
+                            size={16}
+                            strokeWidth={2}
+                            color="#ffffff"
+                            className=""
+                        />
+                    ),
                 };
             case "accommodation":
                 return {
@@ -151,7 +189,23 @@ const AdminUserFavorite = () => {
                     text: "text-indigo-800",
                     tag: "bg-indigo-100",
                     tagText: "text-indigo-800",
-                    icon: "🏨",
+                    shadow: "",
+                    icon: (
+                        <BedDouble
+                            size={16}
+                            strokeWidth={2}
+                            color="#1e40af"
+                            className=""
+                        />
+                    ),
+                    selectedIcon: (
+                        <BedDouble
+                            size={16}
+                            strokeWidth={2}
+                            color="#ffffff"
+                            className=""
+                        />
+                    ),
                 };
             case "attraction":
                 return {
@@ -160,7 +214,23 @@ const AdminUserFavorite = () => {
                     text: "text-green-800",
                     tag: "bg-green-100",
                     tagText: "text-green-800",
-                    icon: "🎭",
+                    shadow: "",
+                    icon: (
+                        <Landmark
+                            size={16}
+                            strokeWidth={2}
+                            color="#166534"
+                            className=""
+                        />
+                    ),
+                    selectedIcon: (
+                        <Landmark
+                            size={16}
+                            strokeWidth={2}
+                            color="#ffffff"
+                            className=""
+                        />
+                    ),
                 };
             default:
                 return {
@@ -169,7 +239,23 @@ const AdminUserFavorite = () => {
                     text: "text-gray-800",
                     tag: "bg-gray-100",
                     tagText: "text-gray-800",
-                    icon: "📍",
+                    shadow: "",
+                    icon: (
+                        <MapPin
+                            size={16}
+                            strokeWidth={2}
+                            color="#374151"
+                            className=""
+                        />
+                    ),
+                    selectedIcon: (
+                        <MapPin
+                            size={16}
+                            strokeWidth={2}
+                            color="#ffffff"
+                            className=""
+                        />
+                    ),
                 };
         }
     };
@@ -188,18 +274,21 @@ const AdminUserFavorite = () => {
                 const type = reverseCategoryMap[ko];
                 const styles = getTypeStylesAndIcon(type ?? "");
                 const isSelected = selected === ko;
+
                 return (
                     <button
                         key={ko}
-                        className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 transition-colors duration-150
-                            ${
-                                isSelected
-                                    ? "bg-indigo-600 text-white"
-                                    : `${styles.tag} ${styles.tagText} border border-transparent hover:border-indigo-400`
-                            }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 transition-colors duration-150 flex items-center gap-1.5 whitespace-nowrap
+                        ${
+                            isSelected
+                                ? "bg-indigo-600 text-white"
+                                : `${styles.tag} ${styles.tagText} border border-transparent hover:border-indigo-400`
+                        }`}
                         onClick={() => setSelected(ko)}
                     >
-                        {ko === "전체" ? "전체" : `${styles.icon} ${ko}`}
+                        {ko !== "전체" &&
+                            (isSelected ? styles.selectedIcon : styles.icon)}
+                        <span>{ko}</span>
                     </button>
                 );
             })}

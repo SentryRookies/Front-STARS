@@ -7,8 +7,10 @@ interface TypeStyles {
     text: string;
     tag: string;
     tagText: string;
-    icon: string;
+    shadow: string; // 추가된 shadow 속성
+    icon: React.ReactNode; // string에서 React.ReactNode로 변경
 }
+
 interface FavoriteCardProps {
     item: Favorite;
     typeStyles: TypeStyles;

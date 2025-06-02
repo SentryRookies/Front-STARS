@@ -233,8 +233,8 @@ const AdminTour = () => {
     // 상태별 배지 색상
     const getStatusColor = (isFree: boolean) => {
         return isFree
-            ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-            : "bg-rose-100 text-rose-800 border-rose-300";
+            ? "bg-gradient-to-r from-emerald-400 to-green-500 text-white shadow-md shadow-emerald-100"
+            : "bg-gradient-to-r from-red-400 to-rose-500 text-white shadow-md shadow-red-100";
     };
 
     // 로딩 스켈레톤 컴포넌트

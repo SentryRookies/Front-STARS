@@ -13,19 +13,19 @@ type CongestionTagProps = {
 const CongestionTag = ({ level, size = "md" }: CongestionTagProps) => {
     const isMobile = useMediaQuery("(max-width: 768px)");
 
-    // 혼잡도 레벨에 따른 배경색, 텍스트 색상, 테두리 색상 결정
+    // 혼잡도 레벨에 따른 스타일 결정 (그라데이션 + 연한 그림자 효과)
     const getStyles = () => {
         switch (level) {
             case "여유":
-                return "bg-green-50 text-green-600 border-green-200";
+                return "bg-gradient-to-r from-emerald-400 to-green-500 text-white shadow-md shadow-emerald-100";
             case "보통":
-                return "bg-yellow-50 text-yellow-600 border-yellow-200";
+                return "bg-gradient-to-r from-blue-400 to-indigo-500 text-white shadow-md shadow-blue-100";
             case "약간 붐빔":
-                return "bg-orange-50 text-orange-600 border-orange-200";
+                return "bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-md shadow-orange-100";
             case "붐빔":
-                return "bg-red-50 text-red-600 border-red-200";
+                return "bg-gradient-to-r from-red-400 to-rose-500 text-white shadow-md shadow-red-100";
             default:
-                return "bg-gray-50 text-gray-600 border-gray-200";
+                return "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-md shadow-gray-100";
         }
     };
 
@@ -84,10 +84,12 @@ const CongestionTag = ({ level, size = "md" }: CongestionTagProps) => {
     return (
         <div
             className={`
-                    rounded-full border 
+                    rounded-lg
                     ${getStyles()} 
                     ${getSizeClass()}
-                    font-medium whitespace-nowrap
+                    font-semibold whitespace-nowrap
+                    transform transition-transform duration-200 hover:scale-105
+                    backdrop-blur-sm
                 `}
         >
             {getDisplayText()}
