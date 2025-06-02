@@ -97,7 +97,6 @@ export default function CustomPopupCard({
                         );
                     }
                 );
-
                 setCurrentIsFavorite(isInFavorites);
             } catch (error) {
                 console.error("즐겨찾기 목록 조회 실패:", error);
@@ -165,6 +164,7 @@ export default function CustomPopupCard({
                 }
             );
             setCurrentIsFavorite(isInFavorites);
+            onFavoriteToggle(item);
         } catch (error) {
             console.error("즐겨찾기 토글 실패:", error);
         } finally {
