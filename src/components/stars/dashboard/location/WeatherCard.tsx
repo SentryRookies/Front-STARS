@@ -83,7 +83,7 @@ export default function WeatherCard({
                 {weather.fcst24hours.slice(0, 6).map((f, i) => (
                     <div key={i} className="flex flex-col items-center">
                         <span>{f.fcst_dt.slice(8, 10)}시</span>
-                        <span>
+                        <span className="text-2xl">
                             {f.pre_sky_stts === "맑음"
                                 ? "☀️"
                                 : f.pre_sky_stts === "구름많음"
