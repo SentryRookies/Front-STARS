@@ -186,6 +186,11 @@ const AreaFocusCard: React.FC<AreaFocusCardProps> = ({
                                 repeat: Infinity,
                                 repeatDelay: 1,
                             }}
+                            exit={{
+                                opacity: 0,
+                                scale: 0.95,
+                                transition: { duration: 0.2, repeat: 0 },
+                            }}
                         >
                             <svg
                                 className="w-5 h-5"
